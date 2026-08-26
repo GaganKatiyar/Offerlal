@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Models;
@@ -58,7 +58,7 @@ public partial class OfferlalFashionDbContext : DbContext
     {
         modelBuilder.Entity<Address>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Addresse__3214EC076EA7C696");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.CustomerId, "IX_Addresses_CustomerId");
 
@@ -91,9 +91,9 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<AdminUser>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__AdminUse__3214EC07AA8B211B");
+            entity.HasKey(e => e.Id);
 
-            entity.HasIndex(e => e.Username, "UQ__AdminUse__536C85E4F191FCAD").IsUnique();
+            entity.HasIndex(e => e.Username).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -113,7 +113,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<BudgetTier>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__BudgetTi__3214EC07CE34546B");
+            entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -126,7 +126,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<CartItem>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__CartItem__3214EC07C1F4053C");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.CustomerId, "IX_CartItems_CustomerId");
 
@@ -165,7 +165,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<CartItemCustomization>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__CartItem__3214EC077127EC46");
+            entity.HasKey(e => e.Id);
 
             entity.Property(e => e.CartItemId)
                 .HasMaxLength(50)
@@ -183,9 +183,9 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Categori__3214EC07095BCE87");
+            entity.HasKey(e => e.Id);
 
-            entity.HasIndex(e => e.Slug, "UQ__Categori__BC7B5FB6FB617F53").IsUnique();
+            entity.HasIndex(e => e.Slug).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -210,11 +210,11 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Coupon>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Coupons__3214EC072CA79C6C");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.Code, "IX_Coupons_Code");
 
-            entity.HasIndex(e => e.Code, "UQ__Coupons__A25C5AA754083469").IsUnique();
+            entity.HasIndex(e => e.Code).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -256,11 +256,11 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Customer>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Customer__3214EC07A8E9DA23");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.Segment, "IX_Customers_Segment");
 
-            entity.HasIndex(e => e.Email, "UQ__Customer__A9D1053428293FD9").IsUnique();
+            entity.HasIndex(e => e.Email).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -289,7 +289,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<CustomizationOption>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Customiz__3214EC079F0E05DE");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.ProductId, "IX_CustomizationOptions_ProductId");
 
@@ -313,9 +313,9 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Occasion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Occasion__3214EC07E666A385");
+            entity.HasKey(e => e.Id);
 
-            entity.HasIndex(e => e.Slug, "UQ__Occasion__BC7B5FB61C08BA53").IsUnique();
+            entity.HasIndex(e => e.Slug).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -330,7 +330,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Orders__3214EC071F42F66B");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.CustomerId, "IX_Orders_CustomerId");
 
@@ -338,7 +338,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
             entity.HasIndex(e => e.Status, "IX_Orders_Status");
 
-            entity.HasIndex(e => e.OrderNumber, "UQ__Orders__CAC5E743CBA2659C").IsUnique();
+            entity.HasIndex(e => e.OrderNumber).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -404,7 +404,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<OrderItem>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__OrderIte__3214EC07BB384CD1");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.OrderId, "IX_OrderItems_OrderId");
 
@@ -434,7 +434,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<OrderStatusHistory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__OrderSta__3214EC0775F82269");
+            entity.HasKey(e => e.Id);
 
             entity.ToTable("OrderStatusHistory");
 
@@ -456,15 +456,15 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Products__3214EC07CE872754");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.CategoryId, "IX_Products_CategoryId");
 
             entity.HasIndex(e => new { e.IsBestseller, e.IsNewArrival, e.IsFeatured, e.IsBridal }, "IX_Products_Flags");
 
-            entity.HasIndex(e => e.Slug, "UQ__Products__BC7B5FB61DAAC8CB").IsUnique();
+            entity.HasIndex(e => e.Slug).IsUnique();
 
-            entity.HasIndex(e => e.Sku, "UQ__Products__CA1FD3C511581DE6").IsUnique();
+            entity.HasIndex(e => e.Sku).IsUnique();
 
             entity.Property(e => e.Id)
                 .HasMaxLength(50)
@@ -543,7 +543,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ProductI__3214EC07F641792D");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.VariantId, "IX_ProductImages_VariantId");
 
@@ -563,7 +563,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<ProductSku>(entity =>
         {
-            entity.HasKey(e => e.Sku).HasName("PK__ProductS__CA1FD3C4CE694432");
+            entity.HasKey(e => e.Sku);
 
             entity.HasIndex(e => e.VariantId, "IX_ProductSkus_VariantId");
 
@@ -584,7 +584,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<ProductVariant>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ProductV__3214EC07A4D0741E");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.ProductId, "IX_ProductVariants_ProductId");
 
@@ -607,7 +607,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Reviews__3214EC07ADA3EC8E");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.CustomerId, "IX_Reviews_CustomerId");
 
@@ -639,7 +639,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<ReviewImage>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ReviewIm__3214EC0708501F70");
+            entity.HasKey(e => e.Id);
 
             entity.Property(e => e.ReviewId)
                 .HasMaxLength(50)
@@ -653,7 +653,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<SizeProfile>(entity =>
         {
-            entity.HasKey(e => e.CustomerId).HasName("PK__SizeProf__A4AE64D82C5EBBF2");
+            entity.HasKey(e => e.CustomerId);
 
             entity.Property(e => e.CustomerId)
                 .HasMaxLength(50)
@@ -683,7 +683,7 @@ public partial class OfferlalFashionDbContext : DbContext
 
         modelBuilder.Entity<WishlistItem>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Wishlist__3214EC07F460BC3B");
+            entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.CustomerId, "IX_WishlistItems_CustomerId");
 

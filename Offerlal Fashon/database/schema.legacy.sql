@@ -1,4 +1,24 @@
 /* =====================================================================
+   ⚠  REFERENCE ONLY — DO NOT EDIT, DO NOT RUN.
+   =====================================================================
+   The database schema is now owned by EF Core migrations in
+   OfferlalFashion.Api/Migrations/. This file is the historical
+   hand-written schema it was originally scaffolded from, kept only
+   for reference.
+
+   To change the schema:
+       1. Edit the entity classes in OfferlalFashion.Api/Models/
+       2. dotnet ef migrations add <DescriptiveName>
+       3. dotnet ef database update
+
+   To rebuild a dev database from scratch:
+       dotnet ef database drop --force
+       dotnet ef database update
+       sqlcmd -S . -E -d Offerlal_Dev -i "database/seed.sql"
+
+   seed.sql IS still live and used by the rebuild step above.
+   =====================================================================
+
    Offerlal Fashion — Database Schema (Microsoft SQL Server / T-SQL)
    =====================================================================
    Mirrors the TypeScript interfaces in src/app/core/models/ exactly, so
