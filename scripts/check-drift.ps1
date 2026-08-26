@@ -24,7 +24,20 @@ $apiDir   = Join-Path $repoRoot "OfferlalFashion.Api"
 
 Push-Location $apiDir
 try {
-    dotnet ef migrations has-pending-model-changes
+    # Build first and separately. `has-pending-model-changes` also returns
+    # non-zero when the project simply fails to compile (a locked binary from a
+    # running API is the common case), and reporting that as "schema drift"
+    # sends you hunting for a migration that was never missing.
+    dotnet build --nologo | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "BUILD FAILED - cannot check for drift." -ForegroundColor Red
+        Write-Host "This is a compile error, not a schema problem." -ForegroundColor Yellow
+        Write-Host "If the API is running, stop it first (it locks the output binary)." -ForegroundColor Yellow
+        exit 2
+    }
+
+    dotnet ef migrations has-pending-model-changes --no-build
     $code = $LASTEXITCODE
 }
 finally { Pop-Location }
