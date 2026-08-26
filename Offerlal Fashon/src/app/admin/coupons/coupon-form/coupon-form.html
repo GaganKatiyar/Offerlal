@@ -1,0 +1,43 @@
+<div class="page-head">
+  <h1>{{ isEdit() ? 'Edit Coupon' : 'Add Coupon' }}</h1>
+  <a routerLink="/admin/coupons" class="btn btn-outline">Cancel</a>
+</div>
+
+<div class="admin-form">
+  <div class="form-section">
+    <h3>Coupon Details</h3>
+    <div class="field-grid">
+      <label>Code *<input type="text" [value]="code()" (input)="code.set($any($event.target).value)" placeholder="WELCOME10" /></label>
+      <label>
+        Type
+        <select [value]="type()" (change)="type.set($any($event.target).value)">
+          <option value="percent">Percentage Discount</option>
+          <option value="flat">Flat Discount</option>
+          <option value="free-shipping">Free Shipping</option>
+        </select>
+      </label>
+      <label class="full">Description *<input type="text" [value]="description()" (input)="description.set($any($event.target).value)" /></label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>Value &amp; Conditions</h3>
+    <div class="field-grid cols-3">
+      <label>{{ type() === 'percent' ? 'Percentage (%)' : 'Flat Amount (₹)' }}<input type="number" [value]="value()" (input)="value.set(+$any($event.target).value)" /></label>
+      <label>Min Order Value (₹)<input type="number" [value]="minOrderValue()" (input)="minOrderValue.set(+$any($event.target).value || undefined)" /></label>
+      <label>Max Discount (₹)<input type="number" [value]="maxDiscount()" (input)="maxDiscount.set(+$any($event.target).value || undefined)" /></label>
+      <label>Valid From<input type="date" [value]="validFrom()" (input)="validFrom.set($any($event.target).value)" /></label>
+      <label>Valid To<input type="date" [value]="validTo()" (input)="validTo.set($any($event.target).value)" /></label>
+      <label>Usage Limit<input type="number" [value]="usageLimit()" (input)="usageLimit.set(+$any($event.target).value || undefined)" /></label>
+    </div>
+    <label class="stack-label" style="margin-top: 12px; flex-direction: row; align-items: center; gap: 8px;">
+      <input type="checkbox" [checked]="isActive()" (change)="isActive.set($any($event.target).checked)" style="width: auto;" />
+      Active
+    </label>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-primary" (click)="save()">{{ isEdit() ? 'Save Changes' : 'Create Coupon' }}</button>
+    <a routerLink="/admin/coupons" class="btn btn-outline">Cancel</a>
+  </div>
+</div>

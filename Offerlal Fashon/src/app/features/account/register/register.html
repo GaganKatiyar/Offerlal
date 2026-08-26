@@ -1,0 +1,41 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Create Your Account</h1>
+    <p class="demo-hint">Save addresses, track orders and store your measurements.</p>
+
+    <label>
+      First Name *
+      <input type="text" [value]="firstName()" (input)="firstName.set($any($event.target).value)" />
+    </label>
+    <label>
+      Last Name
+      <input type="text" [value]="lastName()" (input)="lastName.set($any($event.target).value)" />
+    </label>
+    <label>
+      Email *
+      <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" />
+    </label>
+    <label>
+      Mobile Number *
+      <input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
+    </label>
+    <label>
+      City
+      <input type="text" [value]="city()" (input)="city.set($any($event.target).value)" />
+    </label>
+    <label>
+      State
+      <input type="text" [value]="state()" (input)="state.set($any($event.target).value)" />
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="button" class="btn btn-primary full" [disabled]="loading()" (click)="submit()">
+      {{ loading() ? 'Creating Account...' : 'Create Account' }}
+    </button>
+
+    <p class="switch-link">Already have an account? <a routerLink="/login">Sign In</a></p>
+  </div>
+</div>

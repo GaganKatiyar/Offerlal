@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="500" fill="#E9D8B4"/>
+  <g fill="none" stroke="#B98F4E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M170 90 h60 l14 34 h-88 z"/>
+    <path d="M156 124 C 130 200, 110 320, 96 430 L 304 430 C 290 320, 270 200, 244 124 Z"/>
+    <path d="M156 124 L 130 250" />
+    <path d="M244 124 L 270 250" />
+    <line x1="120" y1="330" x2="280" y2="330"/>
+    <line x1="112" y1="380" x2="288" y2="380"/>
+  </g>
+  <text x="200" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#8A7A52">Offerlal Fashion</text>
+</svg>

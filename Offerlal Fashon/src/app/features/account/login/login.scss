@@ -1,0 +1,105 @@
+.auth-page {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface-alt);
+  padding: var(--space-8);
+  border-radius: var(--radius-md);
+
+  h1 {
+    font-size: var(--font-size-xl);
+    text-align: center;
+    margin-bottom: var(--space-2);
+  }
+}
+
+.demo-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.mode-tabs {
+  display: flex;
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+
+  button {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: var(--space-3);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+
+    &.active {
+      color: var(--brand-primary);
+      border-color: var(--brand-primary);
+    }
+  }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+input {
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--font-size-md);
+  background: var(--surface-card);
+}
+
+.full {
+  width: 100%;
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-3);
+}
+
+.otp-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.forgot-link {
+  display: block;
+  text-align: center;
+  margin-top: var(--space-4);
+  font-size: var(--font-size-xs);
+  text-decoration: underline;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.switch-link {
+  text-align: center;
+  margin-top: var(--space-6);
+  font-size: var(--font-size-sm);
+
+  a {
+    color: var(--brand-primary);
+    text-decoration: underline;
+  }
+}

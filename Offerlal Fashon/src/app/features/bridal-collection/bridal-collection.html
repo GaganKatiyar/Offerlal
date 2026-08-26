@@ -1,0 +1,32 @@
+<section class="editorial-hero">
+  <app-image-with-fallback [src]="bridalProducts()[0]?.variants?.[0]?.images?.[0]?.url ?? ''" alt="The Bridal Edit" loadingMode="eager" />
+  <div class="editorial-overlay"></div>
+  <div class="container editorial-content">
+    <span class="eyebrow">Editorial · 2026</span>
+    <h1>The Bridal Edit</h1>
+    <p>Timeless silhouettes, intricate craftsmanship and statement details for your most special day. Every piece is finished by hand, with custom fitting available on request.</p>
+    <a href="#bridal-grid" class="btn btn-outline-light">Explore the Collection</a>
+  </div>
+</section>
+
+<section class="concierge-strip">
+  <div class="container concierge-content">
+    <div>
+      <h3>Need help choosing?</h3>
+      <p>Our bridal stylists offer one-on-one video consultations to help you find the right silhouette, fabric and fit.</p>
+    </div>
+    <a routerLink="/bridal-concierge" class="btn btn-primary">Talk to a Bridal Expert</a>
+  </div>
+</section>
+
+<section class="container bridal-products" id="bridal-grid">
+  <div class="section-head center">
+    <span class="eyebrow">The Collection</span>
+    <h2>Bridal Lehengas &amp; Sarees</h2>
+  </div>
+  <div class="product-grid">
+    @for (p of bridalProducts(); track p.id) {
+      <app-product-card [product]="p" />
+    }
+  </div>
+</section>

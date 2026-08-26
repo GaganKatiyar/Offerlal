@@ -1,0 +1,35 @@
+// Premium palette — ivory / cream / champagne / red / gold / charcoal
+// Note: $color-wine* variable names are retained for minimal diff, but now
+// hold the brand's primary red (not a wine/maroon tone).
+$color-ivory: #fbf8f3;
+$color-cream: #f6efe4;
+$color-champagne: #e9d8b4;
+$color-beige: #dccfb8;
+$color-wine: #a31621;
+$color-wine-dark: #7a0f18;
+$color-wine-tint: #fbe4e7;
+$color-gold: #b98f4e;
+$color-gold-light: #d8b87b;
+$color-charcoal: #2a2521;
+$color-charcoal-soft: #57504a;
+$color-charcoal-mute: #8a8177;
+$color-white: #ffffff;
+$color-success: #3f6b4a;
+$color-error: #b54b23; // kept distinct from the red brand primary (warmer/rustier, not pure red)
+$color-border: rgba(42, 37, 33, 0.1);
+
+// Reserved status scale (order status chips — always pair with icon + label)
+$status-good: #0ca30c;
+$status-warning: #fab219;
+$status-serious: #ec835a;
+$status-critical: #d03b3b;
+
+// Admin categorical chart palette (CVD-checked)
+$chart-1: #9c2547; // deep wine
+$chart-2: #0a9186; // peacock teal
+$chart-3: #c79a46; // muted gold (needs direct labels — low contrast on ivory)
+$chart-4: #1f8f5a; // emerald
+$chart-5: #5a4ba0; // indigo
+$chart-6: #b85a2a; // terracotta
+$chart-7: #d1a22e; // mustard (needs direct labels)
+$chart-8: #c15b8c; // rose magenta

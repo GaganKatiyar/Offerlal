@@ -1,0 +1,74 @@
+<div class="container cart-page">
+  <h1>Your Bag</h1>
+
+  @if (cart.items().length === 0) {
+    <div class="empty-cart">
+      <p>Your bag is empty. Let's find something beautiful for your next occasion.</p>
+      <a routerLink="/new-arrivals" class="btn btn-primary">Shop New Arrivals</a>
+    </div>
+  } @else {
+    <div class="cart-layout">
+      <div class="cart-list">
+        @for (item of cart.items(); track item.id) {
+          @let product = productFor(item.productId);
+          <div class="cart-row">
+            <app-image-with-fallback class="thumb" [src]="product?.variants?.[0]?.images?.[0]?.url ?? ''" [alt]="product?.name ?? ''" />
+            <div class="row-info">
+              <p class="name">{{ product?.name }}</p>
+              <p class="meta">Color: {{ item.color }} &middot; Size: {{ item.size }}</p>
+              @if (item.customizations.length) {
+                <p class="meta customizations">{{ item.customizations.map(c => c.label).join(', ') }}</p>
+              }
+              <p class="delivery">Estimated delivery in {{ estimatedDelivery(item.productId) }} days</p>
+              <div class="row-bottom">
+                <app-quantity-stepper [quantity]="item.quantity" (quantityChange)="cart.updateQuantity(item.id, $event)" />
+                <div class="row-actions">
+                  <button type="button" (click)="moveToWishlist(item.id, item.productId)">Move to Wishlist</button>
+                  <button type="button" (click)="cart.remove(item.id)">Remove</button>
+                </div>
+              </div>
+            </div>
+            <div class="row-price">{{ (item.unitPrice + item.customizations.reduce((s,c)=>s+c.priceDelta,0)) * item.quantity | inr }}</div>
+          </div>
+        }
+      </div>
+
+      <aside class="order-summary">
+        <h3>Order Summary</h3>
+
+        <div class="coupon-box">
+          @if (appliedCode()) {
+            <div class="applied-coupon">
+              <span>{{ appliedCode() }} applied</span>
+              <button type="button" (click)="removeCoupon()">Remove</button>
+            </div>
+          } @else {
+            <div class="coupon-input-row">
+              <input type="text" placeholder="Enter coupon code" [value]="couponCode()" (input)="couponCode.set($any($event.target).value)" />
+              <button type="button" (click)="applyCoupon()">Apply</button>
+            </div>
+          }
+          @if (couponMessage()) {
+            <p class="coupon-message" [class.error]="couponError()">{{ couponMessage() }}</p>
+          }
+        </div>
+
+        <div class="summary-rows">
+          <div class="row"><span>Subtotal</span><span>{{ cart.subtotal() | inr }}</span></div>
+          @if (discount() > 0) {
+            <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
+          }
+          <div class="row"><span>Shipping</span><span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span></div>
+          <div class="row"><span>Tax</span><span>Included</span></div>
+        </div>
+
+        <div class="grand-total-row">
+          <span>Grand Total</span>
+          <span>{{ grandTotal() | inr }}</span>
+        </div>
+
+        <a routerLink="/checkout" class="btn btn-primary full">Proceed to Checkout</a>
+      </aside>
+    </div>
+  }
+</div>

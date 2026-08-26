@@ -1,0 +1,42 @@
+<div class="page-head">
+  <h1>Coupons &amp; Offers</h1>
+  <a routerLink="/admin/coupons/new" class="btn btn-primary">+ Add Coupon</a>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Value</th>
+        <th>Valid Till</th>
+        <th>Usage</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of store.coupons(); track c.id) {
+        <tr>
+          <td><strong>{{ c.code }}</strong></td>
+          <td>{{ c.description }}</td>
+          <td>{{ c.type }}</td>
+          <td>{{ c.type === 'percent' ? c.value + '%' : c.type === 'flat' ? (c.value | inr) : 'Free Shipping' }}</td>
+          <td>{{ c.validTo | date: 'mediumDate' }}</td>
+          <td>{{ c.usedCount }}@if (c.usageLimit) { / {{ c.usageLimit }} }</td>
+          <td>
+            <button type="button" class="movement-pill" [class]="c.isActive ? 'fast' : 'dead'" (click)="toggleActive(c.id, c.isActive)" style="border:none; cursor:pointer;">
+              {{ c.isActive ? 'Active' : 'Inactive' }}
+            </button>
+          </td>
+          <td class="actions-cell">
+            <a [routerLink]="[c.id, 'edit']">Edit</a>
+            <button type="button" (click)="deleteCoupon(c.id, c.code)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

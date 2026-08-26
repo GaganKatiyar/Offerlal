@@ -1,0 +1,23 @@
+<div class="admin-login-page">
+  <div class="login-card">
+    <p class="brand">Offerlal <span>Fashion</span></p>
+    <h1>Admin Console</h1>
+
+    <label>
+      Username
+      <input type="text" [value]="username()" (input)="username.set($any($event.target).value)" (keyup.enter)="login()" />
+    </label>
+    <label>
+      Password
+      <input type="password" [value]="password()" (input)="password.set($any($event.target).value)" (keyup.enter)="login()" />
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="button" class="btn btn-primary full" [disabled]="loading()" (click)="login()">
+      {{ loading() ? 'Signing In...' : 'Sign In' }}
+    </button>
+  </div>
+</div>

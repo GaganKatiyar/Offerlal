@@ -1,0 +1,24 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+
+  a {
+    color: var(--text-secondary);
+    &:hover {
+      color: var(--brand-primary);
+    }
+  }
+
+  .current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .sep {
+    color: var(--text-muted);
+  }
+}

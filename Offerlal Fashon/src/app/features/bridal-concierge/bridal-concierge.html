@@ -1,0 +1,46 @@
+<section class="concierge-hero">
+  <div class="container">
+    <span class="eyebrow">Bridal Concierge</span>
+    <h1>Talk to a Bridal Expert</h1>
+    <p>Personalised guidance for your bridal wardrobe — from first fitting to final drape.</p>
+    <a [href]="whatsappHref()" target="_blank" rel="noopener" class="btn btn-primary">Chat on WhatsApp</a>
+  </div>
+</section>
+
+<div class="container concierge-body">
+  <div class="services-list">
+    <h2>Choose Your Services</h2>
+    <div class="service-cards">
+      @for (s of services; track s.id) {
+        <button type="button" class="service-card" [class.active]="selectedServices().includes(s.id)" (click)="toggleService(s.id)">
+          <h4>{{ s.title }}</h4>
+          <p>{{ s.description }}</p>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="request-form">
+    @if (submitted()) {
+      <div class="success-box">
+        <h3>Request received!</h3>
+        <p>A bridal stylist will reach out to you within 24 hours to schedule your consultation.</p>
+      </div>
+    } @else {
+      <h3>Request a Consultation</h3>
+      <label>
+        Full Name *
+        <input type="text" [value]="name()" (input)="name.set($any($event.target).value)" />
+      </label>
+      <label>
+        Mobile Number *
+        <input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
+      </label>
+      <label>
+        Wedding Date
+        <input type="date" [value]="weddingDate()" (input)="weddingDate.set($any($event.target).value)" />
+      </label>
+      <button type="button" class="btn btn-primary full" (click)="submit()">Submit Request</button>
+    }
+  </div>
+</div>

@@ -1,0 +1,7 @@
+<span class="price-row" [class.lg]="size() === 'lg'" [class.sm]="size() === 'sm'">
+  <span class="price">{{ price() | inr }}</span>
+  @if (compareAtPrice() && discountPercent()) {
+    <span class="compare">{{ compareAtPrice() | inr }}</span>
+    <span class="discount">{{ discountPercent() }}% OFF</span>
+  }
+</span>

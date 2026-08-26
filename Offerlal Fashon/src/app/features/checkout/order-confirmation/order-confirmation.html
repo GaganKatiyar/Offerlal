@@ -1,0 +1,24 @@
+<div class="container confirmation-page">
+  @if (order(); as o) {
+    <div class="check-icon">✓</div>
+    <h1>Thank you! Your order is confirmed.</h1>
+    <p class="order-number">Order Number: <strong>{{ o.orderNumber }}</strong></p>
+    <p class="delivery-est">Estimated delivery: {{ o.expectedDeliveryDate | date: 'mediumDate' }}</p>
+
+    <div class="summary-card">
+      <div class="summary-row"><span>Subtotal</span><span>{{ o.subtotal | inr }}</span></div>
+      @if (o.discount > 0) {
+        <div class="summary-row"><span>Discount</span><span>-{{ o.discount | inr }}</span></div>
+      }
+      <div class="summary-row"><span>Shipping</span><span>{{ o.shippingFee === 0 ? 'Free' : (o.shippingFee | inr) }}</span></div>
+      <div class="summary-row total"><span>Total Paid</span><span>{{ o.total | inr }}</span></div>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/account/orders" class="btn btn-primary">Track Your Order</a>
+      <a routerLink="/shop" class="btn btn-outline">Continue Shopping</a>
+    </div>
+  } @else {
+    <p>Loading your order...</p>
+  }
+</div>

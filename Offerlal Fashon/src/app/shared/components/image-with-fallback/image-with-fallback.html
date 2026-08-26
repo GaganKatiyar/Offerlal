@@ -1,0 +1,12 @@
+<img
+  [src]="resolvedSrc()"
+  [srcset]="srcset()"
+  [sizes]="srcset() ? sizes() : null"
+  [alt]="alt()"
+  [loading]="loadingMode()"
+  [attr.fetchpriority]="loadingMode() === 'eager' ? 'high' : null"
+  class="img"
+  [class.loaded]="loaded()"
+  (error)="onError()"
+  (load)="onLoad()"
+/>

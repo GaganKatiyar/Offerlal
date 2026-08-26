@@ -1,0 +1,5 @@
+<div class="toast-stack">
+  @for (msg of toast.messages(); track msg.id) {
+    <div class="toast">{{ msg.text }}</div>
+  }
+</div>

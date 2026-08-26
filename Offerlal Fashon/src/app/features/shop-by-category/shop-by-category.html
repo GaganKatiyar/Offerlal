@@ -1,0 +1,18 @@
+<div class="page-hero">
+  <div class="container">
+    <span class="eyebrow">The Full Edit</span>
+    <h1>Collections</h1>
+    <p>From bridal lehengas to festive accessories, browse our full range by category.</p>
+  </div>
+</div>
+
+<div class="container category-grid">
+  @for (cat of categories(); track cat.id) {
+    <a class="category-card" [routerLink]="['/category', cat.slug]">
+      <app-image-with-fallback [src]="cat.thumbnailUrl" [alt]="cat.name" />
+      <div class="card-overlay">
+        <h3>{{ cat.name }}</h3>
+      </div>
+    </a>
+  }
+</div>

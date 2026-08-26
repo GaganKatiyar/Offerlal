@@ -1,0 +1,304 @@
+// Self-hosted fonts (no external Google Fonts request)
+@use '@fontsource/roboto/400.css' as roboto-400;
+@use '@fontsource/roboto/500.css' as roboto-500;
+@use '@fontsource/roboto/700.css' as roboto-700;
+
+@use 'styles/tokens/colors' as c;
+@use 'styles/tokens/typography' as t;
+
+:root {
+  // Surfaces
+  --color-ivory: #{c.$color-ivory};
+  --color-cream: #{c.$color-cream};
+  --color-champagne: #{c.$color-champagne};
+  --color-beige: #{c.$color-beige};
+  --color-wine: #{c.$color-wine};
+  --color-wine-dark: #{c.$color-wine-dark};
+  --color-wine-tint: #{c.$color-wine-tint};
+  --color-gold: #{c.$color-gold};
+  --color-gold-light: #{c.$color-gold-light};
+  --color-charcoal: #{c.$color-charcoal};
+  --color-charcoal-soft: #{c.$color-charcoal-soft};
+  --color-charcoal-mute: #{c.$color-charcoal-mute};
+  --color-white: #{c.$color-white};
+  --color-success: #{c.$color-success};
+  --color-error: #{c.$color-error};
+  --color-border: #{c.$color-border};
+
+  --status-good: #{c.$status-good};
+  --status-warning: #{c.$status-warning};
+  --status-serious: #{c.$status-serious};
+  --status-critical: #{c.$status-critical};
+
+  --chart-1: #{c.$chart-1};
+  --chart-2: #{c.$chart-2};
+  --chart-3: #{c.$chart-3};
+  --chart-4: #{c.$chart-4};
+  --chart-5: #{c.$chart-5};
+  --chart-6: #{c.$chart-6};
+  --chart-7: #{c.$chart-7};
+  --chart-8: #{c.$chart-8};
+
+  // Semantic aliases
+  --surface-page: var(--color-ivory);
+  --surface-card: var(--color-white);
+  --surface-alt: var(--color-cream);
+  --surface-accent: var(--color-champagne);
+  --text-primary: var(--color-charcoal);
+  --text-secondary: var(--color-charcoal-soft);
+  --text-muted: var(--color-charcoal-mute);
+  --text-on-brand: var(--color-white);
+  --brand-primary: var(--color-wine);
+  --brand-primary-hover: var(--color-wine-dark);
+  --brand-primary-tint: var(--color-wine-tint);
+  --brand-accent: var(--color-gold);
+  --brand-accent-light: var(--color-gold-light);
+  --border-subtle: var(--color-border);
+
+  // Typography
+  --font-display: #{t.$font-display};
+  --font-body: #{t.$font-body};
+  --font-accent: #{t.$font-accent};
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.75rem;
+  --font-size-4xl: 3.5rem;
+
+  // Spacing (4px scale)
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  // Radius / shadow
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-full: 999px;
+  --shadow-sm: 0 1px 2px rgba(42, 37, 33, 0.06);
+  --shadow-md: 0 4px 16px rgba(42, 37, 33, 0.08);
+  --shadow-lg: 0 12px 32px rgba(42, 37, 33, 0.12);
+
+  --header-height: 64px;
+  --announcement-height: 36px;
+  --max-width: 1440px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 var(--space-4);
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+}
+h2 {
+  font-size: var(--font-size-3xl);
+}
+h3 {
+  font-size: var(--font-size-2xl);
+}
+h4 {
+  font-size: var(--font-size-xl);
+}
+
+p {
+  margin: 0 0 var(--space-4);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+
+  @media (max-width: 767px) {
+    padding: 0 var(--space-4);
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-accent);
+  font-weight: 500;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-8);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+  white-space: nowrap;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.btn-primary {
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+
+  &:hover {
+    background: var(--brand-primary-hover);
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+
+  &:hover {
+    background: var(--text-primary);
+    color: var(--surface-page);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Storefront color themes — one-click switchable via ThemeService, which sets
+// data-theme on <html>. Each theme only overrides the wine/gold primitives;
+// every semantic token (surfaces, text, --brand-primary, --brand-accent, …)
+// already derives from these via var(), so nothing else needs to change.
+// ---------------------------------------------------------------------------
+
+:root[data-theme='royal-wine'] {
+  --color-wine: #a31621;
+  --color-wine-dark: #7a0f18;
+  --color-wine-tint: #fbe4e7;
+  --color-gold: #b98f4e;
+  --color-gold-light: #d8b87b;
+}
+
+:root[data-theme='bridal-red'] {
+  --color-wine: #c81e2c;
+  --color-wine-dark: #9c1420;
+  --color-wine-tint: #fbe2e4;
+  --color-gold: #b98f4e;
+  --color-gold-light: #d8b87b;
+}
+
+// Smoothly animate the swap on the page body instead of an abrupt flash.
+// (Buttons and other componentized elements already carry their own
+// background/border/color transitions and pick up the new theme through them.)
+body {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+}
+
+.btn-outline-light {
+  background: transparent;
+  color: var(--color-white);
+  border-color: var(--color-white);
+
+  &:hover {
+    background: var(--color-white);
+    color: var(--text-primary);
+  }
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

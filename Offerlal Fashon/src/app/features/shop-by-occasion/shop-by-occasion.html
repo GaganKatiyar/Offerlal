@@ -1,0 +1,19 @@
+<div class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Curated For You</span>
+    <h1>Shop by Occasion</h1>
+    <p>Every celebration deserves its own silhouette. Find the piece made for yours.</p>
+  </div>
+</div>
+
+<div class="container occasion-grid">
+  @for (occ of occasions(); track occ.id) {
+    <a class="occasion-card" [routerLink]="['/occasion', occ.slug]">
+      <app-image-with-fallback [src]="occ.imageUrl" [alt]="occ.name" />
+      <div class="card-overlay">
+        <h3>{{ occ.name }}</h3>
+        <p>{{ occ.description }}</p>
+      </div>
+    </a>
+  }
+</div>

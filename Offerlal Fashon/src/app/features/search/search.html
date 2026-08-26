@@ -1,0 +1,41 @@
+<div class="container search-page">
+  @if (query()) {
+    <h1>Results for &ldquo;{{ query() }}&rdquo;</h1>
+    @if (!loading() && results().length === 0) {
+      <p class="no-results">No products found. Try one of these instead:</p>
+      <div class="chip-list">
+        @for (t of trending; track t) {
+          <button type="button" class="chip" (click)="searchFor(t)">{{ t }}</button>
+        }
+      </div>
+    } @else {
+      <div class="product-grid">
+        @for (p of results(); track p.id) {
+          <app-product-card [product]="p" />
+        }
+      </div>
+    }
+  } @else {
+    <h1>Search</h1>
+
+    @if (recentSearches().length) {
+      <div class="search-block">
+        <h4>Recent Searches</h4>
+        <div class="chip-list">
+          @for (r of recentSearches(); track r) {
+            <button type="button" class="chip" (click)="searchFor(r)">{{ r }}</button>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="search-block">
+      <h4>Trending Searches</h4>
+      <div class="chip-list">
+        @for (t of trending; track t) {
+          <button type="button" class="chip" (click)="searchFor(t)">{{ t }}</button>
+        }
+      </div>
+    </div>
+  }
+</div>

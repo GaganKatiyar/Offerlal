@@ -1,0 +1,132 @@
+:host {
+  position: fixed;
+  bottom: var(--space-6);
+  left: var(--space-6);
+  z-index: 80;
+}
+
+.theme-switcher {
+  position: relative;
+}
+
+.theme-fab {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.06);
+  }
+}
+
+.theme-fab-swatch {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-page);
+}
+
+.theme-panel {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 0;
+  width: 210px;
+  background: var(--surface-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-3);
+  animation: theme-panel-in 0.15s ease;
+}
+
+@keyframes theme-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.theme-panel-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: var(--space-1) var(--space-2) var(--space-2);
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  min-height: 40px;
+
+  &:hover {
+    background: var(--surface-alt);
+  }
+
+  &.active {
+    background: var(--surface-alt);
+  }
+}
+
+.theme-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.theme-option-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.theme-check {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  :host {
+    bottom: var(--space-4);
+    left: var(--space-4);
+  }
+
+  .theme-fab {
+    width: 48px;
+    height: 48px;
+  }
+}

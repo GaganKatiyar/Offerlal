@@ -1,0 +1,36 @@
+<app-drawer [open]="cart.isDrawerOpen()" title="Your Bag ({{ cart.count() }})" (closed)="cart.closeDrawer()">
+  @if (cart.items().length === 0) {
+    <div class="empty">
+      <p>Your bag is empty.</p>
+      <a routerLink="/new-arrivals" class="btn btn-outline" (click)="cart.closeDrawer()">Shop New Arrivals</a>
+    </div>
+  } @else {
+    <div class="cart-items">
+      @for (item of cart.items(); track item.id) {
+        @let product = productFor(item.productId);
+        <div class="cart-line">
+          <app-image-with-fallback class="thumb" [src]="product?.variants?.[0]?.images?.[0]?.url ?? ''" [alt]="product?.name ?? ''" />
+          <div class="line-info">
+            <p class="name">{{ product?.name }}</p>
+            <p class="meta">{{ item.color }} · Size {{ item.size }}</p>
+            <div class="line-bottom">
+              <app-quantity-stepper [quantity]="item.quantity" (quantityChange)="cart.updateQuantity(item.id, $event)" />
+              <span class="price">{{ item.unitPrice * item.quantity | inr }}</span>
+            </div>
+            <button type="button" class="remove-btn" (click)="cart.remove(item.id)">Remove</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="drawer-footer">
+      <div class="subtotal-row">
+        <span>Subtotal</span>
+        <span>{{ cart.subtotal() | inr }}</span>
+      </div>
+      <p class="note">Shipping and taxes calculated at checkout.</p>
+      <button type="button" class="btn btn-primary full" (click)="checkout()">Proceed to Checkout</button>
+      <a routerLink="/cart" class="view-cart-link" (click)="cart.closeDrawer()">View Full Bag</a>
+    </div>
+  }
+</app-drawer>

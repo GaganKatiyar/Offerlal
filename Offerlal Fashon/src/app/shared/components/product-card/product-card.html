@@ -1,0 +1,45 @@
+<a class="card" [routerLink]="['/product', product().slug]">
+  <div class="media">
+    <app-image-with-fallback [src]="primaryImage()" [alt]="product().name" sizes="(min-width: 1024px) 25vw, 50vw" />
+
+    <div class="badges">
+      @if (product().isNewArrival) {
+        <app-badge variant="new">New</app-badge>
+      }
+      @if (product().isBestseller) {
+        <app-badge variant="bestseller">Bestseller</app-badge>
+      }
+      @if (product().stockStatus === 'low-stock') {
+        <app-badge variant="low-stock">Low Stock</app-badge>
+      }
+      @if (product().stockStatus === 'out-of-stock') {
+        <app-badge variant="out-of-stock">Sold Out</app-badge>
+      }
+    </div>
+
+    <button type="button" class="wishlist-btn" [class.active]="inWishlist()" (click)="toggleWishlist($event)" aria-label="Toggle wishlist">
+      {{ inWishlist() ? '♥' : '♡' }}
+    </button>
+
+    <div class="hover-actions">
+      <button type="button" class="action-btn" (click)="openQuickView($event)">Quick View</button>
+      <button type="button" class="action-btn primary" (click)="quickAdd($event)">Quick Add</button>
+    </div>
+  </div>
+
+  <div class="info">
+    @if (product().variants.length > 1) {
+      <div class="swatches">
+        @for (v of product().variants; track v.id) {
+          <span class="swatch" [style.background]="v.colorHex" [attr.title]="v.color"></span>
+        }
+      </div>
+    }
+    <h3 class="name">{{ product().name }}</h3>
+    <app-price-display [price]="product().price" [compareAtPrice]="product().compareAtPrice" size="sm" />
+    <div class="rating-row">
+      <app-star-rating [rating]="product().rating" />
+      <span class="review-count">({{ product().reviewCount }})</span>
+    </div>
+  </div>
+</a>

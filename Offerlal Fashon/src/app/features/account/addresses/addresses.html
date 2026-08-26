@@ -1,0 +1,65 @@
+<div class="container account-page">
+  <div class="account-layout">
+    <aside class="account-nav">
+      <p class="greeting">Hello, {{ auth.currentUser()?.firstName }}</p>
+      <a routerLink="/account">Dashboard</a>
+      <a routerLink="/account/orders">My Orders</a>
+      <a routerLink="/account/wishlist">Wishlist</a>
+      <a routerLink="/account/addresses" class="active">Saved Addresses</a>
+      <a routerLink="/account/size-profile">Size Profile</a>
+      <a routerLink="/track-order">Track Order</a>
+    </aside>
+
+    <div class="account-main">
+      <h1>Saved Addresses</h1>
+
+      @if (auth.currentUser()?.addresses?.length) {
+        <div class="address-cards">
+          @for (a of auth.currentUser()!.addresses; track a.id) {
+            <div class="address-card" [class.is-default]="a.isDefault">
+              <div class="address-label-row">
+                <span class="address-label">{{ a.label }}</span>
+                @if (a.isDefault) {
+                  <span class="default-tag">Default</span>
+                }
+              </div>
+              <p class="address-text">
+                {{ a.fullName }}<br />
+                {{ a.line1 }}<br />
+                {{ a.city }}, {{ a.state }} {{ a.pincode }}<br />
+                {{ a.phone }}
+              </p>
+              <button type="button" class="remove-address-btn" (click)="removeAddress(a.id)">Remove</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-note">No saved addresses yet.</p>
+      }
+
+      @if (!showForm()) {
+        <button type="button" class="btn btn-outline" style="margin-top: 24px" (click)="showForm.set(true)">Add New Address</button>
+      } @else {
+        <div class="add-address-form">
+          <h3>New Address</h3>
+          <div class="form-grid">
+            <label>Full Name<input type="text" [value]="fullName()" (input)="fullName.set($any($event.target).value)" /></label>
+            <label>Phone<input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" /></label>
+            <label class="full">House / Street<input type="text" [value]="line1()" (input)="line1.set($any($event.target).value)" /></label>
+            <label>City<input type="text" [value]="city()" (input)="city.set($any($event.target).value)" /></label>
+            <label>State<input type="text" [value]="state()" (input)="state.set($any($event.target).value)" /></label>
+            <label>PIN Code<input type="text" [value]="pincode()" (input)="pincode.set($any($event.target).value)" /></label>
+          </div>
+          <label class="checkbox-inline">
+            <input type="checkbox" [checked]="isDefault()" (change)="isDefault.set($any($event.target).checked)" />
+            Set as default address
+          </label>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" (click)="addAddress()">Save Address</button>
+            <button type="button" class="btn btn-outline" (click)="showForm.set(false)">Cancel</button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

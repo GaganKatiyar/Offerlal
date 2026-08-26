@@ -1,0 +1,45 @@
+# Normalize line endings: LF in the repo, native in the working copy.
+# Matters because development is on Windows but deployment targets a Linux VPS.
+* text=auto eol=lf
+
+# Windows-only files keep CRLF
+*.bat        text eol=crlf
+*.cmd        text eol=crlf
+*.ps1        text eol=crlf
+*.sln        text eol=crlf
+*.slnx       text eol=crlf
+*.csproj     text eol=crlf
+
+# Explicit text types
+*.cs         text diff=csharp
+*.ts         text
+*.js         text
+*.html       text
+*.scss       text
+*.css        text
+*.json       text
+*.md         text
+*.sql        text
+*.yml        text
+*.yaml       text
+
+# Binary — never diff or line-ending-convert
+*.png        binary
+*.jpg        binary
+*.jpeg       binary
+*.gif        binary
+*.ico        binary
+*.webp       binary
+*.pdf        binary
+*.woff       binary
+*.woff2      binary
+*.ttf        binary
+*.eot        binary
+*.zip        binary
+*.gz         binary
+*.bak        binary
+*.dll        binary
+*.exe        binary
+
+# Generated — collapse in diffs and exclude from language stats
+package-lock.json  linguist-generated=true -diff

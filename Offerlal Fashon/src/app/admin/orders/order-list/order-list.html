@@ -1,0 +1,45 @@
+<div class="page-head">
+  <h1>Orders</h1>
+</div>
+
+<div class="toolbar">
+  <input type="text" placeholder="Search by order number or customer" [value]="query()" (input)="query.set($any($event.target).value)" />
+  <select [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+    <option value="all">All Statuses</option>
+    @for (s of statuses; track s) {
+      <option [value]="s">{{ s }}</option>
+    }
+  </select>
+  <span class="result-count">{{ filtered().length }} orders</span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Date</th>
+        <th>Items</th>
+        <th>Total</th>
+        <th>Payment</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (o of filtered(); track o.id) {
+        <tr>
+          <td>{{ o.orderNumber }}</td>
+          <td>{{ customerName(o.customerId) }}</td>
+          <td>{{ o.placedAt | date: 'mediumDate' }}</td>
+          <td>{{ o.items.length }}</td>
+          <td>{{ o.total | inr }}</td>
+          <td>{{ o.paymentMethod }} &middot; {{ o.paymentStatus }}</td>
+          <td><span class="movement-pill" [class]="o.status === 'Delivered' ? 'fast' : o.status === 'Cancelled' ? 'dead' : 'slow'">{{ o.status }}</span></td>
+          <td class="actions-cell"><a [routerLink]="[o.id]">View</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

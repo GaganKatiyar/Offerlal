@@ -1,0 +1,31 @@
+<div class="container account-page">
+  <div class="account-layout">
+    <aside class="account-nav">
+      <p class="greeting">Hello, {{ auth.currentUser()?.firstName }}</p>
+      <a routerLink="/account">Dashboard</a>
+      <a routerLink="/account/orders" class="active">My Orders</a>
+      <a routerLink="/account/wishlist">Wishlist</a>
+      <a routerLink="/account/addresses">Saved Addresses</a>
+      <a routerLink="/account/size-profile">Size Profile</a>
+      <a routerLink="/track-order">Track Order</a>
+    </aside>
+
+    <div class="account-main">
+      <h1>My Orders</h1>
+
+      @if (orders().length === 0) {
+        <p class="empty-note">You haven't placed any orders yet. <a routerLink="/shop">Start shopping</a></p>
+      } @else {
+        <div class="order-rows">
+          @for (o of orders(); track o.id) {
+            <a class="order-row" [routerLink]="[o.orderNumber]">
+              <span>{{ o.orderNumber }} &middot; {{ o.items.length }} item(s)</span>
+              <span class="status">{{ o.status }}</span>
+              <span>{{ o.total | inr }}</span>
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

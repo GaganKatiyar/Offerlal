@@ -1,0 +1,56 @@
+<div class="container tracking-page">
+  <div class="section-head center">
+    <span class="eyebrow">Order Status</span>
+    <h1>Track Your Order</h1>
+  </div>
+
+  <div class="search-box">
+    <input type="text" placeholder="Enter order number (e.g. OF-2026-100001)" [value]="orderNumberInput()" (input)="orderNumberInput.set($any($event.target).value)" (keyup.enter)="search()" />
+    <button type="button" class="btn btn-primary" (click)="search()">Track Order</button>
+  </div>
+
+  @if (searched()) {
+    @if (order(); as o) {
+      <div class="order-result">
+        <div class="order-meta">
+          <div>
+            <p class="label">Order Number</p>
+            <p class="value">{{ o.orderNumber }}</p>
+          </div>
+          <div>
+            <p class="label">Estimated Delivery</p>
+            <p class="value">{{ o.expectedDeliveryDate | date: 'mediumDate' }}</p>
+          </div>
+          <div>
+            <p class="label">Total</p>
+            <p class="value">{{ o.total | inr }}</p>
+          </div>
+        </div>
+
+        @if (isSpecialStatus(o)) {
+          <div class="status-banner">Current Status: <strong>{{ o.status }}</strong></div>
+        } @else {
+          <div class="timeline">
+            @for (step of timelineSteps; track step; let i = $index) {
+              <div class="timeline-step" [class.done]="i <= stepIndex(o)">
+                <span class="dot"></span>
+                <span class="step-label">{{ step }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="items-list">
+          @for (item of o.items; track item.sku) {
+            <div class="item-row">
+              <span>{{ item.name }} &middot; {{ item.color }}, {{ item.size }} &times; {{ item.quantity }}</span>
+              <span>{{ item.lineTotal | inr }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="no-result">No order found for that order number. Please check and try again.</p>
+    }
+  }
+</div>

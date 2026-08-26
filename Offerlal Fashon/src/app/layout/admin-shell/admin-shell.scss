@@ -1,0 +1,86 @@
+﻿:host {
+  display: block;
+  --surface-page: #f7f5f2;
+  --admin-row-height: 44px;
+  background: var(--surface-page);
+  min-height: 100vh;
+}
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--color-charcoal);
+  color: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--space-4);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-brand {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--color-white);
+  margin-bottom: var(--space-8);
+  padding: 0 var(--space-2);
+
+  span {
+    color: var(--brand-accent-light);
+    font-style: italic;
+  }
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3);
+    border-radius: var(--radius-sm);
+    color: var(--color-beige);
+    font-size: var(--font-size-sm);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &.active {
+      background: var(--brand-primary);
+      color: var(--color-white);
+    }
+  }
+}
+
+.nav-icon {
+  width: 18px;
+  text-align: center;
+}
+
+.logout-btn {
+  margin-top: var(--space-6);
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-cream);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.admin-content {
+  flex: 1;
+  padding: var(--space-8);
+  min-width: 0;
+}

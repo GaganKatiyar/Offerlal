@@ -1,0 +1,11 @@
+<div class="accordion-item">
+  <button type="button" class="accordion-trigger" (click)="toggle()" [attr.aria-expanded]="isOpen()">
+    <span>{{ heading() }}</span>
+    <span class="chevron" [class.open]="isOpen()">⌄</span>
+  </button>
+  @if (isOpen()) {
+    <div class="accordion-panel">
+      <ng-content />
+    </div>
+  }
+</div>

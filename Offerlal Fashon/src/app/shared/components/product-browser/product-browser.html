@@ -1,0 +1,149 @@
+<div class="browser-layout">
+  <aside class="filters-sidebar">
+    <ng-container [ngTemplateOutlet]="filterPanel" />
+  </aside>
+
+  <div class="browser-main">
+    <div class="toolbar">
+      <span class="item-count">{{ filtered().length }} item{{ filtered().length === 1 ? '' : 's' }}</span>
+      <button type="button" class="mobile-filter-btn" (click)="mobileFiltersOpen.set(true)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+        Filters
+      </button>
+      <div class="sort-control">
+        <span class="sort-label">Sort by</span>
+        <select class="sort-select" [value]="sort()" (change)="sort.set($any($event.target).value)">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (filtered().length === 0) {
+      <div class="empty-state">
+        <p>No products match your filters.</p>
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">Clear Filters</button>
+      </div>
+    } @else {
+      <div class="product-grid">
+        @for (p of filtered(); track p.id) {
+          <app-product-card [product]="p" />
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<app-drawer [open]="mobileFiltersOpen()" side="left" title="Filters" (closed)="mobileFiltersOpen.set(false)">
+  <ng-container [ngTemplateOutlet]="filterPanel" />
+  <button type="button" class="btn btn-primary full" (click)="mobileFiltersOpen.set(false)">Show {{ filtered().length }} Results</button>
+</app-drawer>
+
+<ng-template #filterPanel>
+  <div class="filter-group">
+    <h4>Price</h4>
+    <div class="price-range-display">₹{{ effectivePriceMin().toLocaleString('en-IN') }} &ndash; ₹{{ effectivePriceMax().toLocaleString('en-IN') }}{{ priceMax() == null ? '+' : '' }}</div>
+    <div class="dual-range">
+      <div class="range-base"></div>
+      <div class="range-fill" [style.left.%]="rangeFillStyle().left" [style.width.%]="rangeFillStyle().width"></div>
+      <input
+        type="range"
+        class="range-track range-min"
+        [min]="priceBounds().min"
+        [max]="priceBounds().max"
+        [step]="100"
+        [value]="effectivePriceMin()"
+        (input)="onMinRangeInput(+$any($event.target).value)"
+      />
+      <input
+        type="range"
+        class="range-track range-max"
+        [min]="priceBounds().min"
+        [max]="priceBounds().max"
+        [step]="100"
+        [value]="effectivePriceMax()"
+        (input)="onMaxRangeInput(+$any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  @if (availableColors().length) {
+    <div class="filter-group">
+      <h4>Color</h4>
+      <div class="swatch-grid">
+        @for (color of availableColors(); track color) {
+          <button
+            type="button"
+            class="swatch-option"
+            [class.active]="selectedColors().includes(color)"
+            (click)="toggleColor(color)"
+            [attr.title]="color + ' (' + (colorCounts().get(color) ?? 0) + ')'"
+          >
+            <span class="swatch-dot" [style.background]="colorHexByName().get(color)"></span>
+            <span class="swatch-label">{{ color }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (availableSizes().length) {
+    <div class="filter-group">
+      <h4>Size</h4>
+      <div class="check-list">
+        @for (size of availableSizes(); track size) {
+          <label class="check-row">
+            <span class="check-left">
+              <input type="checkbox" [checked]="selectedSizes().includes(size)" (change)="toggleSize(size)" />
+              {{ size }}
+            </span>
+            <span class="check-count">{{ sizeCounts().get(size) ?? 0 }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  @if (availableFabrics().length) {
+    <div class="filter-group">
+      <h4>Fabric</h4>
+      <div class="check-list">
+        @for (fabric of availableFabrics(); track fabric) {
+          <label class="check-row">
+            <span class="check-left">
+              <input type="checkbox" [checked]="selectedFabrics().includes(fabric)" (change)="toggleFabric(fabric)" />
+              {{ fabric }}
+            </span>
+            <span class="check-count">{{ fabricCounts().get(fabric) ?? 0 }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="filter-group">
+    <h4>Rating</h4>
+    <div class="check-list">
+      @for (r of [4.5, 4]; track r) {
+        <label class="check-row">
+          <span class="check-left">
+            <input type="checkbox" [checked]="minRating() === r" (change)="minRating.set(minRating() === r ? null : r)" />
+            {{ r }}★ &amp; above
+          </span>
+        </label>
+      }
+    </div>
+  </div>
+
+  <div class="filter-group">
+    <label class="check-row">
+      <span class="check-left">
+        <input type="checkbox" [checked]="inStockOnly()" (change)="inStockOnly.set($any($event.target).checked)" />
+        In Stock Only
+      </span>
+    </label>
+  </div>
+
+  <button type="button" class="clear-btn" (click)="clearFilters()">Clear All Filters</button>
+</ng-template>

@@ -1,0 +1,395 @@
+﻿:host {
+  display: block;
+}
+
+.section {
+  padding: var(--space-20) 0;
+
+  &.alt {
+    background: var(--surface-alt);
+  }
+}
+
+.section-head {
+  margin-bottom: var(--space-10);
+
+  &.center {
+    text-align: center;
+  }
+
+  h2 {
+    margin: var(--space-2) 0 0;
+  }
+}
+
+.section-sub {
+  color: var(--text-secondary);
+  margin-top: var(--space-2);
+}
+
+.section-cta {
+  text-align: center;
+  margin-top: var(--space-10);
+}
+
+/* Occasion / category grids */
+.occasion-grid,
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.occasion-card,
+.category-card,
+.budget-card {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: block;
+  min-width: 0;
+
+  app-image-with-fallback {
+    height: 100%;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover app-image-with-fallback {
+    transform: scale(1.05);
+  }
+}
+
+.overlay-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-4) var(--space-3);
+  background: linear-gradient(to top, rgba(20, 15, 12, 0.75), transparent);
+  color: var(--color-white);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  z-index: 1;
+}
+
+/* Shop by Category — Myntra-style bordered tiles with discount + CTA */
+.category-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.category-tile {
+  display: block;
+  min-width: 0;
+  border: 1px solid var(--brand-accent);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-card);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.category-tile-media {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+
+  app-image-with-fallback {
+    height: 100%;
+  }
+}
+
+.category-tile-info {
+  padding: var(--space-3);
+  text-align: center;
+}
+
+.tile-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  margin: 0 0 2px;
+  color: var(--text-primary);
+}
+
+.tile-discount {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--brand-primary);
+  margin: 0 0 4px;
+}
+
+.tile-cta {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+/* Product grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-5) var(--space-4);
+}
+
+/* Bridal edit */
+.bridal-edit {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 480px;
+}
+
+.bridal-edit-media {
+  aspect-ratio: 4 / 5;
+  min-width: 0;
+
+  app-image-with-fallback {
+    height: 100%;
+  }
+}
+
+.bridal-edit-content {
+  background: var(--color-charcoal);
+  color: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: var(--space-12) var(--space-6);
+
+  .eyebrow {
+    color: var(--brand-accent-light);
+  }
+
+  h2 {
+    color: var(--color-white);
+    margin: var(--space-3) 0 var(--space-4);
+  }
+
+  p {
+    color: var(--color-beige);
+    max-width: 440px;
+    margin-bottom: var(--space-6);
+  }
+}
+
+/* Budget grid */
+.budget-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+/* Complete the look */
+.look-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.look-item {
+  display: block;
+  min-width: 0;
+  text-align: center;
+
+  app-image-with-fallback {
+    aspect-ratio: 3 / 4;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+}
+
+.look-item-name {
+  font-size: var(--font-size-xs);
+  margin: var(--space-2) 0 2px;
+  color: var(--text-primary);
+}
+
+.look-item-price {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--brand-primary);
+  margin: 0;
+}
+
+.look-footer {
+  margin-top: var(--space-8);
+  text-align: center;
+}
+
+.look-total {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-4);
+
+  strong {
+    color: var(--brand-primary);
+  }
+}
+
+/* Styled by you */
+.styled-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.styled-card {
+  position: relative;
+  min-width: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  aspect-ratio: 1;
+
+  app-image-with-fallback {
+    height: 100%;
+  }
+}
+
+.styled-info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-3);
+  background: linear-gradient(to top, rgba(20, 15, 12, 0.85), transparent);
+  color: var(--color-white);
+}
+
+.styled-name {
+  font-size: var(--font-size-xs);
+  margin: 0;
+  opacity: 0.85;
+}
+
+.styled-outfit {
+  font-size: var(--font-size-sm);
+  margin: 2px 0 var(--space-1);
+  font-weight: 500;
+}
+
+.shop-look-link {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brand-accent-light);
+  text-decoration: underline;
+}
+
+/* Trust */
+.trust-section {
+  padding: var(--space-16) 0;
+  background: var(--surface-page);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+}
+
+.trust-card {
+  text-align: center;
+  min-width: 0;
+
+  h4 {
+    margin: var(--space-3) 0 var(--space-1);
+    font-size: var(--font-size-md);
+  }
+
+  p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+  }
+}
+
+.trust-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface-accent);
+  color: var(--brand-primary);
+  font-size: 20px;
+}
+
+/* Testimonials */
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+.testimonial-card {
+  background: var(--surface-card);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.testimonial-quote {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--font-size-lg);
+  margin: var(--space-3) 0 var(--space-3);
+  color: var(--text-primary);
+}
+
+.testimonial-author {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .occasion-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .category-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .category-tile-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .budget-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .look-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .styled-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .trust-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .testimonial-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .bridal-edit {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bridal-edit-media {
+    aspect-ratio: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .category-tile-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}

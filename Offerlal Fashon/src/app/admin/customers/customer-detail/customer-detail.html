@@ -1,0 +1,83 @@
+@if (customer(); as c) {
+  <div class="page-head">
+    <h1>{{ c.firstName }} {{ c.lastName }}</h1>
+    <a routerLink="/admin/customers" class="btn btn-outline">Back to Customers</a>
+  </div>
+
+  <div class="order-detail-grid">
+    <div class="main-col">
+      <div class="invoice-card">
+        <h3 class="section-title">Orders ({{ orders().length }})</h3>
+        @if (orders().length) {
+          <table class="invoice-table">
+            <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
+            <tbody>
+              @for (o of orders(); track o.id) {
+                <tr>
+                  <td><a [routerLink]="['/admin/orders', o.id]">{{ o.orderNumber }}</a></td>
+                  <td>{{ o.placedAt | date: 'mediumDate' }}</td>
+                  <td>{{ o.status }}</td>
+                  <td>{{ o.total | inr }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="muted">No orders yet.</p>
+        }
+      </div>
+
+      @if (reviews().length) {
+        <div class="status-history-card">
+          <h3>Reviews Written</h3>
+          @for (r of reviews(); track r.id) {
+            <div class="history-row">
+              <span>{{ r.title }} ({{ r.rating }}★)</span>
+              <span>{{ r.createdAt | date: 'mediumDate' }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (c.addresses.length) {
+        <div class="status-history-card">
+          <h3>Saved Addresses</h3>
+          @for (a of c.addresses; track a.id) {
+            <p class="muted">{{ a.label }}: {{ a.line1 }}, {{ a.city }}, {{ a.state }} {{ a.pincode }}</p>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="side-col">
+      <div class="side-card">
+        <h4>Profile</h4>
+        <p>{{ c.email }}</p>
+        <p class="muted">{{ c.phone }}</p>
+        <p class="muted">{{ c.city }}, {{ c.state }}</p>
+        <p class="muted">Registered {{ c.registeredAt | date: 'mediumDate' }}</p>
+      </div>
+
+      <div class="side-card">
+        <h4>Segment</h4>
+        <p>{{ c.segment }}</p>
+      </div>
+
+      <div class="side-card">
+        <h4>Lifetime Value</h4>
+        <p>{{ c.totalSpend | inr }}</p>
+        <p class="muted">{{ c.totalOrders }} orders</p>
+      </div>
+
+      @if (c.sizeProfile) {
+        <div class="side-card">
+          <h4>Size Profile</h4>
+          <p class="muted">Bust {{ c.sizeProfile.bust }}" &middot; Waist {{ c.sizeProfile.waist }}"</p>
+          <p class="muted">Hip {{ c.sizeProfile.hip }}" &middot; Preferred {{ c.sizeProfile.preferredSize }}</p>
+        </div>
+      }
+    </div>
+  </div>
+} @else {
+  <p>Customer not found.</p>
+}

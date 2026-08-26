@@ -1,0 +1,49 @@
+<div class="page-head">
+  <h1>Inventory</h1>
+</div>
+
+<div class="kpi-strip">
+  <button type="button" class="kpi-chip" [class.active]="filter() === 'all'" (click)="filter.set('all')">All SKUs ({{ rows().length }})</button>
+  <button type="button" class="kpi-chip fast" [class.active]="filter() === 'fast'" (click)="filter.set('fast')">Fast Moving ({{ fastCount() }})</button>
+  <button type="button" class="kpi-chip slow" [class.active]="filter() === 'slow'" (click)="filter.set('slow')">Slow Moving ({{ slowCount() }})</button>
+  <button type="button" class="kpi-chip dead" [class.active]="filter() === 'dead'" (click)="filter.set('dead')">Dead Stock ({{ deadCount() }})</button>
+  <button type="button" class="kpi-chip low" [class.active]="filter() === 'low-stock'" (click)="filter.set('low-stock')">Low Stock ({{ lowStockCount() }})</button>
+</div>
+
+<div class="toolbar">
+  <input type="text" placeholder="Search by product or SKU" [value]="query()" (input)="query.set($any($event.target).value)" />
+  <span class="result-count">{{ filtered().length }} SKUs</span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>SKU</th>
+        <th>Variant</th>
+        <th>Purchase Price</th>
+        <th>Selling Price</th>
+        <th>Stock</th>
+        <th>Reserved</th>
+        <th>Sold</th>
+        <th>Movement</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (r of filtered(); track r.sku) {
+        <tr>
+          <td>{{ r.productName }}</td>
+          <td>{{ r.sku }}</td>
+          <td>{{ r.color }}, {{ r.size }}</td>
+          <td>{{ r.purchasePrice | inr }}</td>
+          <td>{{ r.sellingPrice | inr }}</td>
+          <td [class.low-stock-text]="r.stock <= r.lowThreshold">{{ r.stock }}</td>
+          <td>{{ r.reserved }}</td>
+          <td>{{ r.sold }}</td>
+          <td><span class="movement-pill" [class]="r.movement">{{ r.movement }}</span></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,43 @@
+<app-modal [open]="isOpen()" title="Quick View" size="lg" (closed)="close()">
+  @if (product(); as p) {
+    <div class="quick-view">
+      <div class="qv-media">
+        <app-image-with-fallback [src]="primaryImage()" [alt]="p.name" sizes="(min-width: 768px) 40vw, 90vw" />
+      </div>
+
+      <div class="qv-info">
+        <h3 class="qv-name">{{ p.name }}</h3>
+
+        <div class="qv-rating">
+          <app-star-rating [rating]="p.rating" />
+          <span class="qv-review-count">({{ p.reviewCount }} reviews)</span>
+        </div>
+
+        <app-price-display [price]="p.price" [compareAtPrice]="p.compareAtPrice" size="lg" />
+
+        @if (p.sizes.length) {
+          <div class="qv-sizes">
+            <span class="qv-label">Size</span>
+            <div class="qv-size-row">
+              @for (size of p.sizes; track size) {
+                <button
+                  type="button"
+                  class="qv-size-pill"
+                  [class.active]="selectedSize() === size"
+                  (click)="selectSize(size)"
+                >
+                  {{ size }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="qv-actions">
+          <button type="button" class="btn btn-primary" (click)="addToBag()">Add to Bag</button>
+          <a [routerLink]="['/product', p.slug]" class="btn btn-outline" (click)="close()">View Full Details</a>
+        </div>
+      </div>
+    </div>
+  }
+</app-modal>

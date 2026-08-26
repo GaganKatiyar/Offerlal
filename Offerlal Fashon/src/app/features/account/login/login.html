@@ -1,0 +1,48 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Welcome Back</h1>
+
+    <div class="mode-tabs">
+      <button type="button" [class.active]="mode() === 'email'" (click)="mode.set('email')">Email &amp; Password</button>
+      <button type="button" [class.active]="mode() === 'otp'" (click)="mode.set('otp')">OTP Login</button>
+    </div>
+
+    @if (mode() === 'email') {
+      <label>
+        Email
+        <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" (keyup.enter)="loginWithEmail()" />
+      </label>
+      <label>
+        Password
+        <input type="password" placeholder="Enter your password" />
+      </label>
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+      <button type="button" class="btn btn-primary full" [disabled]="loading()" (click)="loginWithEmail()">
+        {{ loading() ? 'Signing In...' : 'Sign In' }}
+      </button>
+      <a class="forgot-link">Forgot Password?</a>
+    } @else {
+      @if (!otpSent()) {
+        <label>
+          Mobile Number
+          <input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
+        </label>
+        <button type="button" class="btn btn-primary full" (click)="sendOtp()">Send OTP</button>
+      } @else {
+        <p class="otp-note">OTP sent to {{ phone() }}</p>
+        <label>
+          Enter OTP
+          <input type="text" maxlength="4" [value]="otp()" (input)="otp.set($any($event.target).value)" />
+        </label>
+        @if (error()) {
+          <p class="error">{{ error() }}</p>
+        }
+        <button type="button" class="btn btn-primary full" [disabled]="loading()" (click)="verifyOtp()">Verify &amp; Sign In</button>
+      }
+    }
+
+    <p class="switch-link">New here? <a routerLink="/register">Create an account</a></p>
+  </div>
+</div>

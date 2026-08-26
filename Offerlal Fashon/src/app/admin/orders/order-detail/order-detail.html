@@ -1,0 +1,95 @@
+@if (order(); as o) {
+  <div class="page-head no-print">
+    <h1>{{ o.orderNumber }}</h1>
+    <div class="head-actions">
+      <button type="button" class="btn btn-outline" (click)="printInvoice()">Print Invoice</button>
+      <a routerLink="/admin/orders" class="btn btn-outline">Back to Orders</a>
+    </div>
+  </div>
+
+  <div class="order-detail-grid">
+    <div class="main-col">
+      <div class="invoice-card" id="invoice">
+        <div class="invoice-head">
+          <div>
+            <p class="brand">Offerlal Fashion</p>
+            <p class="invoice-meta">Invoice for {{ o.orderNumber }}</p>
+            <p class="invoice-meta">Placed: {{ o.placedAt | date: 'medium' }}</p>
+          </div>
+          <div class="bill-to">
+            <p class="label">Bill To</p>
+            <p>{{ o.billingAddress.fullName }}<br />{{ o.billingAddress.line1 }}<br />{{ o.billingAddress.city }}, {{ o.billingAddress.state }} {{ o.billingAddress.pincode }}<br />{{ o.billingAddress.phone }}</p>
+          </div>
+        </div>
+
+        <table class="invoice-table">
+          <thead>
+            <tr><th>Item</th><th>Size</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            @for (item of o.items; track item.sku) {
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.color }}, {{ item.size }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unitPrice | inr }}</td>
+                <td>{{ item.lineTotal | inr }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="invoice-totals">
+          <div class="row"><span>Subtotal</span><span>{{ o.subtotal | inr }}</span></div>
+          @if (o.discount > 0) {
+            <div class="row"><span>Discount @if (o.couponCode) { ({{ o.couponCode }}) }</span><span>-{{ o.discount | inr }}</span></div>
+          }
+          <div class="row"><span>Shipping</span><span>{{ o.shippingFee === 0 ? 'Free' : (o.shippingFee | inr) }}</span></div>
+          <div class="row total"><span>Total</span><span>{{ o.total | inr }}</span></div>
+        </div>
+      </div>
+
+      <div class="no-print status-history-card">
+        <h3>Status History</h3>
+        @for (h of o.statusHistory; track h.timestamp) {
+          <div class="history-row">
+            <span>{{ h.status }}</span>
+            <span>{{ h.timestamp | date: 'medium' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="side-col no-print">
+      <div class="side-card">
+        <h4>Customer</h4>
+        <p>{{ customer()?.firstName }} {{ customer()?.lastName }}</p>
+        <p class="muted">{{ customer()?.email }}</p>
+        <p class="muted">{{ customer()?.phone }}</p>
+        <a [routerLink]="['/admin/customers', customer()?.id]" class="link">View Customer Profile</a>
+      </div>
+
+      <div class="side-card">
+        <h4>Update Status</h4>
+        <select [value]="newStatus()" (change)="newStatus.set($any($event.target).value)">
+          @for (s of allStatuses; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+        <button type="button" class="btn btn-primary full" (click)="updateStatus()">Update Status</button>
+      </div>
+
+      <div class="side-card">
+        <h4>Order Actions</h4>
+        <div class="action-buttons">
+          <button type="button" (click)="cancelOrder()">Cancel Order</button>
+          <button type="button" (click)="processReturn()">Process Return</button>
+          <button type="button" (click)="processExchange()">Process Exchange</button>
+          <button type="button" (click)="processRefund()">Process Refund</button>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <p>Order not found.</p>
+}

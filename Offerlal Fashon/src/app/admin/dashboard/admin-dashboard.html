@@ -1,0 +1,81 @@
+<div class="dashboard-page">
+  <h1>Dashboard</h1>
+
+  <div class="kpi-grid">
+    <div class="kpi-tile">
+      <p class="kpi-label">Total Sales</p>
+      <p class="kpi-value">{{ totalRevenue() | inr }}</p>
+    </div>
+    <div class="kpi-tile">
+      <p class="kpi-label">Orders</p>
+      <p class="kpi-value">{{ totalOrders() }}</p>
+    </div>
+    <div class="kpi-tile">
+      <p class="kpi-label">Customers</p>
+      <p class="kpi-value">{{ totalCustomers() }}</p>
+    </div>
+    <div class="kpi-tile">
+      <p class="kpi-label">Products</p>
+      <p class="kpi-value">{{ totalProducts() }}</p>
+    </div>
+    <div class="kpi-tile">
+      <p class="kpi-label">Avg Order Value</p>
+      <p class="kpi-value">{{ avgOrderValue() | inr }}</p>
+    </div>
+    <div class="kpi-tile">
+      <p class="kpi-label">Conversion Rate</p>
+      <p class="kpi-value">{{ conversionRate().toFixed(1) }}%</p>
+    </div>
+    <div class="kpi-tile warn">
+      <p class="kpi-label">Pending Orders</p>
+      <p class="kpi-value">{{ pendingOrders() }}</p>
+    </div>
+    <div class="kpi-tile warn">
+      <p class="kpi-label">Low Stock Products</p>
+      <p class="kpi-value">{{ lowStockCount() }}</p>
+    </div>
+    <div class="kpi-tile warn">
+      <p class="kpi-label">Returns</p>
+      <p class="kpi-value">{{ returnsCount() }}</p>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card wide">
+      <h4>Revenue Trend</h4>
+      <div class="chart-wrap">
+        <canvas baseChart [data]="revenueTrendData()" type="line" [options]="lineOptions"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>Orders by Status</h4>
+      <div class="chart-wrap">
+        <canvas baseChart [data]="orderStatusData()" type="doughnut" [options]="doughnutOptions"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>Top Categories by Sales</h4>
+      <div class="chart-wrap">
+        <canvas baseChart [data]="topCategoriesData()" type="bar" [options]="barOptions"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>Sales by City</h4>
+      <div class="chart-wrap">
+        <canvas baseChart [data]="salesByCityData()" type="bar" [options]="barOptions"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>Top Products</h4>
+      <div class="top-products-list">
+        @for (p of topProducts(); track p.name) {
+          <div class="top-product-row">
+            <span class="tp-name">{{ p.name }}</span>
+            <span class="tp-units">{{ p.units }} sold</span>
+            <span class="tp-revenue">{{ p.revenue | inr }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

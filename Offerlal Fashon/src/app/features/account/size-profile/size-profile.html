@@ -1,0 +1,40 @@
+<div class="container account-page">
+  <div class="account-layout">
+    <aside class="account-nav">
+      <p class="greeting">Hello, {{ auth.currentUser()?.firstName }}</p>
+      <a routerLink="/account">Dashboard</a>
+      <a routerLink="/account/orders">My Orders</a>
+      <a routerLink="/account/wishlist">Wishlist</a>
+      <a routerLink="/account/addresses">Saved Addresses</a>
+      <a routerLink="/account/size-profile" class="active">Size Profile</a>
+      <a routerLink="/track-order">Track Order</a>
+    </aside>
+
+    <div class="account-main">
+      <h1>Smart Size Profile</h1>
+      <p class="empty-note" style="margin-bottom: 24px;">Save your measurements once — we'll auto-fill them whenever you order a customized piece.</p>
+
+      @if (saved()) {
+        <div class="saved-banner">Your measurements have been saved.</div>
+      }
+
+      <div class="size-form">
+        <div class="size-form-grid">
+          <label>Bust (in)<input type="number" [value]="bust()" (input)="bust.set(+$any($event.target).value)" /></label>
+          <label>Waist (in)<input type="number" [value]="waist()" (input)="waist.set(+$any($event.target).value)" /></label>
+          <label>Hip (in)<input type="number" [value]="hip()" (input)="hip.set(+$any($event.target).value)" /></label>
+          <label>Shoulder (in)<input type="number" [value]="shoulder()" (input)="shoulder.set(+$any($event.target).value)" /></label>
+          <label>Height (in)<input type="number" [value]="height()" (input)="height.set(+$any($event.target).value)" /></label>
+          <label>Blouse Length (in)<input type="number" [value]="blouseLength()" (input)="blouseLength.set(+$any($event.target).value)" /></label>
+          <label>Sleeve Length (in)<input type="number" [value]="sleeveLength()" (input)="sleeveLength.set(+$any($event.target).value)" /></label>
+          <label>Lehenga Length (in)<input type="number" [value]="lehengaLength()" (input)="lehengaLength.set(+$any($event.target).value)" /></label>
+        </div>
+        <label style="margin-bottom: 24px; display: block;">
+          Preferred Size
+          <input type="text" [value]="preferredSize()" (input)="preferredSize.set($any($event.target).value)" />
+        </label>
+        <button type="button" class="btn btn-primary" (click)="save()">Save My Measurements</button>
+      </div>
+    </div>
+  </div>
+</div>

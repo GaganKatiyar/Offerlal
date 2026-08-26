@@ -1,0 +1,56 @@
+<div class="page-head">
+  <h1>Products</h1>
+  <a routerLink="/admin/products/new" class="btn btn-primary">+ Add Product</a>
+</div>
+
+<div class="toolbar">
+  <input type="text" placeholder="Search by name or SKU" [value]="query()" (input)="query.set($any($event.target).value)" />
+  <select [value]="categoryFilter()" (change)="categoryFilter.set($any($event.target).value)">
+    <option value="all">All Categories</option>
+    @for (c of categories(); track c.id) {
+      <option [value]="c.id">{{ c.name }}</option>
+    }
+  </select>
+  <span class="result-count">{{ filtered().length }} products</span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>SKU</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Flags</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of filtered(); track p.id) {
+        <tr>
+          <td class="product-cell">
+            <img [src]="p.variants[0].images[0].url" [alt]="p.name" />
+            <span>{{ p.name }}</span>
+          </td>
+          <td>{{ p.sku }}</td>
+          <td>{{ categoryName(p.categoryId) }}</td>
+          <td>{{ p.price | inr }}</td>
+          <td>
+            <span class="stock-pill" [class]="p.stockStatus">{{ p.stockStatus }}</span>
+          </td>
+          <td class="flags-cell">
+            @if (p.isBestseller) { <span class="flag">Bestseller</span> }
+            @if (p.isNewArrival) { <span class="flag">New</span> }
+            @if (p.isFeatured) { <span class="flag">Featured</span> }
+          </td>
+          <td class="actions-cell">
+            <a [routerLink]="['/admin/products', p.id, 'edit']">Edit</a>
+            <button type="button" (click)="deleteProduct(p.id, p.name)">Delete</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

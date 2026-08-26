@@ -1,0 +1,14 @@
+@if (open()) {
+  <div class="scrim" (click)="close()"></div>
+  <div class="modal-wrap">
+    <div class="modal modal-{{ size() }}" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3>{{ title() }}</h3>
+        <button type="button" class="close-btn" (click)="close()" aria-label="Close">✕</button>
+      </header>
+      <div class="modal-body">
+        <ng-content />
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,89 @@
+# ─────────────────────────────────────────────────────────────
+# Node / Angular  (Offerlal Fashon)
+# ─────────────────────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Angular test/coverage output
+coverage/
+/libpeerconnection.log
+testem.log
+/typings
+
+# ─────────────────────────────────────────────────────────────
+# .NET  (OfferlalFashion.Api)
+# ─────────────────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+.vs/
+artifacts/
+project.lock.json
+project.fragment.lock.json
+*.nupkg
+*.snupkg
+
+# ─────────────────────────────────────────────────────────────
+# Secrets — never commit real credentials
+# ─────────────────────────────────────────────────────────────
+# appsettings.json is committed (local dev connection string only, no secrets).
+# Real credentials (Razorpay keys, SMTP, JWT signing key, prod connection string)
+# must go in User Secrets / environment variables — never in a committed file.
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.Local.json
+*.pfx
+*.p12
+.env
+.env.*
+!.env.example
+secrets.json
+
+# ─────────────────────────────────────────────────────────────
+# Database — schema/seed SQL IS committed; local backups are not
+# ─────────────────────────────────────────────────────────────
+*.bak
+*.mdf
+*.ldf
+*.ndf
+
+# ─────────────────────────────────────────────────────────────
+# Editors / OS
+# ─────────────────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code: keep shared settings, ignore personal ones
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ─────────────────────────────────────────────────────────────
+# Logs / temp
+# ─────────────────────────────────────────────────────────────
+logs/
+*.log
+tmp/
+temp/

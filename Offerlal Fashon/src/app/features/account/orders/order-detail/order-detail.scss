@@ -1,0 +1,132 @@
+.order-detail-page {
+  padding: var(--space-8) var(--space-6) var(--space-20);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+
+  h1 {
+    font-size: var(--font-size-xl);
+    margin: 0 0 var(--space-1);
+  }
+}
+
+.placed-date {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.status-pill {
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-accent);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-10);
+}
+
+h3 {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin: var(--space-6) 0 var(--space-3);
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.item-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.item-name {
+  font-weight: 500;
+}
+
+.item-meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.item-price {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  padding: 2px 0;
+
+  &.total {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+    margin-top: var(--space-2);
+  }
+}
+
+.payment-method {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+
+.address {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.status-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.history-status {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@media (min-width: 768px) {
+  .detail-grid {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}

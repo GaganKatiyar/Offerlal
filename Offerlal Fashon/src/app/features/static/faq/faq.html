@@ -1,0 +1,14 @@
+<div class="container faq-page">
+  <div class="section-head center">
+    <span class="eyebrow">Need Help?</span>
+    <h1>Frequently Asked Questions</h1>
+  </div>
+
+  <div class="faq-list">
+    @for (f of faqs; track f.question) {
+      <app-accordion-item [heading]="f.question">
+        <p>{{ f.answer }}</p>
+      </app-accordion-item>
+    }
+  </div>
+</div>

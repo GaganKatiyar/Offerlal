@@ -1,0 +1,60 @@
+<div class="container account-page">
+  <div class="account-layout">
+    <aside class="account-nav">
+      <p class="greeting">Hello, {{ auth.currentUser()?.firstName }}</p>
+      <a routerLink="/account" class="active">Dashboard</a>
+      <a routerLink="/account/orders">My Orders</a>
+      <a routerLink="/account/wishlist">Wishlist</a>
+      <a routerLink="/account/addresses">Saved Addresses</a>
+      <a routerLink="/account/size-profile">Size Profile</a>
+      <a routerLink="/track-order">Track Order</a>
+      <button type="button" (click)="logout()">Log Out</button>
+    </aside>
+
+    <div class="account-main">
+      <h1>My Account</h1>
+
+      <div class="stat-cards">
+        <div class="stat-card">
+          <p class="stat-label">Segment</p>
+          <p class="stat-value">{{ auth.currentUser()?.segment }}</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Total Orders</p>
+          <p class="stat-value">{{ auth.currentUser()?.totalOrders }}</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Total Spend</p>
+          <p class="stat-value">{{ auth.currentUser()?.totalSpend | inr }}</p>
+        </div>
+      </div>
+
+      <h3>Recent Orders</h3>
+      @if (recentOrders().length) {
+        <div class="order-rows">
+          @for (o of recentOrders(); track o.id) {
+            <a class="order-row" [routerLink]="['/account/orders', o.orderNumber]">
+              <span>{{ o.orderNumber }}</span>
+              <span class="status">{{ o.status }}</span>
+              <span>{{ o.total | inr }}</span>
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="empty-note">No orders yet. <a routerLink="/shop">Start shopping</a></p>
+      }
+
+      @if (coupons().length) {
+        <h3>Your Coupons</h3>
+        <div class="coupon-cards">
+          @for (c of coupons(); track c.id) {
+            <div class="coupon-card">
+              <span class="coupon-code">{{ c.code }}</span>
+              <span class="coupon-desc">{{ c.description }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

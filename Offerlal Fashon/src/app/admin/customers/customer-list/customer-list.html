@@ -1,0 +1,42 @@
+<div class="page-head">
+  <h1>Customers</h1>
+</div>
+
+<div class="kpi-strip">
+  <button type="button" class="kpi-chip" [class.active]="segmentFilter() === 'all'" (click)="segmentFilter.set('all')">All ({{ totalCount() }})</button>
+  @for (seg of segments; track seg) {
+    <button type="button" class="kpi-chip" [class.active]="segmentFilter() === seg" (click)="segmentFilter.set(seg)">{{ seg }} ({{ segmentCounts().get(seg) ?? 0 }})</button>
+  }
+</div>
+
+<div class="toolbar">
+  <input type="text" placeholder="Search by name or email" [value]="query()" (input)="query.set($any($event.target).value)" />
+  <span class="result-count">{{ filtered().length }} customers</span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Customer</th>
+        <th>City</th>
+        <th>Segment</th>
+        <th>Orders</th>
+        <th>Total Spend</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of filtered(); track c.id) {
+        <tr>
+          <td>{{ c.firstName }} {{ c.lastName }}<br /><span class="muted">{{ c.email }}</span></td>
+          <td>{{ c.city }}</td>
+          <td><span class="flag">{{ c.segment }}</span></td>
+          <td>{{ c.totalOrders }}</td>
+          <td>{{ c.totalSpend | inr }}</td>
+          <td class="actions-cell"><a [routerLink]="[c.id]">View</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

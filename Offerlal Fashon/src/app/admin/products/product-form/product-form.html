@@ -1,0 +1,97 @@
+<div class="page-head">
+  <h1>{{ isEdit() ? 'Edit Product' : 'Add Product' }}</h1>
+  <a routerLink="/admin/products" class="btn btn-outline">Cancel</a>
+</div>
+
+<div class="admin-form">
+  <div class="form-section">
+    <h3>Basic Information</h3>
+    <div class="field-grid">
+      <label>Product Name *<input type="text" [value]="name()" (input)="name.set($any($event.target).value)" /></label>
+      <label>SKU<input type="text" [value]="sku()" (input)="sku.set($any($event.target).value)" placeholder="Auto-generated if blank" /></label>
+      <label>
+        Category *
+        <select [value]="categoryId()" (change)="categoryId.set($any($event.target).value)">
+          <option value="">Select category</option>
+          @for (c of categories(); track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </select>
+      </label>
+      <label>Occasion Tags<input type="text" [value]="occasion()" (input)="occasion.set($any($event.target).value)" placeholder="Bridal, Reception" /></label>
+      <label class="full">Short Description<input type="text" [value]="shortDescription()" (input)="shortDescription.set($any($event.target).value)" /></label>
+      <label class="full">Full Description<textarea rows="3" [value]="description()" (input)="description.set($any($event.target).value)"></textarea></label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>Fabric &amp; Work Details</h3>
+    <div class="field-grid">
+      <label>Fabric<input type="text" [value]="fabric()" (input)="fabric.set($any($event.target).value)" /></label>
+      <label>Work Details<input type="text" [value]="workDetails()" (input)="workDetails.set($any($event.target).value)" /></label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>Variant, Media &amp; Sizes</h3>
+    <div class="field-grid">
+      <label>Color Name<input type="text" [value]="color()" (input)="color.set($any($event.target).value)" /></label>
+      <label>Color Hex<input type="color" [value]="colorHex()" (input)="colorHex.set($any($event.target).value)" /></label>
+      <label class="full">Product Image URL<input type="text" [value]="imageUrl()" (input)="imageUrl.set($any($event.target).value)" placeholder="https://images.pexels.com/..." /></label>
+    </div>
+    <div class="stack-label full" style="margin-top: 12px;">
+      Available Sizes
+      <div class="checkbox-flags">
+        @for (size of allSizes; track size) {
+          <label>
+            <input type="checkbox" [checked]="selectedSizes().includes(size)" (change)="toggleSize(size)" />
+            {{ size }}
+          </label>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>Pricing &amp; Inventory</h3>
+    <div class="field-grid cols-3">
+      <label>Price (₹) *<input type="number" [value]="price()" (input)="price.set(+$any($event.target).value)" /></label>
+      <label>Compare-at Price (₹)<input type="number" [value]="compareAtPrice()" (input)="compareAtPrice.set(+$any($event.target).value || undefined)" /></label>
+      <label>Stock per Size<input type="number" [value]="stockPerSize()" (input)="stockPerSize.set(+$any($event.target).value)" /></label>
+      <label>
+        Stock Status
+        <select [value]="stockStatus()" (change)="stockStatus.set($any($event.target).value)">
+          <option value="in-stock">In Stock</option>
+          <option value="low-stock">Low Stock</option>
+          <option value="out-of-stock">Out of Stock</option>
+          <option value="made-to-order">Made to Order</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>Flags</h3>
+    <div class="checkbox-flags">
+      <label><input type="checkbox" [checked]="isBestseller()" (change)="isBestseller.set($any($event.target).checked)" /> Bestseller</label>
+      <label><input type="checkbox" [checked]="isNewArrival()" (change)="isNewArrival.set($any($event.target).checked)" /> New Arrival</label>
+      <label><input type="checkbox" [checked]="isFeatured()" (change)="isFeatured.set($any($event.target).checked)" /> Featured</label>
+      <label><input type="checkbox" [checked]="isBridal()" (change)="isBridal.set($any($event.target).checked)" /> Bridal Edit</label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>SEO</h3>
+    <div class="field-grid">
+      <label class="full">SEO Title<input type="text" [value]="metaTitle()" (input)="metaTitle.set($any($event.target).value)" /></label>
+      <label class="full">Meta Description<input type="text" [value]="metaDescription()" (input)="metaDescription.set($any($event.target).value)" /></label>
+      <label>URL Slug<input type="text" [value]="slug()" (input)="slug.set($any($event.target).value)" placeholder="Auto-generated if blank" /></label>
+      <label>Keywords (comma separated)<input type="text" [value]="keywords()" (input)="keywords.set($any($event.target).value)" /></label>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-primary" (click)="save()">{{ isEdit() ? 'Save Changes' : 'Create Product' }}</button>
+    <a routerLink="/admin/products" class="btn btn-outline">Cancel</a>
+  </div>
+</div>

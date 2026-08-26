@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.plp-header {
+  padding: var(--space-6) 0 var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+
+  h1 {
+    margin: var(--space-2) 0 0;
+    font-size: var(--font-size-2xl);
+  }
+}
+
+.plp-desc {
+  color: var(--text-secondary);
+  max-width: 640px;
+  margin: var(--space-2) 0 0;
+}

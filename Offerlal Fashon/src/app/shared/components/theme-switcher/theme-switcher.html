@@ -1,0 +1,36 @@
+<div class="theme-switcher">
+  @if (open()) {
+    <div class="theme-panel" role="menu" aria-label="Choose a color theme">
+      <span class="theme-panel-title">Color Theme</span>
+      <div class="theme-options">
+        @for (t of theme.themes; track t.id) {
+          <button
+            type="button"
+            class="theme-option"
+            [class.active]="theme.currentThemeId() === t.id"
+            (click)="choose(t.id)"
+            role="menuitemradio"
+            [attr.aria-checked]="theme.currentThemeId() === t.id"
+          >
+            <span class="theme-swatch" [style.background]="t.swatch"></span>
+            <span class="theme-option-name">{{ t.name }}</span>
+            @if (theme.currentThemeId() === t.id) {
+              <svg class="theme-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <button
+    type="button"
+    class="theme-fab"
+    (click)="toggle()"
+    aria-label="Change color theme"
+    [attr.aria-expanded]="open()"
+  >
+    <span class="theme-fab-swatch" [style.background]="currentSwatch()"></span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.2-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.4-4.5-8-10-8z"/></svg>
+  </button>
+</div>

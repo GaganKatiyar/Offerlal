@@ -1,0 +1,32 @@
+<div class="container account-page">
+  <div class="account-layout">
+    <aside class="account-nav">
+      <p class="greeting">Hello, {{ auth.currentUser()?.firstName }}</p>
+      <a routerLink="/account">Dashboard</a>
+      <a routerLink="/account/orders">My Orders</a>
+      <a routerLink="/account/wishlist" class="active">Wishlist</a>
+      <a routerLink="/account/addresses">Saved Addresses</a>
+      <a routerLink="/account/size-profile">Size Profile</a>
+      <a routerLink="/track-order">Track Order</a>
+    </aside>
+
+    <div class="account-main">
+      <div class="wishlist-head">
+        <h1>My Wishlist</h1>
+        @if (products().length) {
+          <button type="button" class="btn btn-outline" (click)="moveAllToCart()">Add All to Bag</button>
+        }
+      </div>
+
+      @if (products().length === 0) {
+        <p class="empty-note">Your wishlist is empty. <a routerLink="/shop">Browse products</a></p>
+      } @else {
+        <div class="wishlist-grid">
+          @for (p of products(); track p.id) {
+            <app-product-card [product]="p" />
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

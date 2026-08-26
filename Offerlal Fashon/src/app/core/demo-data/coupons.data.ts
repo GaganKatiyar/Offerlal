@@ -1,0 +1,14 @@
+import { Coupon } from '../models';
+
+export const COUPONS: Coupon[] = [
+  { id: 'cpn-01', code: 'WELCOME10', description: '10% off on your first order', type: 'percent', value: 10, minOrderValue: 2000, maxDiscount: 5000, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', usageLimit: 1000, usedCount: 412, isActive: true },
+  { id: 'cpn-02', code: 'BRIDAL5000', description: 'Flat ₹5,000 off on bridal orders above ₹50,000', type: 'flat', value: 5000, minOrderValue: 50000, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', applicableCategoryIds: ['cat-bridal-lehengas'], usageLimit: 200, usedCount: 37, isActive: true },
+  { id: 'cpn-03', code: 'FESTIVE20', description: '20% off, capped at ₹5,000, for the festive season', type: 'percent', value: 20, minOrderValue: 5000, maxDiscount: 5000, validFrom: '2026-09-15T00:00:00Z', validTo: '2026-11-15T23:59:59Z', usageLimit: 500, usedCount: 0, isActive: true },
+  { id: 'cpn-04', code: 'FREESHIP', description: 'Free shipping on any order', type: 'free-shipping', value: 0, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', usedCount: 890, isActive: true },
+  { id: 'cpn-05', code: 'SANGEET15', description: '15% off on party wear and sharara sets', type: 'percent', value: 15, minOrderValue: 3000, maxDiscount: 3000, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', applicableCategoryIds: ['cat-party-wear', 'cat-sharara-gharara'], usageLimit: 400, usedCount: 156, isActive: true },
+  { id: 'cpn-06', code: 'NEWUSER500', description: 'Flat ₹500 off for new users', type: 'flat', value: 500, minOrderValue: 1500, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', usageLimit: 1000, usedCount: 623, isActive: true },
+  { id: 'cpn-07', code: 'PAYDAY15', description: '15% off during the last week of the month', type: 'percent', value: 15, minOrderValue: 4000, maxDiscount: 4000, validFrom: '2026-08-25T00:00:00Z', validTo: '2026-08-31T23:59:59Z', usageLimit: 300, usedCount: 0, isActive: true },
+  { id: 'cpn-08', code: 'WEDDING2026', description: 'Flat 12% off, capped at ₹8,000, for the 2026 wedding season', type: 'percent', value: 12, minOrderValue: 10000, maxDiscount: 8000, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', usageLimit: 600, usedCount: 271, isActive: true },
+  { id: 'cpn-09', code: 'LOYALTY10', description: '10% off for repeat and VIP customers', type: 'percent', value: 10, minOrderValue: 2500, maxDiscount: 4000, validFrom: '2026-01-01T00:00:00Z', validTo: '2026-12-31T23:59:59Z', usageLimit: 500, usedCount: 98, isActive: true },
+  { id: 'cpn-10', code: 'RAKHI300', description: 'Flat ₹300 off, Raksha Bandhan special', type: 'flat', value: 300, minOrderValue: 1200, validFrom: '2026-08-01T00:00:00Z', validTo: '2026-08-20T23:59:59Z', usageLimit: 250, usedCount: 84, isActive: true },
+];

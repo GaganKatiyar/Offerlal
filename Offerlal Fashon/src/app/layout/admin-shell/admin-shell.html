@@ -1,0 +1,18 @@
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">Offerlal <span>Admin</span></div>
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.link) {
+        <a [routerLink]="item.link" routerLinkActive="active">
+          <span class="nav-icon">{{ item.icon }}</span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+    <button type="button" class="logout-btn" (click)="logout()">Log Out</button>
+  </aside>
+
+  <div class="admin-content">
+    <router-outlet />
+  </div>
+</div>

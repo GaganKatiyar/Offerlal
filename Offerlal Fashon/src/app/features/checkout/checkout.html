@@ -1,0 +1,155 @@
+<div class="container checkout-page">
+  <div class="checkout-head">
+    <h1>Checkout</h1>
+    <span class="secure-note">🔒 Secure Checkout</span>
+  </div>
+
+  @if (cart.items().length === 0) {
+    <div class="empty-state">
+      <p>Your bag is empty.</p>
+      <a routerLink="/new-arrivals" class="btn btn-primary">Shop New Arrivals</a>
+    </div>
+  } @else {
+    <div class="checkout-layout">
+      <div class="checkout-form">
+        <section class="form-section">
+          <h3>1. Contact Information</h3>
+          <div class="field-row">
+            <label>
+              Mobile Number *
+              <input type="tel" [value]="mobile()" (input)="mobile.set($any($event.target).value)" placeholder="10-digit mobile number" />
+            </label>
+            <label>
+              Email *
+              <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" placeholder="you@example.com" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3>2. Delivery Address</h3>
+          <div class="field-row">
+            <label>
+              Full Name *
+              <input type="text" [value]="fullName()" (input)="fullName.set($any($event.target).value)" />
+            </label>
+          </div>
+          <div class="field-row">
+            <label class="full">
+              House / Flat, Street *
+              <input type="text" [value]="line1()" (input)="line1.set($any($event.target).value)" />
+            </label>
+          </div>
+          <div class="field-row">
+            <label class="full">
+              Landmark
+              <input type="text" [value]="landmark()" (input)="landmark.set($any($event.target).value)" />
+            </label>
+          </div>
+          <div class="field-row">
+            <label>
+              City *
+              <input type="text" [value]="city()" (input)="city.set($any($event.target).value)" />
+            </label>
+            <label>
+              State *
+              <input type="text" [value]="state()" (input)="state.set($any($event.target).value)" />
+            </label>
+            <label>
+              PIN Code *
+              <input type="text" [value]="pincode()" (input)="pincode.set($any($event.target).value)" />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3>3. Delivery Method</h3>
+          <label class="radio-row">
+            <input type="radio" name="delivery" [checked]="deliveryMethod() === 'standard'" (change)="deliveryMethod.set('standard')" />
+            <span>Standard Delivery <em>5&ndash;9 business days</em></span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="delivery" [checked]="deliveryMethod() === 'express'" (change)="deliveryMethod.set('express')" />
+            <span>Express Delivery <em>3&ndash;5 business days &middot; +₹250</em></span>
+          </label>
+        </section>
+
+        <section class="form-section">
+          <h3>4. Payment</h3>
+          <label class="radio-row">
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'UPI'" (change)="paymentMethod.set('UPI')" />
+            <span>UPI</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'Card'" (change)="paymentMethod.set('Card')" />
+            <span>Credit / Debit Card</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'NetBanking'" (change)="paymentMethod.set('NetBanking')" />
+            <span>Net Banking</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'Wallet'" (change)="paymentMethod.set('Wallet')" />
+            <span>Wallets</span>
+          </label>
+          <label class="radio-row">
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'COD'" (change)="paymentMethod.set('COD')" />
+            <span>Cash on Delivery</span>
+          </label>
+        </section>
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+      </div>
+
+      <aside class="order-summary">
+        <h3>Order Summary</h3>
+        <div class="summary-items">
+          @for (item of cart.items(); track item.id) {
+            @let product = productFor(item.productId);
+            <div class="summary-item">
+              <app-image-with-fallback class="thumb" [src]="product?.variants?.[0]?.images?.[0]?.url ?? ''" [alt]="product?.name ?? ''" />
+              <div class="item-info">
+                <p class="name">{{ product?.name }}</p>
+                <p class="meta">{{ item.color }} &middot; {{ item.size }} &middot; Qty {{ item.quantity }}</p>
+              </div>
+              <span class="item-price">{{ item.unitPrice * item.quantity | inr }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="coupon-row">
+          @if (appliedCode()) {
+            <span class="applied">{{ appliedCode() }} applied</span>
+          } @else {
+            <div class="coupon-input-row">
+              <input type="text" placeholder="Coupon code" [value]="couponCode()" (input)="couponCode.set($any($event.target).value)" />
+              <button type="button" (click)="applyCoupon()">Apply</button>
+            </div>
+          }
+          @if (couponMessage()) {
+            <p class="coupon-message">{{ couponMessage() }}</p>
+          }
+        </div>
+
+        <div class="summary-rows">
+          <div class="row"><span>Subtotal</span><span>{{ cart.subtotal() | inr }}</span></div>
+          @if (discount() > 0) {
+            <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
+          }
+          <div class="row"><span>Shipping</span><span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span></div>
+        </div>
+        <div class="grand-total-row">
+          <span>Total</span>
+          <span>{{ grandTotal() | inr }}</span>
+        </div>
+
+        <button type="button" class="btn btn-primary full" [disabled]="placingOrder()" (click)="placeOrder()">
+          {{ placingOrder() ? 'Placing Order...' : 'Place Order' }}
+        </button>
+        <p class="secure-footnote">🔒 Your payment information is processed securely.</p>
+      </aside>
+    </div>
+  }
+</div>

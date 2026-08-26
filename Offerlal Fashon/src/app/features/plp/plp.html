@@ -1,0 +1,13 @@
+<div class="plp-header">
+  <div class="container">
+    <app-breadcrumb [crumbs]="breadcrumbs()" />
+    <h1>{{ pageTitle() }}</h1>
+    @if (currentCategory()?.description) {
+      <p class="plp-desc">{{ currentCategory()!.description }}</p>
+    }
+  </div>
+</div>
+
+<div class="container">
+  <app-product-browser [products]="allProducts()" [initialPriceMin]="queryPriceMin()" [initialPriceMax]="queryPriceMax()" />
+</div>

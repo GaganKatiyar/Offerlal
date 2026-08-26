@@ -1,0 +1,47 @@
+<div class="container contact-page">
+  <div class="section-head center">
+    <span class="eyebrow">We're Here to Help</span>
+    <h1>Contact Us</h1>
+  </div>
+
+  <div class="contact-layout">
+    <div class="contact-info">
+      <div class="info-block">
+        <h4>WhatsApp &amp; Phone</h4>
+        <p>+91 73909 65819</p>
+        <p>Mon–Sat, 10am–7pm IST</p>
+      </div>
+      <div class="info-block">
+        <h4>Email</h4>
+        <p>support&#64;offerlalfashion.com</p>
+      </div>
+      <div class="info-block">
+        <h4>Studio Address</h4>
+        <p>14, Fashion Street, Malviya Nagar<br />Jaipur, Rajasthan 302017</p>
+      </div>
+    </div>
+
+    <div class="contact-form">
+      @if (submitted()) {
+        <div class="success-box">
+          <h3>Message sent!</h3>
+          <p>Our team will get back to you within 24 hours.</p>
+        </div>
+      } @else {
+        <label>
+          Name *
+          <input type="text" [value]="name()" (input)="name.set($any($event.target).value)" />
+        </label>
+        <label>
+          Email *
+          <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" />
+        </label>
+        <label>
+          Message *
+          <textarea rows="5" [value]="message()" (input)="message.set($any($event.target).value)"></textarea>
+        </label>
+        <button type="button" class="btn btn-primary full" (click)="submit()">Send Message</button>
+      }
+    </div>
+  </div>
+</div>
