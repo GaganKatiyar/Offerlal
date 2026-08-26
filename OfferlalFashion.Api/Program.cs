@@ -1,40 +1,116 @@
+using System.Text.RegularExpressions;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Data;
+using OfferlalFashion.Api.Infrastructure;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+// Bootstrap logger — captures failures that happen before the host is built
+// (bad config, missing connection string) which would otherwise be silent.
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-builder.Services.AddDbContext<OfferlalFashionDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("OfferlalFashion")));
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-builder.Services.AddCors(options =>
+try
 {
-    options.AddPolicy("AngularDev", policy =>
-        policy.SetIsOriginAllowed(origin =>
-                  origin is "http://localhost:4200" or "http://localhost:4300"
-                  || System.Text.RegularExpressions.Regex.IsMatch(origin, @"^http://192\.168\.\d{1,3}\.\d{1,3}:4300$"))
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    // ── Logging ──────────────────────────────────────────────────────────────
+    builder.Host.UseSerilog((context, services, config) => config
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(
+            path: "logs/offerlal-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 14,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+    // ── Data ─────────────────────────────────────────────────────────────────
+    var connectionString = builder.Configuration.GetConnectionString("OfferlalFashion")
+        ?? throw new InvalidOperationException(
+            "Connection string 'OfferlalFashion' is not configured.");
+
+    builder.Services.AddDbContext<OfferlalFashionDbContext>(options =>
+        options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+
+    // ── Error handling ───────────────────────────────────────────────────────
+    builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+    // ── Validation ───────────────────────────────────────────────────────────
+    // Validators are discovered from this assembly; used once write endpoints exist.
+    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+    // ── Health ───────────────────────────────────────────────────────────────
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<OfferlalFashionDbContext>(
+            name: "database",
+            tags: ["ready"]);
+
+    builder.Services.AddControllers();
+    builder.Services.AddOpenApi();
+
+    // ── CORS ─────────────────────────────────────────────────────────────────
+    // Dev only: allows localhost and any private-LAN origin on the Angular port,
+    // so the storefront can be tested from a phone on the same Wi-Fi.
+    const string CorsPolicy = "StorefrontDev";
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(CorsPolicy, policy => policy
+            .SetIsOriginAllowed(origin =>
+                origin is "http://localhost:4200" or "http://localhost:4300"
+                || Regex.IsMatch(origin, @"^http://192\.168\.\d{1,3}\.\d{1,3}:4300$"))
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+    });
+
+    var app = builder.Build();
+
+    // ── Pipeline ─────────────────────────────────────────────────────────────
+    app.UseExceptionHandler();
+    app.UseSerilogRequestLogging();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+    }
+    else
+    {
+        // HSTS and HTTPS redirection belong to non-dev only; in dev the API is
+        // served over plain HTTP for the Angular proxy and LAN device testing.
+        app.UseHsts();
+        app.UseHttpsRedirection();
+    }
+
+    app.UseCors(CorsPolicy);
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    // Liveness: is the process up. Readiness: can it reach its dependencies.
+    app.MapHealthChecks("/health/live", new()
+    {
+        Predicate = _ => false,
+    });
+    app.MapHealthChecks("/health/ready", new()
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+    });
+
+    app.Run();
+}
+catch (Exception ex) when (ex is not HostAbortedException)
 {
-    app.MapOpenApi();
+    Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-app.UseHttpsRedirection();
-
-app.UseCors("AngularDev");
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+// Exposed so AddValidatorsFromAssemblyContaining<Program>() and integration
+// tests (WebApplicationFactory<Program>) can reference the entry-point assembly.
+public partial class Program;
