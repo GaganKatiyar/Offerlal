@@ -22,6 +22,8 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<CartItemCustomization> CartItemCustomizations { get; set; }
 
+    public virtual DbSet<Brand> Brands { get; set; }
+
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<Coupon> Coupons { get; set; }
@@ -202,10 +204,39 @@ public partial class OfferlalFashionDbContext : DbContext
                 .HasMaxLength(120)
                 .IsUnicode(false);
             entity.Property(e => e.ThumbnailUrl).HasMaxLength(500);
+            entity.Property(e => e.Path)
+                .HasMaxLength(400)
+                .IsUnicode(false)
+                .HasDefaultValue("");
+            entity.Property(e => e.Level).HasDefaultValue((byte)0);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            // Descendant lookups are "WHERE Path LIKE '/parent/%'" — index the path.
+            entity.HasIndex(e => e.Path);
 
             entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
                 .HasForeignKey(d => d.ParentId)
                 .HasConstraintName("FK_Categories_Parent");
+        });
+
+        modelBuilder.Entity<Brand>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasIndex(e => e.Slug).IsUnique();
+
+            entity.Property(e => e.Slug)
+                .HasMaxLength(120)
+                .IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.Description).HasDefaultValue("");
+            entity.Property(e => e.LogoUrl).HasMaxLength(500);
+            entity.Property(e => e.BannerUrl).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.SeoDescription).HasMaxLength(400);
+            entity.Property(e => e.SeoKeywords).HasMaxLength(500);
+            entity.Property(e => e.SeoTitle).HasMaxLength(200);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
         });
 
         modelBuilder.Entity<Coupon>(entity =>
@@ -517,6 +548,13 @@ public partial class OfferlalFashionDbContext : DbContext
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Products_Category");
+
+            entity.HasOne(d => d.Brand).WithMany(p => p.Products)
+                .HasForeignKey(d => d.BrandId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Products_Brand");
+
+            entity.HasIndex(e => e.BrandId);
 
             entity.HasMany(d => d.Occasions).WithMany(p => p.Products)
                 .UsingEntity<Dictionary<string, object>>(

@@ -15,6 +15,13 @@ public partial class Product
 
     public string CategoryId { get; set; } = null!;
 
+    public int BrandId { get; set; }
+
+    /// <summary>
+    /// Legacy free-text sub-category. Superseded by real child categories —
+    /// kept temporarily so nothing breaks mid-migration, dropped in the
+    /// contract phase once the frontend no longer reads it.
+    /// </summary>
     public string? SubCategory { get; set; }
 
     public string Description { get; set; } = null!;
@@ -74,6 +81,8 @@ public partial class Product
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 
     public virtual Category Category { get; set; } = null!;
+
+    public virtual Brand Brand { get; set; } = null!;
 
     public virtual ICollection<CustomizationOption> CustomizationOptions { get; set; } = new List<CustomizationOption>();
 

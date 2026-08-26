@@ -90,6 +90,7 @@ internal static class CatalogMappings
             Name = p.Name,
             Sku = p.Sku,
             CategoryId = p.CategoryId,
+            Brand = p.Brand is null ? null : p.Brand.ToRefDto(),
             ShortDescription = p.ShortDescription,
             Price = p.Price,
             CompareAtPrice = p.CompareAtPrice,
@@ -114,6 +115,7 @@ internal static class CatalogMappings
         Name = p.Name,
         Sku = p.Sku,
         CategoryId = p.CategoryId,
+        Brand = p.Brand is null ? null : p.Brand.ToRefDto(),
         SubCategory = p.SubCategory,
         Occasion = p.Occasions.Select(o => o.Name).ToList(),
         Description = p.Description,
@@ -158,6 +160,26 @@ internal static class CatalogMappings
         ThumbnailUrl = c.ThumbnailUrl,
         ParentId = c.ParentId,
         DisplayOrder = c.DisplayOrder,
+        Path = c.Path,
+        Level = c.Level,
+        IsActive = c.IsActive,
         Seo = ToSeo(c.Slug, c.SeoTitle, c.SeoDescription, c.SeoKeywords),
+    };
+
+    public static BrandRefDto ToRefDto(this Brand b) => new()
+    {
+        Id = b.Id,
+        Slug = b.Slug,
+        Name = b.Name,
+    };
+
+    public static BrandDto ToDto(this Brand b) => new()
+    {
+        Id = b.Id,
+        Slug = b.Slug,
+        Name = b.Name,
+        Description = b.Description,
+        LogoUrl = b.LogoUrl,
+        BannerUrl = b.BannerUrl,
     };
 }

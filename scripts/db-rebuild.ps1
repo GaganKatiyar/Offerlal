@@ -23,7 +23,14 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $apiDir   = Join-Path $repoRoot "OfferlalFashion.Api"
-$seedFile = Join-Path $repoRoot "Offerlal Fashon\database\seed.sql"
+
+# Seed scripts run in order. seed.sql loads the flat demo catalogue;
+# seed-catalog-structure.sql derives the category tree and promotes the
+# legacy SubCategory free text into real child categories.
+$seedFiles = @(
+    Join-Path $repoRoot "Offerlal Fashon\database\seed.sql"
+    Join-Path $repoRoot "Offerlal Fashon\database\seed-catalog-structure.sql"
+)
 
 # --- Guard: refuse to run against anything that isn't local -------------------
 if ($Server -notin @(".", "localhost", "(local)", "127.0.0.1", "$env:COMPUTERNAME")) {
@@ -57,15 +64,19 @@ try {
 }
 finally { Pop-Location }
 
-Write-Host "  Seeding..." -ForegroundColor DarkGray
-sqlcmd -S $Server -E -d $Database -i $seedFile -b
-if ($LASTEXITCODE -ne 0) { throw "Seeding failed." }
+foreach ($seed in $seedFiles) {
+    Write-Host "  Seeding $(Split-Path $seed -Leaf)..." -ForegroundColor DarkGray
+    sqlcmd -S $Server -E -d $Database -i $seed -b
+    if ($LASTEXITCODE -ne 0) { throw "Seeding failed: $(Split-Path $seed -Leaf)" }
+}
 
 # --- Verify -------------------------------------------------------------------
+# Categories = 10 roots + 9 children promoted from the legacy SubCategory column.
 $expected = @{
     Products = 60; ProductSkus = 241; ProductVariants = 60; ProductImages = 120
     Orders = 37; OrderItems = 41; OrderStatusHistory = 224
-    Customers = 20; Addresses = 20; Categories = 10; Coupons = 10; Reviews = 15
+    Customers = 20; Addresses = 20; Categories = 19; Coupons = 10; Reviews = 15
+    Brands = 1
 }
 
 Write-Host "Verifying row counts..." -ForegroundColor Cyan

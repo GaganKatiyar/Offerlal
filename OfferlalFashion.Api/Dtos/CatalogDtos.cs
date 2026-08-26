@@ -68,6 +68,7 @@ public sealed record ProductSummaryDto
     public string Name { get; init; } = "";
     public string Sku { get; init; } = "";
     public string CategoryId { get; init; } = "";
+    public BrandRefDto? Brand { get; init; }
     public string ShortDescription { get; init; } = "";
     public decimal Price { get; init; }
     public decimal? CompareAtPrice { get; init; }
@@ -91,6 +92,7 @@ public sealed record ProductDto
     public string Name { get; init; } = "";
     public string Sku { get; init; } = "";
     public string CategoryId { get; init; } = "";
+    public BrandRefDto? Brand { get; init; }
     public string? SubCategory { get; init; }
     public IReadOnlyList<string> Occasion { get; init; } = [];
     public string Description { get; init; } = "";
@@ -131,5 +133,32 @@ public sealed record CategoryDto
     public string ThumbnailUrl { get; init; } = "";
     public string? ParentId { get; init; }
     public int DisplayOrder { get; init; }
+
+    /// <summary>Materialised path, e.g. "/cat-bridal-lehengas/cat-bridal-lehengas-heavy-bridal/".</summary>
+    public string Path { get; init; } = "";
+
+    /// <summary>Depth in the tree; roots are 0.</summary>
+    public byte Level { get; init; }
+
+    public bool IsActive { get; init; }
+
     public SeoDto Seo { get; init; } = new();
+}
+
+public sealed record BrandDto
+{
+    public int Id { get; init; }
+    public string Slug { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string Description { get; init; } = "";
+    public string? LogoUrl { get; init; }
+    public string? BannerUrl { get; init; }
+}
+
+/// <summary>Just enough brand identity to render a product card or PDP byline.</summary>
+public sealed record BrandRefDto
+{
+    public int Id { get; init; }
+    public string Slug { get; init; } = "";
+    public string Name { get; init; } = "";
 }

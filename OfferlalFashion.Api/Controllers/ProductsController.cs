@@ -23,8 +23,21 @@ public class ProductsController(OfferlalFashionDbContext db) : ControllerBase
         pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
 
         var query = db.Products.AsNoTracking();
+
         if (!string.IsNullOrWhiteSpace(categoryId))
-            query = query.Where(p => p.CategoryId == categoryId);
+        {
+            // Match the category AND all its descendants. Products live on leaf
+            // categories, so an exact CategoryId match on a parent would return
+            // nothing. Uses the materialised Categories.Path, which is indexed.
+            var path = await db.Categories.AsNoTracking()
+                .Where(c => c.Id == categoryId)
+                .Select(c => c.Path)
+                .FirstOrDefaultAsync(ct);
+
+            if (path is null) return NotFound($"Unknown category '{categoryId}'.");
+
+            query = query.Where(p => p.Category.Path.StartsWith(path));
+        }
 
         var total = await query.CountAsync(ct);
 
@@ -34,6 +47,7 @@ public class ProductsController(OfferlalFashionDbContext db) : ControllerBase
             .ThenBy(p => p.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Include(p => p.Brand)
             .Include(p => p.ProductVariants).ThenInclude(v => v.ProductImages)
             .ToListAsync(ct);
 
@@ -63,6 +77,7 @@ public class ProductsController(OfferlalFashionDbContext db) : ControllerBase
 
     private IQueryable<Models.Product> LoadDetail() =>
         db.Products.AsNoTracking()
+            .Include(p => p.Brand)
             .Include(p => p.ProductVariants).ThenInclude(v => v.ProductImages)
             .Include(p => p.ProductVariants).ThenInclude(v => v.ProductSkus)
             .Include(p => p.CustomizationOptions)
