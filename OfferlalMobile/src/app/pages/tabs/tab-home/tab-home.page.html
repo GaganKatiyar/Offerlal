@@ -1,0 +1,50 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <div class="brand-row">
+      <span class="brand">Offerlal <em>Fashion</em></span>
+      <ion-icon name="notifications-outline"></ion-icon>
+    </div>
+    <ion-searchbar placeholder="Search for lehengas, sarees, gowns..." mode="ios"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <section class="hero">
+    <img src="https://images.pexels.com/photos/12411105/pexels-photo-12411105.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Bridal Edit" />
+    <div class="hero-copy">
+      <span class="eyebrow">The Bridal Edit</span>
+      <h1>Heirloom-Worthy<br />Wedding Wear</h1>
+      <button type="button" class="hero-cta">Shop Now</button>
+    </div>
+  </section>
+
+  <section class="cat-strip">
+    <h2>Shop by Category</h2>
+    <div class="cat-scroll">
+      @for (cat of categories; track cat.id) {
+        <button type="button" class="cat-chip" (click)="openCategory(cat.id)">
+          <img [src]="cat.imageUrl" [alt]="cat.name" />
+          <span>{{ cat.name }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="product-rail">
+    <h2>New Arrivals</h2>
+    <div class="grid">
+      @for (p of newArrivals(); track p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  </section>
+
+  <section class="product-rail">
+    <h2>Best Sellers</h2>
+    <div class="grid">
+      @for (p of bestsellers(); track p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  </section>
+</ion-content>

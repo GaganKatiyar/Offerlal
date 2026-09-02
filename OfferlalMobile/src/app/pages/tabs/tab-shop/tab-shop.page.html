@@ -1,0 +1,22 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Shop All</ion-title>
+  </ion-toolbar>
+  <div class="chip-row">
+    <button type="button" class="chip" [class.active]="activeCategory() === null" (click)="select(null)">All</button>
+    @for (cat of categories; track cat.id) {
+      <button type="button" class="chip" [class.active]="activeCategory() === cat.id" (click)="select(cat.id)">
+        {{ cat.name }}
+      </button>
+    }
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="result-count">{{ products().length }} items</div>
+  <div class="grid">
+    @for (p of products(); track p.id) {
+      <app-product-card [product]="p" />
+    }
+  </div>
+</ion-content>

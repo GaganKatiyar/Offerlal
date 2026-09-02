@@ -1,0 +1,99 @@
+<ion-header class="ion-no-border transparent-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/shop" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <button type="button" class="wishlist-fab" (click)="toggleWishlist()">
+        <ion-icon [name]="inWishlist() ? 'heart' : 'heart-outline'"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (product(); as p) {
+    <div class="gallery">
+      <img [src]="activeImage() === 0 ? p.imageUrl : p.imageUrl2" [alt]="p.name" />
+      <div class="dots">
+        <span class="dot" [class.active]="activeImage() === 0" (click)="activeImage.set(0)"></span>
+        <span class="dot" [class.active]="activeImage() === 1" (click)="activeImage.set(1)"></span>
+      </div>
+    </div>
+
+    <div class="details">
+      <p class="category">{{ p.categoryName }}</p>
+      <h1>{{ p.name }}</h1>
+
+      @if (p.reviewCount > 0) {
+        <div class="rating-row">
+          <ion-icon name="star"></ion-icon>
+          <span>{{ p.rating.toFixed(1) }}</span>
+          <span class="muted">({{ p.reviewCount }} reviews)</span>
+        </div>
+      } @else {
+        <div class="rating-row muted">New — no reviews yet</div>
+      }
+
+      <div class="price-row">
+        <span class="price">₹{{ p.price.toLocaleString('en-IN') }}</span>
+        @if (p.compareAtPrice) {
+          <span class="compare">₹{{ p.compareAtPrice.toLocaleString('en-IN') }}</span>
+          <span class="discount">{{ discountPct() }}% OFF</span>
+        }
+      </div>
+      <p class="mrp-note">MRP incl. all taxes</p>
+
+      @if (p.colors.length) {
+        <div class="option-block">
+          <h4>Colour: {{ p.colors[0].name }}</h4>
+          <div class="swatch-row">
+            @for (c of p.colors; track c.name) {
+              <span class="swatch" [style.background]="c.hex"></span>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="option-block">
+        <h4>Size{{ selectedSize() ? ': ' + selectedSize() : '' }}</h4>
+        <div class="size-row">
+          @for (size of p.sizes; track size) {
+            <button type="button" class="size-btn" [class.active]="size === selectedSize()" (click)="selectSize(size)">
+              {{ size }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="description-block">
+        <h4>Product Description</h4>
+        <p>{{ p.description }}</p>
+        <div class="fact-row"><span>Fabric</span><span>{{ p.fabric }}</span></div>
+        <div class="fact-row"><span>Work</span><span>{{ p.workDetails }}</span></div>
+      </div>
+
+      @if (related().length) {
+        <div class="related-block">
+          <h4>You May Also Like</h4>
+          <div class="related-scroll">
+            @for (r of related(); track r.id) {
+              <div class="related-item" (click)="openRelated(r.slug)">
+                <app-product-card [product]="r" />
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>
+
+@if (product(); as p) {
+  <div class="pdp-cta-bar">
+    <button type="button" class="btn-outline" (click)="addToBag()">
+      {{ added() ? 'Added ✓' : 'Add to Bag' }}
+    </button>
+    <button type="button" class="btn-primary" (click)="addToBag()">Buy Now</button>
+  </div>
+}

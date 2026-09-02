@@ -1,0 +1,44 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Your Bag</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (cart.lines().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="bag-handle-outline"></ion-icon>
+      <p>Your bag is empty.</p>
+      <p class="hint">Let's find something beautiful for your next celebration.</p>
+    </div>
+  } @else {
+    <div class="lines">
+      @for (line of cart.lines(); track line.product.id + line.size) {
+        <div class="line">
+          <img [src]="line.product.imageUrl" [alt]="line.product.name" />
+          <div class="line-info">
+            <p class="name">{{ line.product.name }}</p>
+            <p class="meta">Size: {{ line.size }}</p>
+            <p class="price">₹{{ line.product.price.toLocaleString('en-IN') }}</p>
+            <div class="qty-row">
+              <button type="button" (click)="dec(line)"><ion-icon name="remove-outline"></ion-icon></button>
+              <span>{{ line.quantity }}</span>
+              <button type="button" (click)="inc(line)"><ion-icon name="add-outline"></ion-icon></button>
+              <button type="button" class="remove" (click)="remove(line)"><ion-icon name="trash-outline"></ion-icon></button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>
+
+@if (cart.lines().length > 0) {
+  <div class="checkout-bar">
+    <div class="total">
+      <span>Subtotal</span>
+      <strong>₹{{ cart.subtotal().toLocaleString('en-IN') }}</strong>
+    </div>
+    <button type="button" class="checkout-btn">Proceed to Checkout</button>
+  </div>
+}

@@ -1,0 +1,7 @@
+{
+  "name": "OfferlalMobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

@@ -1,0 +1,151 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+ion-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  padding: 0 30px;
+
+  ion-icon {
+    font-size: 48px;
+    color: var(--color-charcoal-mute);
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin: 4px 0;
+    color: var(--color-charcoal);
+    font-weight: 600;
+  }
+
+  .hint {
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--color-charcoal-mute);
+  }
+}
+
+.lines {
+  padding: 8px 12px 100px;
+}
+
+.line {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+
+  img {
+    width: 76px;
+    height: 96px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+}
+
+.line-info {
+  flex: 1;
+
+  .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    margin: 0 0 4px;
+  }
+
+  .meta {
+    font-size: 12px;
+    color: var(--color-charcoal-mute);
+    margin: 0 0 4px;
+  }
+
+  .price {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-charcoal);
+    margin: 0 0 8px;
+  }
+}
+
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  button {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--color-charcoal);
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  .remove {
+    margin-left: auto;
+    border: none;
+    color: var(--color-wine);
+  }
+}
+
+.checkout-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 56px;
+  background: #fff;
+  border-top: 1px solid var(--color-border);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 10;
+
+  .total {
+    display: flex;
+    flex-direction: column;
+    font-size: 11px;
+    color: var(--color-charcoal-mute);
+
+    strong {
+      font-size: 16px;
+      color: var(--color-charcoal);
+    }
+  }
+}
+
+.checkout-btn {
+  flex: 1;
+  max-width: 200px;
+  background: var(--color-wine);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

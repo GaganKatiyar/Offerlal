@@ -1,0 +1,49 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+ion-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 12px 10px;
+  background: var(--color-ivory);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.chip {
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-border);
+  background: #fff;
+  color: var(--color-charcoal);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+
+  &.active {
+    background: var(--color-wine);
+    border-color: var(--color-wine);
+    color: #fff;
+  }
+}
+
+.result-count {
+  font-size: 12px;
+  color: var(--color-charcoal-mute);
+  padding: 12px 12px 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 8px 12px 20px;
+}

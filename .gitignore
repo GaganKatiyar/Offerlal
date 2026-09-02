@@ -87,3 +87,8 @@ logs/
 *.log
 tmp/
 temp/
+
+# Ionic/Capacitor mobile app
+OfferlalMobile/www/
+OfferlalMobile/android/
+OfferlalMobile/ios/

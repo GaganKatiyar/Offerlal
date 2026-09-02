@@ -1,0 +1,30 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>My Account</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="profile-card">
+    <div class="avatar">{{ user.firstName.charAt(0) }}</div>
+    <div>
+      <p class="name">{{ user.firstName }} {{ user.lastName }}</p>
+      <p class="email">{{ user.email }}</p>
+    </div>
+  </div>
+
+  <div class="menu-list">
+    @for (item of menu; track item.label) {
+      <button type="button" class="menu-item">
+        <ion-icon [name]="item.icon"></ion-icon>
+        <span>{{ item.label }}</span>
+        <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+      </button>
+    }
+  </div>
+
+  <button type="button" class="logout-btn">
+    <ion-icon name="log-out-outline"></ion-icon>
+    Log Out
+  </button>
+</ion-content>

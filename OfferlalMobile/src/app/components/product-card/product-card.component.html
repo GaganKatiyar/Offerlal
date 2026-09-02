@@ -1,0 +1,34 @@
+<div class="card" (click)="open()">
+  <div class="media">
+    <img [src]="product().imageUrl" [alt]="product().name" loading="lazy" />
+
+    @if (product().isBestseller) {
+      <span class="badge bestseller">Bestseller</span>
+    } @else if (product().isNewArrival) {
+      <span class="badge new">New</span>
+    }
+
+    <button type="button" class="wishlist-btn" [class.active]="inWishlist()" (click)="toggleWishlist($event)">
+      <ion-icon [name]="inWishlist() ? 'heart' : 'heart-outline'"></ion-icon>
+    </button>
+  </div>
+
+  <div class="info">
+    <p class="name">{{ product().name }}</p>
+    <div class="price-row">
+      <span class="price">₹{{ product().price.toLocaleString('en-IN') }}</span>
+      @if (product().compareAtPrice) {
+        <span class="compare">₹{{ product().compareAtPrice!.toLocaleString('en-IN') }}</span>
+        <span class="discount">{{ discountPct() }}% off</span>
+      }
+    </div>
+    @if (product().reviewCount > 0) {
+      <div class="rating">
+        <span class="stars">★ {{ product().rating.toFixed(1) }}</span>
+        <span class="count">({{ product().reviewCount }})</span>
+      </div>
+    } @else {
+      <div class="rating new-label">New — no reviews yet</div>
+    }
+  </div>
+</div>
