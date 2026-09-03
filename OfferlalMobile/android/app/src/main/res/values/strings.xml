@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OfferlalMobile</string>
+    <string name="title_activity_main">OfferlalMobile</string>
+    <string name="package_name">com.offerlal.app</string>
+    <string name="custom_url_scheme">com.offerlal.app</string>
+</resources>

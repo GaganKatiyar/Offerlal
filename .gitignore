@@ -90,5 +90,7 @@ temp/
 
 # Ionic/Capacitor mobile app
 OfferlalMobile/www/
-OfferlalMobile/android/
 OfferlalMobile/ios/
+
+# Local build tooling (portable JDK / Android SDK, not for version control)
+tools/
