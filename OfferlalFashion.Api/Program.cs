@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using OfferlalFashion.Api.Catalog;
 using OfferlalFashion.Api.Data;
 using OfferlalFashion.Api.Infrastructure;
 using Serilog;
@@ -48,6 +49,10 @@ try
         .AddDbContextCheck<OfferlalFashionDbContext>(
             name: "database",
             tags: ["ready"]);
+
+    // ── Catalog ──────────────────────────────────────────────────────────────
+    builder.Services.AddScoped<AttributeProjectionService>();
+    builder.Services.AddScoped<ProductQueryService>();
 
     builder.Services.AddControllers();
     builder.Services.AddOpenApi();

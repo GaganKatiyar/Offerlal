@@ -509,6 +509,15 @@ public partial class OfferlalFashionDbContext : DbContext
 
             entity.HasIndex(e => new { e.IsBestseller, e.IsNewArrival, e.IsFeatured, e.IsBridal }, "IX_Products_Flags");
 
+            // PLP sort support. Every list query orders by one of these and
+            // then pages, so without a matching index SQL Server sorts the
+            // whole filtered set on each page request. Cheap at 60 products,
+            // the difference between fast and unusable at a few thousand.
+            entity.HasIndex(e => new { e.CategoryId, e.IsFeatured, e.Rating }, "IX_Products_Category_Featured_Rating");
+            entity.HasIndex(e => e.CreatedAt, "IX_Products_CreatedAt").IsDescending();
+            entity.HasIndex(e => e.Price, "IX_Products_Price");
+            entity.HasIndex(e => new { e.Rating, e.ReviewCount }, "IX_Products_Rating_ReviewCount").IsDescending();
+
             entity.HasIndex(e => e.Slug).IsUnique();
 
             entity.HasIndex(e => e.Sku).IsUnique();

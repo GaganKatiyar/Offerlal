@@ -1286,7 +1286,17 @@ namespace OfferlalFashion.Api.Migrations
 
                     b.HasIndex(new[] { "CategoryId" }, "IX_Products_CategoryId");
 
+                    b.HasIndex(new[] { "CategoryId", "IsFeatured", "Rating" }, "IX_Products_Category_Featured_Rating");
+
+                    b.HasIndex(new[] { "CreatedAt" }, "IX_Products_CreatedAt")
+                        .IsDescending();
+
                     b.HasIndex(new[] { "IsBestseller", "IsNewArrival", "IsFeatured", "IsBridal" }, "IX_Products_Flags");
+
+                    b.HasIndex(new[] { "Price" }, "IX_Products_Price");
+
+                    b.HasIndex(new[] { "Rating", "ReviewCount" }, "IX_Products_Rating_ReviewCount")
+                        .IsDescending();
 
                     b.ToTable("Products", t =>
                         {
