@@ -1,22 +1,22 @@
-<a class="card" [routerLink]="['/product', product().slug]">
+<a class="card" [routerLink]="['/product', vm().slug]">
   <div class="media">
     <app-image-with-fallback
       [src]="primaryImage()"
-      [alt]="product().name"
+      [alt]="vm().name"
       sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 48vw"
     />
 
     <div class="badges">
-      @if (product().isNewArrival) {
+      @if (vm().isNewArrival) {
         <app-badge variant="new">New</app-badge>
       }
-      @if (product().isBestseller) {
+      @if (vm().isBestseller) {
         <app-badge variant="bestseller">Bestseller</app-badge>
       }
-      @if (product().stockStatus === 'low-stock') {
+      @if (vm().stockStatus === 'low-stock') {
         <app-badge variant="low-stock">Low Stock</app-badge>
       }
-      @if (product().stockStatus === 'out-of-stock') {
+      @if (vm().stockStatus === 'out-of-stock') {
         <app-badge variant="out-of-stock">Sold Out</app-badge>
       }
     </div>
@@ -26,7 +26,7 @@
         type="button"
         class="corner-btn"
         (click)="removeItem($event)"
-        [attr.aria-label]="'Remove ' + product().name + ' from wishlist'"
+        [attr.aria-label]="'Remove ' + vm().name + ' from wishlist'"
       >
         &times;
       </button>
@@ -39,7 +39,7 @@
         (click)="toggleWishlist($event)"
         [attr.aria-label]="
           (inWishlist() ? 'Remove ' : 'Add ') +
-          product().name +
+          vm().name +
           (inWishlist() ? ' from' : ' to') +
           ' wishlist'
         "
@@ -53,12 +53,12 @@
       the width the product name needs; the pill carries the same information
       in a third of the space. StarRating is still used on the PDP and reviews.
     -->
-    @if (product().reviewCount > 0) {
+    @if (vm().reviewCount > 0) {
       <span class="rating-pill" data-numeric>
-        {{ product().rating }} <span class="star" aria-hidden="true">★</span>
+        {{ vm().rating }} <span class="star" aria-hidden="true">★</span>
         <span class="divider" aria-hidden="true">|</span>
-        {{ product().reviewCount }}
-        <span class="visually-hidden">rating from {{ product().reviewCount }} reviews</span>
+        {{ vm().reviewCount }}
+        <span class="visually-hidden">rating from {{ vm().reviewCount }} reviews</span>
       </span>
     }
 
@@ -70,17 +70,17 @@
 
   <div class="info">
     <p class="descriptor">{{ descriptor() }}</p>
-    <h3 class="name">{{ product().name }}</h3>
+    <h3 class="name">{{ vm().name }}</h3>
 
     <app-price-display
-      [price]="product().price"
-      [compareAtPrice]="product().compareAtPrice"
+      [price]="vm().price"
+      [compareAtPrice]="vm().compareAtPrice"
       size="sm"
     />
 
     @if (swatches().length > 1) {
-      <div class="swatches" [attr.aria-label]="product().variants.length + ' colours available'">
-        @for (v of swatches(); track v.id) {
+      <div class="swatches" [attr.aria-label]="vm().swatches.length + ' colours available'">
+        @for (v of swatches(); track v.color) {
           <span class="swatch" [style.background]="v.colorHex" [attr.title]="v.color"></span>
         }
         @if (extraSwatchCount() > 0) {
@@ -103,7 +103,7 @@
         @for (size of stockSizes(); track size) {
           <a
             class="size-chip"
-            [routerLink]="['/product', product().slug]"
+            [routerLink]="['/product', vm().slug]"
             [queryParams]="{ size: size }"
             (click)="$event.stopPropagation()"
             >{{ size }}</a

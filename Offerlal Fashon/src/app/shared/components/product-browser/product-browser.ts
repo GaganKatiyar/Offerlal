@@ -1,19 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  linkedSignal,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { Product, ProductFilters, ProductSortOption } from '../../../core/models';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { CatalogQuery, Facet, ProductCardModel, ProductSearchResult } from '../../../core/models/catalog-search.model';
+import { CatalogApiService } from '../../../core/services/catalog-api.service';
+import { PlpQueryService } from '../../../core/services/plp-query.service';
+import { DensityService } from '../../../core/services/density.service';
 import { ProductCard } from '../product-card/product-card';
 import { Drawer } from '../../ui/drawer/drawer';
-import { DensityService } from '../../../core/services/density.service';
 
-const SORT_OPTIONS: { value: ProductSortOption; label: string }[] = [
+const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: 'recommended', label: 'Recommended' },
   { value: 'newest', label: 'Newest' },
   { value: 'bestselling', label: 'Best Selling' },
@@ -22,10 +17,31 @@ const SORT_OPTIONS: { value: ProductSortOption; label: string }[] = [
   { value: 'rating', label: 'Customer Rating' },
 ];
 
+/** An applied filter, rendered as a removable chip above the grid. */
+export interface AppliedFilter {
+  code: string;
+  value?: string;
+  label: string;
+}
+
 /**
- * Left filter panel (price slider, color swatches, size/fabric checkboxes with
- * counts) + right product grid, reused by the PLP page and the homepage's
- * "Shop All" section so both stay in sync with one implementation.
+ * Filter rail + product grid, driven entirely by the server.
+ *
+ * Previously this took the whole product array as an input and recomputed
+ * filtering, faceting and counting in computed() signals on every toggle. That
+ * required the entire catalogue in the browser, and its facet counts were
+ * wrong across pagination because they only ever saw the loaded page.
+ *
+ * Two things follow from the server owning the query:
+ *
+ * 1. The facet rail is now a generic loop over whatever facets the API returns,
+ *    not hardcoded Colour/Size/Fabric sections. A catalogue spanning apparel,
+ *    jewellery and footwear cannot share one fixed filter list — the four size
+ *    schemes alone make that unworkable — and a new attribute now needs no
+ *    frontend change at all.
+ *
+ * 2. Filter state lives in the URL via PlpQueryService, so a filtered view is
+ *    shareable and the back button undoes one filter.
  */
 @Component({
   selector: 'app-product-browser',
@@ -36,190 +52,220 @@ const SORT_OPTIONS: { value: ProductSortOption; label: string }[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductBrowser {
-  products = input.required<Product[]>();
-  /** Optional starting price range (e.g. from a "Shop by Budget" tile's query params). */
-  initialPriceMin = input<number | null>(null);
-  initialPriceMax = input<number | null>(null);
+  /** Route context. Unlike the filters, these are not user-clearable. */
+  categoryId = input<string | undefined>(undefined);
+  occasionId = input<string | undefined>(undefined);
+
+  /**
+   * Route-level filters for /new-arrivals and /sale. Like the category, these
+   * define WHICH catalogue the shopper is browsing rather than a choice they
+   * made, so "Clear all" must not remove them.
+   */
+  newArrivals = input(false);
+  onSale = input(false);
+
+  private api = inject(CatalogApiService);
+  protected plpQuery = inject(PlpQueryService);
+  protected density = inject(DensityService);
 
   protected sortOptions = SORT_OPTIONS;
-
-  protected density = inject(DensityService);
   protected densityOptions = this.density.options;
-
-  protected sort = signal<ProductSortOption>('recommended');
-  // linkedSignal, not an effect writing to a signal.
-  //
-  // The previous effect() re-ran on ANY signal it read, so every change to the
-  // inputs stamped over whatever price range the shopper had dragged to. As a
-  // linkedSignal the value resets only when the source input actually changes
-  // (navigating to a different budget tile), and a user drag survives
-  // unrelated re-renders.
-  protected priceMin = linkedSignal<number | null, number | null>({
-    source: this.initialPriceMin,
-    computation: (source) => source,
-  });
-  protected priceMax = linkedSignal<number | null, number | null>({
-    source: this.initialPriceMax,
-    computation: (source) => source,
-  });
-  protected selectedColors = signal<string[]>([]);
-  protected selectedSizes = signal<string[]>([]);
-  protected selectedFabrics = signal<string[]>([]);
-  protected inStockOnly = signal(false);
-  protected minRating = signal<number | null>(null);
   protected mobileFiltersOpen = signal(false);
 
-  protected availableColors = computed(() => {
-    const set = new Set<string>();
-    this.products().forEach((p) => p.variants.forEach((v) => set.add(v.color)));
-    return Array.from(set).sort();
+  /** Which facet groups are collapsed. Long rails are unusable fully expanded. */
+  private collapsed = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly request = computed<CatalogQuery>(() => ({
+    ...this.plpQuery.query(),
+    categoryId: this.categoryId(),
+    occasionId: this.occasionId(),
+    newArrivals: this.newArrivals() || undefined,
+    onSale: this.onSale() || undefined,
+  }));
+
+  private readonly resource = rxResource({
+    params: () => this.request(),
+    stream: ({ params }) => this.api.search(params),
   });
 
-  protected colorHexByName = computed(() => {
-    const map = new Map<string, string>();
-    this.products().forEach((p) => p.variants.forEach((v) => map.set(v.color, v.colorHex)));
-    return map;
+  protected loading = computed(() => this.resource.isLoading());
+  protected error = computed(() => this.resource.error());
+  protected result = computed(() => this.resource.value());
+
+  /**
+   * Hybrid paging: pages accumulate as the shopper loads more, but the page
+   * number stays in the URL. Pure infinite scroll destroys back navigation and
+   * is invisible to crawlers; pure pagination feels wrong on a phone.
+   *
+   * A linkedSignal rather than a computed, because accumulation needs the
+   * PREVIOUS value and a computed may not write signals — doing so silently
+   * breaks the whole component, which is exactly what happened on the first
+   * attempt here. `previous` is the supported way to carry state forward.
+   *
+   * The key covers every part of the query except the page, so changing a
+   * filter resets the list while turning the page appends to it.
+   */
+  protected items = linkedSignal<
+    { result: ProductSearchResult | undefined; key: string },
+    ProductCardModel[]
+  >({
+    // The source is ALWAYS defined, even mid-fetch.
+    //
+    // Returning undefined while the resource reloads breaks the accumulation
+    // lineage: `previous.source` becomes that undefined, the key comparison on
+    // the next emission fails, and page 2 replaces page 1 instead of appending
+    // to it. Carrying the key through the loading state is what keeps
+    // "Load more" working.
+    source: () => ({ result: this.resource.value(), key: filterKey(this.request()) }),
+
+    computation: (source, previous) => {
+      const previousItems = previous?.value ?? [];
+
+      // Mid-fetch: keep the current results on screen (dimmed by .is-loading)
+      // rather than blanking the grid and losing the scroll position.
+      if (!source.result) return previousItems;
+
+      // Page 1 always replaces — this is also the path taken whenever a filter
+      // changes, because any non-paging change resets the page.
+      if (previous?.source?.key !== source.key || source.result.page <= 1) {
+        return source.result.items;
+      }
+
+      const seen = new Set(previousItems.map((i) => i.id));
+      return [...previousItems, ...source.result.items.filter((i) => !seen.has(i.id))];
+    },
   });
 
-  protected availableSizes = computed(() => {
-    const set = new Set<string>();
-    this.products().forEach((p) => p.sizes.forEach((s) => set.add(s)));
-    return Array.from(set);
-  });
+  protected facets = computed<Facet[]>(() => this.result()?.facets ?? []);
+  protected totalCount = computed(() => this.result()?.totalCount ?? 0);
+  protected hasNext = computed(() => this.result()?.hasNext ?? false);
+  protected priceBounds = computed(() => this.result()?.priceBounds ?? { min: 0, max: 0 });
 
-  protected availableFabrics = computed(() => {
-    const set = new Set<string>();
-    this.products().forEach((p) => set.add(p.fabric));
-    return Array.from(set).sort();
-  });
+  protected sort = computed(() => this.plpQuery.query().sort ?? 'recommended');
+  protected inStockOnly = computed(() => this.plpQuery.query().inStock === true);
+  protected customSizingOnly = computed(() => this.plpQuery.query().customSizing === true);
 
-  protected priceBounds = computed(() => {
-    const prices = this.products().map((p) => p.price);
-    if (!prices.length) return { min: 0, max: 200000 };
-    return {
-      min: Math.floor(Math.min(...prices) / 100) * 100,
-      max: Math.ceil(Math.max(...prices) / 100) * 100,
-    };
-  });
-
-  protected colorCounts = computed(() => {
-    const counts = new Map<string, number>();
-    this.products().forEach((p) => {
-      const colorsInProduct = new Set(p.variants.map((v) => v.color));
-      colorsInProduct.forEach((c) => counts.set(c, (counts.get(c) ?? 0) + 1));
-    });
-    return counts;
-  });
-
-  protected sizeCounts = computed(() => {
-    const counts = new Map<string, number>();
-    this.products().forEach((p) =>
-      new Set(p.sizes).forEach((s) => counts.set(s, (counts.get(s) ?? 0) + 1)),
-    );
-    return counts;
-  });
-
-  protected fabricCounts = computed(() => {
-    const counts = new Map<string, number>();
-    this.products().forEach((p) => counts.set(p.fabric, (counts.get(p.fabric) ?? 0) + 1));
-    return counts;
-  });
-
-  protected filtered = computed(() => {
-    const filters: ProductFilters = {
-      priceMin: this.priceMin() ?? undefined,
-      priceMax: this.priceMax() ?? undefined,
-      colors: this.selectedColors().length ? this.selectedColors() : undefined,
-      sizes: this.selectedSizes().length ? this.selectedSizes() : undefined,
-      fabrics: this.selectedFabrics().length ? this.selectedFabrics() : undefined,
-      inStockOnly: this.inStockOnly() || undefined,
-      minRating: this.minRating() ?? undefined,
-    };
-    let list = this.products();
-    if (filters.priceMin != null) list = list.filter((p) => p.price >= filters.priceMin!);
-    if (filters.priceMax != null) list = list.filter((p) => p.price <= filters.priceMax!);
-    if (filters.colors)
-      list = list.filter((p) => p.variants.some((v) => filters.colors!.includes(v.color)));
-    if (filters.sizes) list = list.filter((p) => p.sizes.some((s) => filters.sizes!.includes(s)));
-    if (filters.fabrics) list = list.filter((p) => filters.fabrics!.includes(p.fabric));
-    if (filters.inStockOnly) list = list.filter((p) => p.stockStatus !== 'out-of-stock');
-    if (filters.minRating != null) list = list.filter((p) => p.rating >= filters.minRating!);
-
-    const sorted = [...list];
-    switch (this.sort()) {
-      case 'newest':
-        sorted.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
-        break;
-      case 'bestselling':
-        sorted.sort(
-          (a, b) =>
-            Number(b.isBestseller) - Number(a.isBestseller) || b.reviewCount - a.reviewCount,
-        );
-        break;
-      case 'price-asc':
-        sorted.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        sorted.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        sorted.sort((a, b) => b.rating - a.rating);
-        break;
-      default:
-        sorted.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured) || b.rating - a.rating);
-    }
-    return sorted;
-  });
-
-  protected toggleColor(color: string): void {
-    this.selectedColors.update((list) =>
-      list.includes(color) ? list.filter((c) => c !== color) : [...list, color],
-    );
-  }
-
-  protected toggleSize(size: string): void {
-    this.selectedSizes.update((list) =>
-      list.includes(size) ? list.filter((s) => s !== size) : [...list, size],
-    );
-  }
-
-  protected toggleFabric(fabric: string): void {
-    this.selectedFabrics.update((list) =>
-      list.includes(fabric) ? list.filter((f) => f !== fabric) : [...list, fabric],
-    );
-  }
+  protected effectivePriceMin = computed(() => this.plpQuery.query().priceMin ?? this.priceBounds().min);
+  protected effectivePriceMax = computed(() => this.plpQuery.query().priceMax ?? this.priceBounds().max);
 
   protected rangeFillStyle = computed(() => {
     const { min, max } = this.priceBounds();
-    const span = max - min || 1;
-    const lo = this.priceMin() ?? min;
-    const hi = this.priceMax() ?? max;
-    return { left: ((lo - min) / span) * 100, width: Math.max(0, ((hi - lo) / span) * 100) };
+    const span = max - min;
+    if (span <= 0) return { left: 0, width: 100 };
+    return {
+      left: ((this.effectivePriceMin() - min) / span) * 100,
+      width: ((this.effectivePriceMax() - this.effectivePriceMin()) / span) * 100,
+    };
   });
 
-  protected effectivePriceMin(): number {
-    return this.priceMin() ?? this.priceBounds().min;
+  /**
+   * Applied filters as chips. Labels come from the facet options so the chip
+   * reads "Raw Silk" rather than the "raw-silk" slug that is in the URL.
+   */
+  protected appliedFilters = computed<AppliedFilter[]>(() => {
+    const q = this.plpQuery.query();
+    const chips: AppliedFilter[] = [];
+
+    for (const [code, values] of Object.entries(q.facets ?? {})) {
+      const facet = this.facets().find((f) => f.code === code);
+      for (const value of values) {
+        chips.push({
+          code,
+          value,
+          label: facet?.options.find((o) => o.value === value)?.label ?? value,
+        });
+      }
+    }
+
+    if (q.priceMin != null || q.priceMax != null) {
+      chips.push({
+        code: 'price',
+        label: `₹${this.effectivePriceMin().toLocaleString('en-IN')} – ₹${this.effectivePriceMax().toLocaleString('en-IN')}`,
+      });
+    }
+    if (q.inStock) chips.push({ code: 'inStock', label: 'In stock' });
+    if (q.customSizing) chips.push({ code: 'customSizing', label: 'Custom sizing' });
+    if (q.minRating != null) chips.push({ code: 'minRating', label: `${q.minRating}★ & above` });
+
+    return chips;
+  });
+
+  protected isSelected(code: string, value: string): boolean {
+    return (this.plpQuery.query().facets?.[code] ?? []).includes(value);
   }
 
-  protected effectivePriceMax(): number {
-    return this.priceMax() ?? this.priceBounds().max;
+  protected isCollapsed(code: string): boolean {
+    return this.collapsed().has(code);
   }
 
-  protected onMinRangeInput(value: number): void {
-    this.priceMin.set(Math.min(value, this.effectivePriceMax()));
+  protected toggleGroup(code: string): void {
+    this.collapsed.update((set) => {
+      const next = new Set(set);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
   }
 
-  protected onMaxRangeInput(value: number): void {
-    this.priceMax.set(Math.max(value, this.effectivePriceMin()));
+  protected toggleFacet(code: string, value: string): void {
+    this.plpQuery.toggleFacet(code, value);
+  }
+
+  protected removeChip(chip: AppliedFilter): void {
+    switch (chip.code) {
+      case 'price':
+        this.plpQuery.patch({ priceMin: undefined, priceMax: undefined });
+        break;
+      case 'inStock':
+        this.plpQuery.patch({ inStock: undefined });
+        break;
+      case 'customSizing':
+        this.plpQuery.patch({ customSizing: undefined });
+        break;
+      case 'minRating':
+        this.plpQuery.patch({ minRating: undefined });
+        break;
+      default:
+        this.plpQuery.clearFacet(chip.code, chip.value);
+    }
   }
 
   protected clearFilters(): void {
-    this.priceMin.set(null);
-    this.priceMax.set(null);
-    this.selectedColors.set([]);
-    this.selectedSizes.set([]);
-    this.selectedFabrics.set([]);
-    this.inStockOnly.set(false);
-    this.minRating.set(null);
+    this.plpQuery.clearAll();
   }
+
+  protected setSort(value: string): void {
+    this.plpQuery.patch({ sort: value });
+  }
+
+  protected toggleInStock(): void {
+    this.plpQuery.patch({ inStock: this.inStockOnly() ? undefined : true });
+  }
+
+  protected toggleCustomSizing(): void {
+    this.plpQuery.patch({ customSizing: this.customSizingOnly() ? undefined : true });
+  }
+
+  protected onMinRangeInput(value: number): void {
+    this.plpQuery.patch({ priceMin: Math.min(value, this.effectivePriceMax()) });
+  }
+
+  protected onMaxRangeInput(value: number): void {
+    this.plpQuery.patch({ priceMax: Math.max(value, this.effectivePriceMin()) });
+  }
+
+  protected loadMore(): void {
+    const current = this.plpQuery.query().page ?? 1;
+    this.plpQuery.patch({ page: current + 1 }, { resetPage: false });
+  }
+}
+
+/** Everything that invalidates accumulated results — i.e. everything but the page. */
+function filterKey(q: CatalogQuery): string {
+  const facets = Object.entries(q.facets ?? {})
+    .map(([code, values]) => `${code}:${[...values].sort().join('|')}`)
+    .sort()
+    .join(';');
+
+  return [q.categoryId, q.occasionId, q.newArrivals, q.onSale, q.q, q.sort, q.priceMin, q.priceMax, q.inStock, q.customSizing, q.minRating, facets].join('~');
 }

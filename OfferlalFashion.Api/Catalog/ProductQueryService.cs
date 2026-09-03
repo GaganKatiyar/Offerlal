@@ -15,6 +15,16 @@ public sealed record ProductQuery
     public decimal? PriceMax { get; init; }
     public bool InStockOnly { get; init; }
     public bool CustomSizingOnly { get; init; }
+
+    /// <summary>Backs the /new-arrivals route.</summary>
+    public bool NewArrivalsOnly { get; init; }
+
+    /// <summary>
+    /// Backs the /sale route. "On sale" is derived rather than stored: a
+    /// product is on sale when it has a compare-at price above its price, so
+    /// there is no flag to fall out of date when a price changes.
+    /// </summary>
+    public bool OnSaleOnly { get; init; }
     public decimal? MinRating { get; init; }
     public string Sort { get; init; } = "recommended";
     public int Page { get; init; } = 1;
@@ -89,6 +99,10 @@ public sealed class ProductQueryService(OfferlalFashionDbContext db)
         {
             query = query.Where(p => p.StockStatus != "out-of-stock");
         }
+
+        if (q.NewArrivalsOnly) query = query.Where(p => p.IsNewArrival);
+
+        if (q.OnSaleOnly) query = query.Where(p => p.CompareAtPrice != null && p.CompareAtPrice > p.Price);
 
         if (q.CustomSizingOnly)
         {

@@ -156,10 +156,11 @@
   margin-bottom: var(--space-6);
 
   h4 {
-    font-size: 13px;
-    font-weight: 700;
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--ls-wide);
     color: var(--text-primary);
     margin: 0 0 var(--space-3);
   }
@@ -356,4 +357,142 @@
   .mobile-filter-btn {
     display: none;
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// Collapsible facet heading
+//
+// The heading is a <button> so a facet group can be collapsed by keyboard, but
+// it must not LOOK like a button — it is a section heading that happens to be
+// interactive.
+// ---------------------------------------------------------------------------
+
+.filter-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+
+  h4 {
+    margin-bottom: var(--space-3);
+  }
+
+  &:hover h4 {
+    color: var(--brand-primary);
+  }
+}
+
+.chevron {
+  width: 8px;
+  height: 8px;
+  margin-bottom: var(--space-3);
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform var(--dur-base) var(--ease-standard);
+
+  &.collapsed {
+    transform: rotate(-45deg) translate(-2px, -2px);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Applied-filter chips
+// ---------------------------------------------------------------------------
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-2-5);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-full);
+  background: var(--brand-primary-tint);
+  color: var(--brand-primary);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--brand-primary);
+    color: var(--text-on-brand);
+  }
+}
+
+.chip-x {
+  font-size: var(--fs-md);
+  line-height: 1;
+}
+
+.clear-all-chip {
+  padding: var(--space-1) var(--space-2-5);
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--brand-primary);
+  }
+}
+
+.filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+}
+
+// ---------------------------------------------------------------------------
+// Paging
+// ---------------------------------------------------------------------------
+
+.load-more-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) 0 var(--space-4);
+}
+
+.load-more-count {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+// A refetch keeps the previous results visible and dims them, rather than
+// blanking the grid to a spinner and losing the shopper's scroll position.
+.product-grid.is-loading {
+  opacity: 0.55;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+
+.empty-detail {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
 }

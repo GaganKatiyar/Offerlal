@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Product } from '../../../core/models';
+import { ProductCardModel } from '../../../core/models/catalog-search.model';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { QuickViewService } from '../../../core/services/quick-view.service';
 import { ImageWithFallback } from '../image-with-fallback/image-with-fallback';
@@ -29,20 +30,65 @@ const CUSTOM_SIZE = 'Custom';
   },
 })
 export class ProductCard {
-  product = input.required<Product>();
+  /**
+   * The card's own view model, from the server's faceted search endpoint.
+   *
+   * Preferred over `product`. There is deliberately ONE card component rather
+   * than a second "lite" one: this card renders on the PLP, search, home rails,
+   * the wishlist and PDP-related, and forking it by data source would mean
+   * every future change to the card has to be made twice.
+   */
+  card = input<ProductCardModel | undefined>(undefined);
+
+  /**
+   * DEPRECATED — the full demo-data Product. Kept while home, wishlist, PDP and
+   * the bridal edit still read from the in-memory store; those migrate to the
+   * API in later phases, after which this input and the adapter below go.
+   */
+  product = input<Product | undefined>(undefined);
+
   variant = input<ProductCardVariant>('grid');
 
   /** Wishlist view swaps the heart for a remove control and shows size chips. */
   removable = input(false);
 
-  quickView = output<Product>();
-  remove = output<Product>();
+  quickView = output<ProductCardModel>();
+  remove = output<ProductCardModel>();
 
   private wishlist = inject(WishlistService);
   private quickViewService = inject(QuickViewService);
 
-  protected primaryImage = computed(() => this.product().variants[0]?.images[0]?.url ?? '');
-  protected inWishlist = computed(() => this.wishlist.has(this.product().id));
+  /** Normalises whichever input was supplied into one shape. */
+  protected vm = computed<ProductCardModel>(() => {
+    const card = this.card();
+    if (card) return card;
+
+    const p = this.product();
+    if (!p) throw new Error('app-product-card requires either [card] or [product].');
+
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      categoryId: p.categoryId,
+      subCategory: p.subCategory,
+      price: p.price,
+      compareAtPrice: p.compareAtPrice,
+      currency: p.currency,
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      stockStatus: p.stockStatus,
+      isBestseller: p.isBestseller,
+      isNewArrival: p.isNewArrival,
+      fabric: p.fabric,
+      hasCustomSizing: p.sizes.includes(CUSTOM_SIZE),
+      thumbnailUrl: p.variants[0]?.images[0]?.url,
+      swatches: p.variants.map((v) => ({ color: v.color, colorHex: v.colorHex })),
+    };
+  });
+
+  protected primaryImage = computed(() => this.vm().thumbnailUrl ?? '');
+  protected inWishlist = computed(() => this.wishlist.has(this.vm().id));
 
   /**
    * The bold first line, adapted from Myntra's brand-then-name hierarchy.
@@ -54,42 +100,45 @@ export class ProductCard {
    * is what `subCategory` already carries ("Anarkali", "Heavy Bridal").
    */
   protected descriptor = computed(() => {
-    const p = this.product();
-    return p.subCategory?.trim() || p.fabric?.trim() || 'Offerlal';
+    const vm = this.vm();
+    return vm.subCategory?.trim() || vm.fabric?.trim() || 'Offerlal';
   });
 
   /**
    * Off-the-rack sizes only. "Custom" is excluded because it is not a size a
    * shopper picks off a card — it opens a made-to-measure conversation.
    */
-  protected stockSizes = computed(() => this.product().sizes.filter((s) => s !== CUSTOM_SIZE));
+  protected stockSizes = computed(() => (this.product()?.sizes ?? []).filter((s) => s !== CUSTOM_SIZE));
 
-  protected isMadeToMeasure = computed(() => this.product().sizes.includes(CUSTOM_SIZE));
+  protected isMadeToMeasure = computed(() => this.vm().hasCustomSizing);
 
   protected showSizeChips = computed(
     () => this.variant() === 'wishlist' && this.stockSizes().length > 0,
   );
 
   /** Distinct swatches, capped — a 9-colour product should not blow out the row. */
-  protected swatches = computed(() => this.product().variants.slice(0, 5));
-  protected extraSwatchCount = computed(() => Math.max(0, this.product().variants.length - 5));
+  protected swatches = computed(() => this.vm().swatches.slice(0, 5));
+  protected extraSwatchCount = computed(() => Math.max(0, this.vm().swatches.length - 5));
 
   protected toggleWishlist(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.wishlist.toggle(this.product().id);
+    this.wishlist.toggle(this.vm().id);
   }
 
   protected removeItem(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.remove.emit(this.product());
+    this.remove.emit(this.vm());
   }
 
   protected openQuickView(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.quickViewService.open(this.product());
-    this.quickView.emit(this.product());
+    const p = this.product();
+    // Quick view needs the full product (variants, customisations), which the
+    // slim card model does not carry. Suppressed until the modal reads by id.
+    if (p) this.quickViewService.open(p);
+    this.quickView.emit(this.vm());
   }
 }
