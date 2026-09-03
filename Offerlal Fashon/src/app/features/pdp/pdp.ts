@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { ProductService } from '../../core/services/product.service';
@@ -30,7 +37,18 @@ const SIZE_CHART = [
 @Component({
   selector: 'app-pdp',
   standalone: true,
-  imports: [RouterLink, ImageWithFallback, PriceDisplay, StarRating, Breadcrumb, QuantityStepper, AccordionItem, Modal, ProductCard, InrCurrencyPipe],
+  imports: [
+    RouterLink,
+    ImageWithFallback,
+    PriceDisplay,
+    StarRating,
+    Breadcrumb,
+    QuantityStepper,
+    AccordionItem,
+    Modal,
+    ProductCard,
+    InrCurrencyPipe,
+  ],
   templateUrl: './pdp.html',
   styleUrl: './pdp.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,7 +88,14 @@ export class Pdp implements OnInit {
   protected breadcrumbs = computed<Crumb[]>(() => {
     const p = this.product();
     if (!p) return [{ label: 'Home', link: '/' }];
-    return [{ label: 'Home', link: '/' }, { label: p.categoryId.replace('cat-', '').replace(/-/g, ' '), link: '/category/' + p.categoryId.replace('cat-', '') }, { label: p.name }];
+    return [
+      { label: 'Home', link: '/' },
+      {
+        label: p.categoryId.replace('cat-', '').replace(/-/g, ' '),
+        link: '/category/' + p.categoryId.replace('cat-', ''),
+      },
+      { label: p.name },
+    ];
   });
 
   protected currentImages = computed(() => this.selectedVariant()?.images ?? []);
@@ -95,7 +120,9 @@ export class Pdp implements OnInit {
   protected customizationTotal = computed(() => {
     const p = this.product();
     if (!p) return 0;
-    return p.customizationOptions.filter((o) => this.selectedCustomizations().includes(o.id)).reduce((sum, o) => sum + o.priceDelta, 0);
+    return p.customizationOptions
+      .filter((o) => this.selectedCustomizations().includes(o.id))
+      .reduce((sum, o) => sum + o.priceDelta, 0);
   });
 
   protected unitPrice = computed(() => (this.product()?.price ?? 0) + this.customizationTotal());
@@ -113,11 +140,23 @@ export class Pdp implements OnInit {
         this.selectedVariant.set(p.variants[0]);
         this.selectedImageIndex.set(0);
 
-        // Personalization: pre-select the customer's saved size when it applies to this product.
+        // Size preselection, in priority order:
+        //   1. ?size= from the link that got here (wishlist card size chips),
+        //      because an explicit choice this click beats a stored preference.
+        //   2. The customer's saved size profile, when it applies here.
+        const requestedSize = this.route.snapshot.queryParamMap.get('size');
+        const requestedApplies = !!requestedSize && p.sizes.includes(requestedSize);
+
         const savedSize = this.auth.currentUser()?.sizeProfile?.preferredSize;
         const savedSizeApplies = !!savedSize && p.sizes.includes(savedSize);
-        this.selectedSize.set(savedSizeApplies ? savedSize : undefined);
-        this.sizePreselectedFromProfile.set(savedSizeApplies);
+
+        if (requestedApplies) {
+          this.selectedSize.set(requestedSize!);
+          this.sizePreselectedFromProfile.set(false);
+        } else {
+          this.selectedSize.set(savedSizeApplies ? savedSize : undefined);
+          this.sizePreselectedFromProfile.set(savedSizeApplies);
+        }
 
         this.quantity.set(1);
         this.selectedCustomizations.set([]);
@@ -147,7 +186,9 @@ export class Pdp implements OnInit {
   }
 
   protected toggleCustomization(id: string): void {
-    this.selectedCustomizations.update((list) => (list.includes(id) ? list.filter((c) => c !== id) : [...list, id]));
+    this.selectedCustomizations.update((list) =>
+      list.includes(id) ? list.filter((c) => c !== id) : [...list, id],
+    );
   }
 
   private buildCustomizations(): CartItemCustomization[] {

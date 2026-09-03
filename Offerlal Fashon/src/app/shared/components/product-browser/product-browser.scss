@@ -1,3 +1,5 @@
+@use '../../../../styles/mq' as *;
+
 :host {
   display: block;
   font-family: var(--font-body);
@@ -43,6 +45,81 @@
   cursor: pointer;
 }
 
+// Density control. Hidden below lg: on a phone the grid is already at its
+// sensible column count and the control would just crowd the toolbar.
+.density-control {
+  display: none;
+  gap: var(--space-1);
+  margin-left: auto;
+  margin-right: var(--space-4);
+
+  @include mq(lg) {
+    display: flex;
+  }
+}
+
+.density-btn {
+  display: grid;
+  place-items: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  border: var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  &.active {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary-tint);
+  }
+}
+
+// Column glyphs drawn with a gradient rather than an icon font or inline SVG,
+// so the control carries no extra asset weight.
+.density-glyph {
+  width: 14px;
+  height: 14px;
+  background-repeat: no-repeat;
+  background-color: var(--text-secondary);
+
+  &[data-density-icon='single'] {
+    -webkit-mask: linear-gradient(#000 0 0) center / 12px 14px no-repeat;
+    mask: linear-gradient(#000 0 0) center / 12px 14px no-repeat;
+  }
+
+  &[data-density-icon='comfortable'] {
+    -webkit-mask:
+      linear-gradient(#000 0 0) left / 6px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 6px 14px no-repeat;
+    mask:
+      linear-gradient(#000 0 0) left / 6px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 6px 14px no-repeat;
+  }
+
+  &[data-density-icon='compact'] {
+    -webkit-mask:
+      linear-gradient(#000 0 0) left / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) center / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 4px 14px no-repeat;
+    mask:
+      linear-gradient(#000 0 0) left / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) center / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 4px 14px no-repeat;
+  }
+}
+
+.density-btn.active .density-glyph {
+  background-color: var(--brand-primary);
+}
+
 .sort-control {
   display: flex;
   align-items: center;
@@ -65,11 +142,8 @@
   background: var(--surface-page);
 }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-5) var(--space-4);
-}
+// Columns and gaps both come from .o-grid--products in styles/_layout.scss.
+// Nothing PLP-specific is left to declare here.
 
 .empty-state {
   text-align: center;
@@ -193,7 +267,9 @@
 }
 
 .swatch-option.active .swatch-dot {
-  box-shadow: 0 0 0 2px var(--surface-page), 0 0 0 3.5px var(--brand-primary);
+  box-shadow:
+    0 0 0 2px var(--surface-page),
+    0 0 0 3.5px var(--brand-primary);
 }
 
 .swatch-label {
@@ -257,19 +333,27 @@
   margin-top: var(--space-6);
 }
 
-@media (min-width: 1024px) {
+@include mq(lg) {
   .browser-layout {
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: var(--filter-rail-w, 240px) 1fr;
   }
+
   .filters-sidebar {
     display: block;
-    border-right: 1px solid var(--border-subtle);
+    border-right: var(--border-hairline);
     padding-right: var(--space-5);
+
+    // The rail is taller than the viewport on a well-facetted category, so it
+    // scrolls independently beneath the sticky header rather than forcing the
+    // whole page down to reach the last filter.
+    position: sticky;
+    top: var(--sticky-offset);
+    max-height: calc(100dvh - var(--sticky-offset));
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
+
   .mobile-filter-btn {
     display: none;
-  }
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr);
   }
 }

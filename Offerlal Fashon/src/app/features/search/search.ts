@@ -3,8 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
 import { Product } from '../../core/models';
 import { ProductCard } from '../../shared/components/product-card/product-card';
-
-const TRENDING = ['red bridal lehenga', 'lehenga under 5000', 'pink engagement lehenga', 'bridal lehenga under 15000', 'anarkali suit', 'banarasi saree'];
+import { POPULAR_SEARCH_TERMS } from '../../core/constants/search-terms';
 
 @Component({
   selector: 'app-search',
@@ -22,7 +21,7 @@ export class Search implements OnInit {
   protected query = signal('');
   protected results = signal<Product[]>([]);
   protected loading = signal(false);
-  protected trending = TRENDING;
+  protected trending = POPULAR_SEARCH_TERMS.map((t) => t.label);
   protected recentSearches = signal<string[]>([]);
 
   ngOnInit(): void {

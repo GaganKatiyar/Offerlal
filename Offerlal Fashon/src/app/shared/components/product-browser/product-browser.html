@@ -5,11 +5,40 @@
 
   <div class="browser-main">
     <div class="toolbar">
-      <span class="item-count">{{ filtered().length }} item{{ filtered().length === 1 ? '' : 's' }}</span>
+      <span class="item-count"
+        >{{ filtered().length }} item{{ filtered().length === 1 ? '' : 's' }}</span
+      >
       <button type="button" class="mobile-filter-btn" (click)="mobileFiltersOpen.set(true)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="8" y1="12" x2="20" y2="12" />
+          <line x1="12" y1="18" x2="20" y2="18" />
+        </svg>
         Filters
       </button>
+      <div class="density-control" role="group" aria-label="Grid density">
+        @for (opt of densityOptions; track opt.id) {
+          <button
+            type="button"
+            class="density-btn"
+            [class.active]="density.density() === opt.id"
+            [attr.aria-pressed]="density.density() === opt.id"
+            [attr.title]="opt.label + ' — ' + opt.hint"
+            (click)="density.set(opt.id)"
+          >
+            <span class="visually-hidden">{{ opt.label }}</span>
+            <span class="density-glyph" aria-hidden="true" [attr.data-density-icon]="opt.id"></span>
+          </button>
+        }
+      </div>
+
       <div class="sort-control">
         <span class="sort-label">Sort by</span>
         <select class="sort-select" [value]="sort()" (change)="sort.set($any($event.target).value)">
@@ -23,10 +52,12 @@
     @if (filtered().length === 0) {
       <div class="empty-state">
         <p>No products match your filters.</p>
-        <button type="button" class="btn btn-outline" (click)="clearFilters()">Clear Filters</button>
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear Filters
+        </button>
       </div>
     } @else {
-      <div class="product-grid">
+      <div class="product-grid o-grid o-grid--products">
         @for (p of filtered(); track p.id) {
           <app-product-card [product]="p" />
         }
@@ -35,18 +66,33 @@
   </div>
 </div>
 
-<app-drawer [open]="mobileFiltersOpen()" side="left" title="Filters" (closed)="mobileFiltersOpen.set(false)">
+<app-drawer
+  [open]="mobileFiltersOpen()"
+  side="left"
+  title="Filters"
+  (closed)="mobileFiltersOpen.set(false)"
+>
   <ng-container [ngTemplateOutlet]="filterPanel" />
-  <button type="button" class="btn btn-primary full" (click)="mobileFiltersOpen.set(false)">Show {{ filtered().length }} Results</button>
+  <button type="button" class="btn btn-primary full" (click)="mobileFiltersOpen.set(false)">
+    Show {{ filtered().length }} Results
+  </button>
 </app-drawer>
 
 <ng-template #filterPanel>
   <div class="filter-group">
     <h4>Price</h4>
-    <div class="price-range-display">₹{{ effectivePriceMin().toLocaleString('en-IN') }} &ndash; ₹{{ effectivePriceMax().toLocaleString('en-IN') }}{{ priceMax() == null ? '+' : '' }}</div>
+    <div class="price-range-display">
+      ₹{{ effectivePriceMin().toLocaleString('en-IN') }} &ndash; ₹{{
+        effectivePriceMax().toLocaleString('en-IN')
+      }}{{ priceMax() == null ? '+' : '' }}
+    </div>
     <div class="dual-range">
       <div class="range-base"></div>
-      <div class="range-fill" [style.left.%]="rangeFillStyle().left" [style.width.%]="rangeFillStyle().width"></div>
+      <div
+        class="range-fill"
+        [style.left.%]="rangeFillStyle().left"
+        [style.width.%]="rangeFillStyle().width"
+      ></div>
       <input
         type="range"
         class="range-track range-min"
@@ -95,7 +141,11 @@
         @for (size of availableSizes(); track size) {
           <label class="check-row">
             <span class="check-left">
-              <input type="checkbox" [checked]="selectedSizes().includes(size)" (change)="toggleSize(size)" />
+              <input
+                type="checkbox"
+                [checked]="selectedSizes().includes(size)"
+                (change)="toggleSize(size)"
+              />
               {{ size }}
             </span>
             <span class="check-count">{{ sizeCounts().get(size) ?? 0 }}</span>
@@ -112,7 +162,11 @@
         @for (fabric of availableFabrics(); track fabric) {
           <label class="check-row">
             <span class="check-left">
-              <input type="checkbox" [checked]="selectedFabrics().includes(fabric)" (change)="toggleFabric(fabric)" />
+              <input
+                type="checkbox"
+                [checked]="selectedFabrics().includes(fabric)"
+                (change)="toggleFabric(fabric)"
+              />
               {{ fabric }}
             </span>
             <span class="check-count">{{ fabricCounts().get(fabric) ?? 0 }}</span>
@@ -128,7 +182,11 @@
       @for (r of [4.5, 4]; track r) {
         <label class="check-row">
           <span class="check-left">
-            <input type="checkbox" [checked]="minRating() === r" (change)="minRating.set(minRating() === r ? null : r)" />
+            <input
+              type="checkbox"
+              [checked]="minRating() === r"
+              (change)="minRating.set(minRating() === r ? null : r)"
+            />
             {{ r }}★ &amp; above
           </span>
         </label>
@@ -139,7 +197,11 @@
   <div class="filter-group">
     <label class="check-row">
       <span class="check-left">
-        <input type="checkbox" [checked]="inStockOnly()" (change)="inStockOnly.set($any($event.target).checked)" />
+        <input
+          type="checkbox"
+          [checked]="inStockOnly()"
+          (change)="inStockOnly.set($any($event.target).checked)"
+        />
         In Stock Only
       </span>
     </label>

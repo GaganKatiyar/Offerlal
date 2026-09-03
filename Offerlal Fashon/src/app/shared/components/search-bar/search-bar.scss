@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  flex: 1 1 100%;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-2) 0 var(--space-4);
+  background: var(--surface-alt);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+
+  &:focus-within {
+    border-color: var(--brand-primary);
+    background: var(--surface-card);
+  }
+}
+
+.search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: var(--space-2-5) 0;
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  outline: none;
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  // The UA clear affordance collides with the submit button on WebKit.
+  &::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+.search-submit-btn {
+  padding: var(--space-2) var(--space-5);
+  background: var(--brand-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  white-space: nowrap;
+}
+
+.suggestions-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--surface-overlay);
+  border: var(--border-hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-menu);
+  padding: var(--space-3);
+  // Was a bare `z-index: 71`, which had no relationship to the header (60) or
+  // the drawer. Sits with the mega menu, above the header, below overlays.
+  z-index: var(--z-mega-menu);
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.suggestion-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2);
+  background: none;
+  border: none;
+  border-bottom: var(--border-hairline);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+
+  &:hover {
+    background: var(--surface-alt);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.result-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-price {
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.no-results {
+  margin: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.search-suggestions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--fs-sm);
+  padding: var(--space-2);
+
+  .suggestion-label {
+    color: var(--text-muted);
+  }
+
+  a {
+    color: var(--brand-primary);
+    text-decoration: underline;
+  }
+}

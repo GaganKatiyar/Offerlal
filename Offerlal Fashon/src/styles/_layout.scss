@@ -1,0 +1,161 @@
+@use 'mq' as *;
+
+// Global layout primitives. Plain CSS classes rather than Angular components:
+// a wrapper component would add a host element, `:host { display: block }`
+// boilerplate and encapsulation friction for no benefit.
+
+// ---------------------------------------------------------------------------
+// Container
+// ---------------------------------------------------------------------------
+
+.o-container {
+  width: 100%;
+  max-width: var(--container-max, 1440px);
+  margin-inline: auto;
+  padding-inline: var(--container-pad);
+}
+
+.o-container--wide {
+  --container-max: 1600px;
+}
+
+.o-container--narrow {
+  --container-max: 960px;
+}
+
+.o-container--flush {
+  padding-inline: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Grid
+//
+// The load-bearing idea is `--cols`. A grid sets one custom property and the
+// column progression for every grid of that kind lives in ONE media block in
+// THIS file. Components stop redeclaring `grid-template-columns` — there were
+// 60+ such declarations scattered across component stylesheets.
+//
+// `minmax(0, 1fr)` rather than `1fr` so long unbreakable strings (SKU codes,
+// URLs) cannot blow the track out past the container.
+// ---------------------------------------------------------------------------
+
+.o-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  gap: var(--grid-row-gap, var(--space-6)) var(--grid-col-gap, var(--space-4));
+}
+
+// Product grid.
+//
+// Deliberately NOT Myntra's 5-up. Myntra's median item is a low-priced tee
+// decided on brand and price, so a 210px tile is enough. Offerlal's median is a
+// 15k-165k garment decided on zari work, drape and fabric, which a 210px tile
+// destroys. Shoppers who want more density get it from the toggle below rather
+// than from the default.
+.o-grid--products {
+  --cols: 2;
+  --grid-col-gap: var(--space-3);
+  --grid-row-gap: var(--space-8);
+
+  @include mq(md) {
+    --cols: 3;
+    --grid-col-gap: var(--space-4);
+  }
+
+  @include mq(lg) {
+    --cols: 3; // filter rail is present from here, so content is narrower
+  }
+
+  @include mq(xl) {
+    --cols: 4;
+  }
+}
+
+// Product grid with no filter rail beside it (search, wishlist, related).
+.o-grid--products-full {
+  @include mq(lg) {
+    --cols: 4;
+  }
+
+  @include mq(xl) {
+    --cols: 5;
+  }
+}
+
+// User density preference, persisted by DensityService as data-density on
+// <html>. "comfortable" is the default and needs no rules.
+:root[data-density='compact'] {
+  .o-grid--products {
+    --grid-row-gap: var(--space-5);
+
+    @include mq(sm) {
+      --cols: 3;
+    }
+    @include mq(md) {
+      --cols: 4;
+    }
+    @include mq(lg) {
+      --cols: 4;
+    }
+    @include mq(xl) {
+      --cols: 5;
+    }
+  }
+
+  .o-grid--products-full {
+    @include mq(xl) {
+      --cols: 6;
+    }
+  }
+}
+
+// Mobile single-column view — useful at these price points, where one large
+// image beats two small ones.
+:root[data-density='single'] {
+  .o-grid--products,
+  .o-grid--products-full {
+    --cols: 1;
+
+    @include mq(md) {
+      --cols: 3;
+    }
+    @include mq(xl) {
+      --cols: 4;
+    }
+  }
+}
+
+// Escape hatch for editorial tile grids where exact column counts don't matter
+// and intrinsic sizing is genuinely the right answer.
+.o-grid--auto {
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min, 240px), 1fr));
+}
+
+// ---------------------------------------------------------------------------
+// Utilities that earn their keep
+// ---------------------------------------------------------------------------
+
+// Horizontal scroll rail (category rails, product rails, filter chips).
+.o-rail {
+  display: flex;
+  gap: var(--rail-gap, var(--space-3));
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+}
+
+// Anything sticky below the header uses this offset rather than guessing.
+.o-sticky {
+  position: sticky;
+  top: var(--sticky-offset);
+}

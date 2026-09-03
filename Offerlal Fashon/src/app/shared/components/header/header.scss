@@ -1,8 +1,10 @@
+@use '../../../../styles/mq' as *;
+
 :host {
   display: block;
   position: sticky;
   top: 0;
-  z-index: 70;
+  z-index: var(--z-header);
 }
 
 .announcement-bar {
@@ -41,121 +43,11 @@
   }
 }
 
-/* Persistent search */
-.search-wrap {
-  position: relative;
+/* Search is owned by app-search-bar; only its placement in the header row
+   is a header concern. */
+app-search-bar {
   order: 3;
   flex: 1 1 100%;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  border: 1.5px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  padding: 0 var(--space-2) 0 var(--space-4);
-  background: var(--surface-alt);
-  transition: border-color 0.15s ease;
-
-  &:focus-within {
-    border-color: var(--brand-primary);
-    background: var(--surface-card);
-  }
-}
-
-.search-icon {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.search-box input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: none;
-  padding: var(--space-3) 0;
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
-  color: var(--text-primary);
-  outline: none;
-
-  &::placeholder {
-    color: var(--text-muted);
-  }
-}
-
-.search-submit-btn {
-  padding: var(--space-2) var(--space-5);
-  background: var(--brand-primary);
-  color: var(--color-white);
-  border: none;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.suggestions-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: var(--surface-page);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-3);
-  z-index: 71;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.suggestion-row {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--space-2) var(--space-2);
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border-subtle);
-  cursor: pointer;
-  text-align: left;
-  font-size: var(--font-size-sm);
-
-  &:hover {
-    background: var(--surface-alt);
-  }
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.no-results {
-  margin: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
-}
-
-.search-suggestions {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  align-items: center;
-  font-size: var(--font-size-sm);
-  padding: var(--space-2);
-
-  .suggestion-label {
-    color: var(--text-muted);
-  }
-
-  a {
-    color: var(--brand-primary);
-    text-decoration: underline;
-  }
 }
 
 /* Action icons */
@@ -226,7 +118,10 @@
     display: block;
     border-radius: 1px;
     transform-origin: center;
-    transition: transform 0.25s ease, opacity 0.25s ease, width 0.25s ease;
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease,
+      width 0.25s ease;
   }
 
   &.open {
@@ -307,11 +202,11 @@
 .mobile-scrim {
   position: fixed;
   inset: 0;
-  background: rgba(20, 16, 14, 0.5);
-  z-index: 60;
+  background: var(--scrim);
+  z-index: var(--z-scrim);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--dur-slow) var(--ease-standard);
 
   &.open {
     opacity: 1;
@@ -326,7 +221,7 @@
   bottom: 0;
   width: min(300px, 82vw);
   background: var(--surface-page);
-  z-index: 61;
+  z-index: var(--z-drawer);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
@@ -463,13 +358,13 @@
   padding: var(--space-2) var(--space-5) var(--space-1);
 }
 
-@media (min-width: 640px) {
+@include mq(sm) {
   .action-label {
     display: block;
   }
 }
 
-@media (min-width: 1024px) {
+@include mq(lg) {
   .hamburger {
     display: none;
   }
@@ -479,7 +374,7 @@
     padding: var(--space-4) var(--space-6);
   }
 
-  .search-wrap {
+  app-search-bar {
     order: 0;
     flex: 1 1 auto;
     max-width: 480px;

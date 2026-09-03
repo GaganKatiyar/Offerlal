@@ -1,20 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-
-const POPULAR_SEARCHES = [
-  'Bridal Lehenga',
-  'Wedding Saree',
-  'Party Wear Lehenga',
-  'Anarkali Suit',
-  'Sharara Set',
-  'Bridal Jewellery',
-  'Reception Gown',
-  'Sangeet Outfit',
-  'Kids Ethnic Wear',
-  'Banarasi Saree',
-  'Kundan Choker',
-  'Mehendi Dress',
-];
+import { FOOTER_SEARCH_LINKS } from '../../../core/constants/search-terms';
 
 @Component({
   selector: 'app-footer',
@@ -26,5 +12,5 @@ const POPULAR_SEARCHES = [
 })
 export class Footer {
   protected year = new Date().getFullYear();
-  protected popularSearches = POPULAR_SEARCHES;
+  protected popularSearches = FOOTER_SEARCH_LINKS;
 }

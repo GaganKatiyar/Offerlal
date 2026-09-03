@@ -1,10 +1,15 @@
-// Self-hosted fonts (no external Google Fonts request)
-@use '@fontsource/roboto/400.css' as roboto-400;
-@use '@fontsource/roboto/500.css' as roboto-500;
-@use '@fontsource/roboto/700.css' as roboto-700;
+// Self-hosted fonts (no external Google Fonts request).
+//
+// Inter ships as a single variable file covering the whole 100-900 axis, so
+// three separate weight requests collapse into one. Both families are
+// unicode-range subsetted upstream, so only the latin block is fetched.
+@use '@fontsource-variable/inter/wght.css' as inter-wght;
+@use '@fontsource/jost/500.css' as jost-500;
+@use '@fontsource/jost/600.css' as jost-600;
 
 @use 'styles/tokens/colors' as c;
 @use 'styles/tokens/typography' as t;
+@use 'styles/layout';
 
 :root {
   // Surfaces
@@ -60,19 +65,67 @@
   --font-body: #{t.$font-body};
   --font-accent: #{t.$font-accent};
 
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.5rem;
-  --font-size-2xl: 2rem;
-  --font-size-3xl: 2.75rem;
-  --font-size-4xl: 3.5rem;
+  // Two tracks, on purpose.
+  //
+  // UI track: fixed px, never fluid. Product cards, filters, prices, chips and
+  // table cells must not reflow with the viewport — that is precisely what
+  // makes a dense grid feel unstable. The old scale started at 12px and had
+  // nothing between 12 and 14, which is the exact band this density lives in.
+  --fs-2xs: 11px; // badge, discount %, dense meta
+  --fs-xs: 12px; // filter labels, counts, breadcrumb
+  --fs-sm: 13px; // product name, secondary text
+  --fs-base: 14px; // body default
+  --fs-md: 16px; // PDP price, section body
+  --fs-lg: 18px; // PDP title, card headline
 
-  // Spacing (4px scale)
+  // Editorial track: fluid. Hero, section headings, marketing copy.
+  --fs-h6: 20px;
+  --fs-h5: clamp(20px, 1.6vw, 24px);
+  --fs-h4: clamp(22px, 2vw, 28px);
+  --fs-h3: clamp(26px, 2.8vw, 36px);
+  --fs-h2: clamp(30px, 3.6vw, 44px);
+  --fs-h1: clamp(34px, 5vw, 60px);
+
+  // DEPRECATED aliases. 47 component stylesheets reference these; they are
+  // kept so the migration can be opportunistic rather than big-bang. Delete
+  // this block in one sweep once the last surface has been converted.
+  --font-size-xs: var(--fs-xs);
+  --font-size-sm: var(--fs-sm);
+  --font-size-md: var(--fs-base);
+  --font-size-lg: var(--fs-lg);
+  --font-size-xl: var(--fs-h6);
+  --font-size-2xl: var(--fs-h4);
+  --font-size-3xl: var(--fs-h2);
+  --font-size-4xl: var(--fs-h1);
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  // Body was 1.6 — an editorial value. Myntra-density UI runs nearer 1.4;
+  // this single change is most of the perceived density delta. 1.6 is kept
+  // for genuine long-form prose.
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-normal: 1.45;
+  --lh-relaxed: 1.6;
+
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-wide: 0.04em;
+  --ls-caps: 0.08em;
+
+  // Spacing (4px scale). The half-steps below 16px are what dense controls
+  // need; the scale previously started too coarse and every component invented
+  // its own in-between padding.
+  --space-0-5: 2px;
   --space-1: 4px;
+  --space-1-5: 6px;
   --space-2: 8px;
+  --space-2-5: 10px;
   --space-3: 12px;
+  --space-3-5: 14px;
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
@@ -93,9 +146,90 @@
   --shadow-md: 0 4px 16px rgba(42, 37, 33, 0.08);
   --shadow-lg: 0 12px 32px rgba(42, 37, 33, 0.12);
 
-  --header-height: 64px;
-  --announcement-height: 36px;
+  // Control sizing. Previously every component picked its own padding.
+  --control-h-sm: 32px;
+  --control-h-md: 40px;
+  --control-h-lg: 48px;
+  --control-h-touch: 44px; // minimum tap target on coarse pointers
+
+  // -------------------------------------------------------------------------
+  // Z-index scale.
+  //
+  // Not a nicety — a collision waiting to happen. The WhatsApp float button,
+  // the PDP sticky action bar, the cart drawer, modals, toasts, the sticky
+  // header and the sticky filter rail all overlap, and product-card.scss
+  // already hardcodes `z-index: 2`. One ordered scale, no bare integers.
+  // -------------------------------------------------------------------------
+  --z-base: 0;
+  --z-raised: 1;
+  --z-sticky-filter: 20;
+  --z-float-cta: 90;
+  --z-header: 100;
+  --z-mega-menu: 110;
+  --z-sticky-cta: 120;
+  --z-scrim: 200;
+  --z-drawer: 210;
+  --z-modal: 300;
+  --z-toast: 400;
+
+  // Motion. Replaces hardcoded 0.15s / 0.2s / 0.25s / 0.5s scattered across
+  // component files. Reduced-motion is handled once, globally, by zeroing
+  // these — components no longer need their own opt-out blocks.
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 280ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-decel: cubic-bezier(0, 0, 0, 1);
+
+  // Elevation for sticky and overlay layers. The three shadows above are all
+  // soft downward drops; a sticky bottom bar needs an upward one, and a
+  // sticky header wants a hairline at rest that becomes a shadow on scroll.
+  --shadow-header-rest: 0 1px 0 var(--border-subtle);
+  --shadow-header-scroll: 0 2px 8px rgba(42, 37, 33, 0.1);
+  --shadow-sticky-bottom: 0 -2px 12px rgba(42, 37, 33, 0.1);
+  --shadow-menu: 0 8px 24px rgba(42, 37, 33, 0.14);
+  --scrim: rgba(0, 0, 0, 0.45);
+
+  // Surfaces. Ivory is the brand and stays on home and editorial pages, but a
+  // dense product grid on ivory reads muddy — shopping surfaces go white.
+  // This is the concrete resolution of "Myntra's structure, Offerlal's palette".
+  --surface-shop: var(--color-white);
+  --surface-sunken: var(--color-cream);
+  --surface-overlay: var(--color-white);
+
+  --border-strong: rgba(42, 37, 33, 0.22);
+  --border-hairline: 1px solid var(--border-subtle);
+
+  // Commerce semantics. The Myntra price row needs these named, so components
+  // never reach for a raw hex.
+  --price-current: var(--text-primary);
+  --price-strike: var(--text-muted);
+  --price-discount: var(--color-error); // existing rust — urgency without competing with wine
+  --rating-good: var(--status-good);
+
+  // Layout offsets. --sticky-offset is what every sticky element and every
+  // in-page anchor measures against, instead of guessing at the header height.
+  --container-pad: var(--space-4);
+  --header-h: 56px;
+  --announcement-h: 36px;
+  --sticky-offset: calc(var(--header-h) + var(--announcement-h));
+
+  // DEPRECATED aliases for the offsets above.
+  --header-height: var(--header-h);
+  --announcement-height: var(--announcement-h);
   --max-width: 1440px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --container-pad: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 64px;
+  }
 }
 
 * {
@@ -113,9 +247,28 @@ body {
   background: var(--surface-page);
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: var(--font-size-md);
-  line-height: 1.6;
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
   -webkit-font-smoothing: antialiased;
+}
+
+// Shopping surfaces opt out of the ivory ground. Applied by the route's own
+// page wrapper (PLP, PDP, bag, checkout); home and editorial keep the brand ivory.
+.surface-shop {
+  background: var(--surface-shop);
+}
+
+// Aligned price columns are non-negotiable in a dense grid: without tabular
+// figures, INR 15,000 and INR 1,65,000 stagger against each other.
+.price,
+[data-numeric] {
+  font-variant-numeric: tabular-nums;
+}
+
+// Sticky-header-aware anchors. Without this, every in-page #anchor lands
+// underneath the fixed header.
+[id] {
+  scroll-margin-top: calc(var(--sticky-offset) + var(--space-4));
 }
 
 h1,
@@ -130,16 +283,32 @@ h4 {
 }
 
 h1 {
-  font-size: var(--font-size-4xl);
+  font-size: var(--fs-h1);
+  letter-spacing: var(--ls-tight);
 }
 h2 {
-  font-size: var(--font-size-3xl);
+  font-size: var(--fs-h2);
+  letter-spacing: var(--ls-tight);
 }
 h3 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--fs-h3);
 }
 h4 {
-  font-size: var(--font-size-xl);
+  font-size: var(--fs-h4);
+}
+h5 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h5);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  margin: 0 0 var(--space-3);
+}
+h6 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h6);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  margin: 0 0 var(--space-3);
 }
 
 p {
@@ -167,23 +336,21 @@ ol {
   list-style: none;
 }
 
+// DEPRECATED in favour of .o-container. Kept because ~40 templates use it;
+// now derives from the same tokens so both agree during the migration.
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 var(--space-6);
-
-  @media (max-width: 767px) {
-    padding: 0 var(--space-4);
-  }
+  padding-inline: var(--container-pad);
 }
 
 .eyebrow {
-  font-family: var(--font-body);
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.14em;
+  font-family: var(--font-accent);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
   color: var(--brand-accent);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 
 .btn {
@@ -264,9 +431,25 @@ body {
     color 0.25s ease;
 }
 
+// One global reduced-motion block. Anything animating through the duration
+// tokens inherits this; components no longer need individual opt-outs.
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+
   body {
     transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
 }
 

@@ -1,0 +1,21 @@
+﻿{
+    "src/app/admin/admin-shared.scss":  1,
+    "src/app/admin/dashboard/admin-dashboard.scss":  1,
+    "src/app/admin/orders/order-detail/order-detail.scss":  1,
+    "src/app/features/account/dashboard/dashboard.scss":  1,
+    "src/app/features/account/orders/order-detail/order-detail.scss":  1,
+    "src/app/features/bridal-collection/bridal-collection.scss":  1,
+    "src/app/features/bridal-concierge/bridal-concierge.scss":  1,
+    "src/app/features/cart/cart-page/cart-page.scss":  1,
+    "src/app/features/checkout/checkout.scss":  3,
+    "src/app/features/home/home.scss":  2,
+    "src/app/features/pdp/pdp.scss":  1,
+    "src/app/features/shop-by-category/shop-by-category.scss":  1,
+    "src/app/features/shop-by-occasion/shop-by-occasion.scss":  1,
+    "src/app/features/static/about/about.scss":  1,
+    "src/app/features/static/contact/contact.scss":  1,
+    "src/app/shared/components/footer/footer.scss":  1,
+    "src/app/shared/components/quick-view-modal/quick-view-modal.scss":  1,
+    "src/app/shared/components/theme-switcher/theme-switcher.scss":  1,
+    "src/app/shared/components/whatsapp-float-button/whatsapp-float-button.scss":  1
+}

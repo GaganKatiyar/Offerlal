@@ -1,6 +1,10 @@
 <a class="card" [routerLink]="['/product', product().slug]">
   <div class="media">
-    <app-image-with-fallback [src]="primaryImage()" [alt]="product().name" sizes="(min-width: 1024px) 25vw, 50vw" />
+    <app-image-with-fallback
+      [src]="primaryImage()"
+      [alt]="product().name"
+      sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 48vw"
+    />
 
     <div class="badges">
       @if (product().isNewArrival) {
@@ -17,29 +21,95 @@
       }
     </div>
 
-    <button type="button" class="wishlist-btn" [class.active]="inWishlist()" (click)="toggleWishlist($event)" aria-label="Toggle wishlist">
-      {{ inWishlist() ? '♥' : '♡' }}
-    </button>
+    @if (removable()) {
+      <button
+        type="button"
+        class="corner-btn"
+        (click)="removeItem($event)"
+        [attr.aria-label]="'Remove ' + product().name + ' from wishlist'"
+      >
+        &times;
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="corner-btn wishlist-btn"
+        [class.active]="inWishlist()"
+        [attr.aria-pressed]="inWishlist()"
+        (click)="toggleWishlist($event)"
+        [attr.aria-label]="
+          (inWishlist() ? 'Remove ' : 'Add ') +
+          product().name +
+          (inWishlist() ? ' from' : ' to') +
+          ' wishlist'
+        "
+      >
+        {{ inWishlist() ? '♥' : '♡' }}
+      </button>
+    }
 
+    <!--
+      Compact rating pill rather than five glyphs. At 4-up a full star row eats
+      the width the product name needs; the pill carries the same information
+      in a third of the space. StarRating is still used on the PDP and reviews.
+    -->
+    @if (product().reviewCount > 0) {
+      <span class="rating-pill" data-numeric>
+        {{ product().rating }} <span class="star" aria-hidden="true">★</span>
+        <span class="divider" aria-hidden="true">|</span>
+        {{ product().reviewCount }}
+        <span class="visually-hidden">rating from {{ product().reviewCount }} reviews</span>
+      </span>
+    }
+
+    <!-- Desktop hover only. Quick Add is deliberately absent: see product-card.ts -->
     <div class="hover-actions">
       <button type="button" class="action-btn" (click)="openQuickView($event)">Quick View</button>
-      <button type="button" class="action-btn primary" (click)="quickAdd($event)">Quick Add</button>
     </div>
   </div>
 
   <div class="info">
-    @if (product().variants.length > 1) {
-      <div class="swatches">
-        @for (v of product().variants; track v.id) {
+    <p class="descriptor">{{ descriptor() }}</p>
+    <h3 class="name">{{ product().name }}</h3>
+
+    <app-price-display
+      [price]="product().price"
+      [compareAtPrice]="product().compareAtPrice"
+      size="sm"
+    />
+
+    @if (swatches().length > 1) {
+      <div class="swatches" [attr.aria-label]="product().variants.length + ' colours available'">
+        @for (v of swatches(); track v.id) {
           <span class="swatch" [style.background]="v.colorHex" [attr.title]="v.color"></span>
+        }
+        @if (extraSwatchCount() > 0) {
+          <span class="swatch-more">+{{ extraSwatchCount() }}</span>
         }
       </div>
     }
-    <h3 class="name">{{ product().name }}</h3>
-    <app-price-display [price]="product().price" [compareAtPrice]="product().compareAtPrice" size="sm" />
-    <div class="rating-row">
-      <app-star-rating [rating]="product().rating" />
-      <span class="review-count">({{ product().reviewCount }})</span>
-    </div>
+
+    @if (isMadeToMeasure()) {
+      <p class="made-to-measure">Made to measure</p>
+    }
+
+    <!--
+      Wishlist-only size chips. These navigate to the PDP with the size
+      preselected rather than adding to the bag directly — at these prices a
+      one-tap add from a card is a returns problem, not a convenience.
+    -->
+    @if (showSizeChips()) {
+      <div class="size-chips">
+        @for (size of stockSizes(); track size) {
+          <a
+            class="size-chip"
+            [routerLink]="['/product', product().slug]"
+            [queryParams]="{ size: size }"
+            (click)="$event.stopPropagation()"
+            >{{ size }}</a
+          >
+        }
+      </div>
+    }
   </div>
 </a>

@@ -1,8 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Product, ProductFilters, ProductSortOption } from '../../../core/models';
 import { ProductCard } from '../product-card/product-card';
 import { Drawer } from '../../ui/drawer/drawer';
+import { DensityService } from '../../../core/services/density.service';
 
 const SORT_OPTIONS: { value: ProductSortOption; label: string }[] = [
   { value: 'recommended', label: 'Recommended' },
@@ -34,16 +43,25 @@ export class ProductBrowser {
 
   protected sortOptions = SORT_OPTIONS;
 
-  protected sort = signal<ProductSortOption>('recommended');
-  protected priceMin = signal<number | null>(null);
-  protected priceMax = signal<number | null>(null);
+  protected density = inject(DensityService);
+  protected densityOptions = this.density.options;
 
-  constructor() {
-    effect(() => {
-      this.priceMin.set(this.initialPriceMin());
-      this.priceMax.set(this.initialPriceMax());
-    });
-  }
+  protected sort = signal<ProductSortOption>('recommended');
+  // linkedSignal, not an effect writing to a signal.
+  //
+  // The previous effect() re-ran on ANY signal it read, so every change to the
+  // inputs stamped over whatever price range the shopper had dragged to. As a
+  // linkedSignal the value resets only when the source input actually changes
+  // (navigating to a different budget tile), and a user drag survives
+  // unrelated re-renders.
+  protected priceMin = linkedSignal<number | null, number | null>({
+    source: this.initialPriceMin,
+    computation: (source) => source,
+  });
+  protected priceMax = linkedSignal<number | null, number | null>({
+    source: this.initialPriceMax,
+    computation: (source) => source,
+  });
   protected selectedColors = signal<string[]>([]);
   protected selectedSizes = signal<string[]>([]);
   protected selectedFabrics = signal<string[]>([]);
@@ -78,7 +96,10 @@ export class ProductBrowser {
   protected priceBounds = computed(() => {
     const prices = this.products().map((p) => p.price);
     if (!prices.length) return { min: 0, max: 200000 };
-    return { min: Math.floor(Math.min(...prices) / 100) * 100, max: Math.ceil(Math.max(...prices) / 100) * 100 };
+    return {
+      min: Math.floor(Math.min(...prices) / 100) * 100,
+      max: Math.ceil(Math.max(...prices) / 100) * 100,
+    };
   });
 
   protected colorCounts = computed(() => {
@@ -92,7 +113,9 @@ export class ProductBrowser {
 
   protected sizeCounts = computed(() => {
     const counts = new Map<string, number>();
-    this.products().forEach((p) => new Set(p.sizes).forEach((s) => counts.set(s, (counts.get(s) ?? 0) + 1)));
+    this.products().forEach((p) =>
+      new Set(p.sizes).forEach((s) => counts.set(s, (counts.get(s) ?? 0) + 1)),
+    );
     return counts;
   });
 
@@ -115,7 +138,8 @@ export class ProductBrowser {
     let list = this.products();
     if (filters.priceMin != null) list = list.filter((p) => p.price >= filters.priceMin!);
     if (filters.priceMax != null) list = list.filter((p) => p.price <= filters.priceMax!);
-    if (filters.colors) list = list.filter((p) => p.variants.some((v) => filters.colors!.includes(v.color)));
+    if (filters.colors)
+      list = list.filter((p) => p.variants.some((v) => filters.colors!.includes(v.color)));
     if (filters.sizes) list = list.filter((p) => p.sizes.some((s) => filters.sizes!.includes(s)));
     if (filters.fabrics) list = list.filter((p) => filters.fabrics!.includes(p.fabric));
     if (filters.inStockOnly) list = list.filter((p) => p.stockStatus !== 'out-of-stock');
@@ -127,7 +151,10 @@ export class ProductBrowser {
         sorted.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
         break;
       case 'bestselling':
-        sorted.sort((a, b) => Number(b.isBestseller) - Number(a.isBestseller) || b.reviewCount - a.reviewCount);
+        sorted.sort(
+          (a, b) =>
+            Number(b.isBestseller) - Number(a.isBestseller) || b.reviewCount - a.reviewCount,
+        );
         break;
       case 'price-asc':
         sorted.sort((a, b) => a.price - b.price);
@@ -145,15 +172,21 @@ export class ProductBrowser {
   });
 
   protected toggleColor(color: string): void {
-    this.selectedColors.update((list) => (list.includes(color) ? list.filter((c) => c !== color) : [...list, color]));
+    this.selectedColors.update((list) =>
+      list.includes(color) ? list.filter((c) => c !== color) : [...list, color],
+    );
   }
 
   protected toggleSize(size: string): void {
-    this.selectedSizes.update((list) => (list.includes(size) ? list.filter((s) => s !== size) : [...list, size]));
+    this.selectedSizes.update((list) =>
+      list.includes(size) ? list.filter((s) => s !== size) : [...list, size],
+    );
   }
 
   protected toggleFabric(fabric: string): void {
-    this.selectedFabrics.update((list) => (list.includes(fabric) ? list.filter((f) => f !== fabric) : [...list, fabric]));
+    this.selectedFabrics.update((list) =>
+      list.includes(fabric) ? list.filter((f) => f !== fabric) : [...list, fabric],
+    );
   }
 
   protected rangeFillStyle = computed(() => {

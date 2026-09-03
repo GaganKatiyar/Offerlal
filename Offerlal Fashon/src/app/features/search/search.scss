@@ -43,14 +43,5 @@
   }
 }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-5) var(--space-4);
-}
-
-@media (min-width: 768px) {
-  .product-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+// Columns and gaps come from .o-grid--products-full in styles/_layout.scss.
+// Search has no filter rail, so it gets the wider progression.
