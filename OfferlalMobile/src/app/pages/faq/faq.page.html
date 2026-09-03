@@ -1,0 +1,21 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>FAQs</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-accordion-group>
+    @for (item of faqs; track item.question; let i = $index) {
+      <ion-accordion [value]="'q' + i">
+        <ion-item slot="header" color="light">
+          <ion-label class="question">{{ item.question }}</ion-label>
+        </ion-item>
+        <div class="answer" slot="content">{{ item.answer }}</div>
+      </ion-accordion>
+    }
+  </ion-accordion-group>
+</ion-content>

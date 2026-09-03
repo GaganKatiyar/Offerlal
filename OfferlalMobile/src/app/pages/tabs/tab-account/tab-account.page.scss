@@ -58,6 +58,7 @@ ion-title {
   align-items: center;
   gap: 12px;
   width: 100%;
+  box-sizing: border-box;
   border: none;
   background: none;
   padding: 14px 16px;
@@ -65,6 +66,7 @@ ion-title {
   font-size: 13.5px;
   font-weight: 500;
   color: var(--color-charcoal);
+  text-decoration: none;
 
   &:last-child {
     border-bottom: none;
@@ -102,4 +104,60 @@ ion-title {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+.login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px 28px;
+}
+
+.avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  ion-icon {
+    font-size: 28px;
+    color: var(--color-wine);
+  }
+}
+
+.login-prompt h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin: 0 0 8px;
+}
+
+.login-prompt p {
+  font-size: 12.5px;
+  color: var(--color-charcoal-mute);
+  line-height: 1.5;
+  margin: 0 0 20px;
+  max-width: 260px;
+}
+
+.login-btn {
+  background: var(--color-wine);
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.guest-menu {
+  margin-top: 8px;
 }

@@ -1,0 +1,23 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+ion-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+.question {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  white-space: normal;
+}
+
+.answer {
+  padding: 4px 16px 18px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--color-charcoal-soft);
+  background: #fff;
+}

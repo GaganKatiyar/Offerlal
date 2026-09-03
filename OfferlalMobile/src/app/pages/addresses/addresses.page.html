@@ -1,0 +1,60 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Saved Addresses</ion-title>
+    <ion-buttons slot="end">
+      <button type="button" class="add-btn" (click)="openForm()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="address-list">
+    @for (addr of addresses.addresses(); track addr.id) {
+      <div class="address-card">
+        <button type="button" class="default-toggle" (click)="setDefault(addr.id)">
+          <ion-icon [name]="addr.isDefault ? 'checkmark-circle' : 'radio-button-off'"></ion-icon>
+        </button>
+        <div class="address-info">
+          <p class="label">{{ addr.label }} @if (addr.isDefault) { <span class="default-tag">Default</span> }</p>
+          <p class="name">{{ addr.fullName }} · {{ addr.phone }}</p>
+          <p class="lines">{{ addr.line1 }}@if (addr.line2) {, {{ addr.line2 }}}, {{ addr.city }}, {{ addr.state }} {{ addr.pincode }}</p>
+        </div>
+        <button type="button" class="remove-btn" (click)="remove(addr.id)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+    }
+
+    @if (addresses.addresses().length === 0) {
+      <p class="empty">No saved addresses yet.</p>
+    }
+  </div>
+</ion-content>
+
+@if (showForm()) {
+  <div class="form-sheet" (click)="closeForm()">
+    <div class="sheet-panel" (click)="$event.stopPropagation()">
+      <div class="form-head">
+        <h3>Add New Address</h3>
+        <button type="button" (click)="closeForm()"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="form-body">
+        <label class="field"><span>Full Name</span><input type="text" [value]="form().fullName" (input)="updateForm('fullName', $any($event.target).value)" /></label>
+        <label class="field"><span>Phone</span><input type="tel" [value]="form().phone" (input)="updateForm('phone', $any($event.target).value)" /></label>
+        <label class="field"><span>Address Line 1</span><input type="text" [value]="form().line1" (input)="updateForm('line1', $any($event.target).value)" /></label>
+        <label class="field"><span>Address Line 2 (optional)</span><input type="text" [value]="form().line2" (input)="updateForm('line2', $any($event.target).value)" /></label>
+        <div class="field-row">
+          <label class="field"><span>City</span><input type="text" [value]="form().city" (input)="updateForm('city', $any($event.target).value)" /></label>
+          <label class="field"><span>State</span><input type="text" [value]="form().state" (input)="updateForm('state', $any($event.target).value)" /></label>
+        </div>
+        <label class="field"><span>Pincode</span><input type="text" [value]="form().pincode" (input)="updateForm('pincode', $any($event.target).value)" /></label>
+        <button type="button" class="btn-primary" (click)="save()">Save Address</button>
+      </div>
+    </div>
+  </div>
+}

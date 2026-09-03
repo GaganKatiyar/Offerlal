@@ -5,26 +5,60 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="profile-card">
-    <div class="avatar">{{ user.firstName.charAt(0) }}</div>
-    <div>
-      <p class="name">{{ user.firstName }} {{ user.lastName }}</p>
-      <p class="email">{{ user.email }}</p>
+  @if (auth.isLoggedIn() && auth.user(); as user) {
+    <div class="profile-card">
+      <div class="avatar">{{ user.firstName.charAt(0) }}</div>
+      <div>
+        <p class="name">{{ user.firstName }} {{ user.lastName }}</p>
+        <p class="email">{{ user.email }}</p>
+      </div>
     </div>
-  </div>
 
-  <div class="menu-list">
-    @for (item of menu; track item.label) {
-      <button type="button" class="menu-item">
-        <ion-icon [name]="item.icon"></ion-icon>
-        <span>{{ item.label }}</span>
+    <div class="menu-list">
+      @for (item of menu; track item.label) {
+        <a [routerLink]="item.route" class="menu-item">
+          <ion-icon [name]="item.icon"></ion-icon>
+          <span>{{ item.label }}</span>
+          <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+        </a>
+      }
+    </div>
+
+    <button type="button" class="logout-btn" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      Log Out
+    </button>
+  } @else {
+    <div class="login-prompt">
+      <div class="avatar-placeholder">
+        <ion-icon name="log-in-outline"></ion-icon>
+      </div>
+      <h2>Sign in to Offerlal</h2>
+      <p>Log in to view your orders, wishlist, saved addresses and size profile.</p>
+      <button type="button" class="login-btn" (click)="goToLogin()">Login / Sign Up</button>
+    </div>
+
+    <div class="menu-list guest-menu">
+      <a routerLink="/bridal-concierge" class="menu-item">
+        <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        <span>Bridal Concierge</span>
         <ion-icon name="chevron-forward" class="chevron"></ion-icon>
-      </button>
-    }
-  </div>
-
-  <button type="button" class="logout-btn">
-    <ion-icon name="log-out-outline"></ion-icon>
-    Log Out
-  </button>
+      </a>
+      <a routerLink="/faq" class="menu-item">
+        <ion-icon name="help-circle-outline"></ion-icon>
+        <span>Help & FAQs</span>
+        <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+      </a>
+      <a routerLink="/about" class="menu-item">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>About Us</span>
+        <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+      </a>
+      <a routerLink="/contact" class="menu-item">
+        <ion-icon name="call-outline"></ion-icon>
+        <span>Contact Us</span>
+        <ion-icon name="chevron-forward" class="chevron"></ion-icon>
+      </a>
+    </div>
+  }
 </ion-content>

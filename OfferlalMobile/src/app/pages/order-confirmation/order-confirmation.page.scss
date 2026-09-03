@@ -1,0 +1,76 @@
+.confirm-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 60px 24px 40px;
+}
+
+.success-icon {
+  font-size: 64px;
+  color: var(--color-success);
+  margin-bottom: 16px;
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin: 0 0 10px;
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--color-charcoal-mute);
+  line-height: 1.5;
+  margin: 0 0 28px;
+  max-width: 280px;
+}
+
+.order-card {
+  width: 100%;
+  background: var(--color-cream);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 28px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  padding: 7px 0;
+  color: var(--color-charcoal-mute);
+
+  strong {
+    color: var(--color-charcoal);
+    font-weight: 700;
+  }
+}
+
+.btn-outline,
+.btn-primary {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+
+.btn-outline {
+  border: 1.5px solid var(--color-wine);
+  color: var(--color-wine);
+}
+
+.btn-primary {
+  background: var(--color-wine);
+  color: #fff;
+}

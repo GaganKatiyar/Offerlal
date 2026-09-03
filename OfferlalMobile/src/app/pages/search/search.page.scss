@@ -1,0 +1,53 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+ion-searchbar {
+  --background: var(--color-cream);
+  --border-radius: 999px;
+  --box-shadow: none;
+  padding: 0 12px 10px;
+}
+
+.suggestions {
+  padding: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-charcoal-mute);
+  margin-bottom: 12px;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1.5px solid var(--color-border);
+  background: #fff;
+  color: var(--color-charcoal);
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.no-results {
+  text-align: center;
+  color: var(--color-charcoal-mute);
+  font-size: 13px;
+  padding: 40px 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 8px 12px 20px;
+}

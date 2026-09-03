@@ -1,11 +1,6 @@
 import { Component } from '@angular/core';
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonIcon,
-} from '@ionic/angular';
+import { Router, RouterLink } from '@angular/router';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   receiptOutline,
@@ -14,31 +9,37 @@ import {
   resizeOutline,
   chatbubbleEllipsesOutline,
   helpCircleOutline,
+  informationCircleOutline,
+  callOutline,
   chevronForward,
   logOutOutline,
+  logInOutline,
 } from 'ionicons/icons';
-import { CURRENT_USER } from '../../../data/mock-data';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-tab-account',
   templateUrl: 'tab-account.page.html',
   styleUrls: ['tab-account.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonIcon],
+  imports: [RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonIcon],
 })
 export class TabAccountPage {
-  protected user = CURRENT_USER;
-
   protected menu = [
-    { icon: 'receipt-outline', label: 'My Orders' },
-    { icon: 'heart-outline', label: 'Wishlist' },
-    { icon: 'location-outline', label: 'Saved Addresses' },
-    { icon: 'resize-outline', label: 'Size Profile' },
-    { icon: 'chatbubble-ellipses-outline', label: 'Bridal Concierge' },
-    { icon: 'help-circle-outline', label: 'Help & FAQs' },
+    { icon: 'receipt-outline', label: 'My Orders', route: '/account/orders' },
+    { icon: 'heart-outline', label: 'Wishlist', route: '/wishlist' },
+    { icon: 'location-outline', label: 'Saved Addresses', route: '/account/addresses' },
+    { icon: 'resize-outline', label: 'Size Profile', route: '/account/size-profile' },
+    { icon: 'chatbubble-ellipses-outline', label: 'Bridal Concierge', route: '/bridal-concierge' },
+    { icon: 'help-circle-outline', label: 'Help & FAQs', route: '/faq' },
+    { icon: 'information-circle-outline', label: 'About Us', route: '/about' },
+    { icon: 'call-outline', label: 'Contact Us', route: '/contact' },
   ];
 
-  constructor() {
+  constructor(
+    protected auth: AuthService,
+    private router: Router,
+  ) {
     addIcons({
       receiptOutline,
       heartOutline,
@@ -46,8 +47,19 @@ export class TabAccountPage {
       resizeOutline,
       chatbubbleEllipsesOutline,
       helpCircleOutline,
+      informationCircleOutline,
+      callOutline,
       chevronForward,
       logOutOutline,
+      logInOutline,
     });
+  }
+
+  logout(): void {
+    this.auth.logout();
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/tabs/account' } });
   }
 }

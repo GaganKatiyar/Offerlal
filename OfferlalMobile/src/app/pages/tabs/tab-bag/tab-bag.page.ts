@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -9,6 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { addOutline, removeOutline, trashOutline, bagHandleOutline } from 'ionicons/icons';
 import { CartService, CartLine } from '../../../services/cart.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-tab-bag',
@@ -18,8 +20,20 @@ import { CartService, CartLine } from '../../../services/cart.service';
   imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonIcon],
 })
 export class TabBagPage {
-  constructor(protected cart: CartService) {
+  constructor(
+    protected cart: CartService,
+    private auth: AuthService,
+    private router: Router,
+  ) {
     addIcons({ addOutline, removeOutline, trashOutline, bagHandleOutline });
+  }
+
+  goToCheckout(): void {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/checkout']);
+    } else {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/checkout' } });
+    }
   }
 
   inc(line: CartLine): void {

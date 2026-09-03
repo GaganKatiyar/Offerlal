@@ -1,0 +1,66 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/bag" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Checkout</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <section class="block">
+    <div class="block-head">
+      <h3>Shipping Address</h3>
+      <a routerLink="/account/addresses" class="add-link"><ion-icon name="add-outline"></ion-icon> Add New</a>
+    </div>
+
+    @for (addr of addresses.addresses(); track addr.id) {
+      <button type="button" class="address-card" [class.active]="selectedAddressId() === addr.id" (click)="selectAddress(addr.id)">
+        <ion-icon [name]="selectedAddressId() === addr.id ? 'checkmark-circle' : 'radio-button-off'"></ion-icon>
+        <div class="address-info">
+          <p class="label">{{ addr.label }} @if (addr.isDefault) { <span class="default-tag">Default</span> }</p>
+          <p class="name">{{ addr.fullName }} · {{ addr.phone }}</p>
+          <p class="lines">{{ addr.line1 }}@if (addr.line2) {, {{ addr.line2 }}}, {{ addr.city }}, {{ addr.state }} {{ addr.pincode }}</p>
+        </div>
+      </button>
+    }
+  </section>
+
+  <section class="block">
+    <h3>Order Items ({{ cart.lines().length }})</h3>
+    @for (line of cart.lines(); track line.product.id + line.size) {
+      <div class="mini-line">
+        <img [src]="line.product.imageUrl" [alt]="line.product.name" />
+        <div class="mini-info">
+          <p class="name">{{ line.product.name }}</p>
+          <p class="meta">Size: {{ line.size }} · Qty: {{ line.quantity }}</p>
+        </div>
+        <span class="price">₹{{ (line.product.price * line.quantity).toLocaleString('en-IN') }}</span>
+      </div>
+    }
+  </section>
+
+  <section class="block">
+    <h3>Payment Method</h3>
+    <div class="payment-row">
+      @for (method of paymentMethods; track method) {
+        <button type="button" class="payment-chip" [class.active]="selectedPayment() === method" (click)="selectPayment(method)">
+          {{ method }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="block summary-block">
+    <h3>Order Summary</h3>
+    <div class="row"><span>Subtotal</span><span>₹{{ cart.subtotal().toLocaleString('en-IN') }}</span></div>
+    <div class="row"><span>Shipping</span><span>{{ shippingFee === 0 ? 'Free' : '₹' + shippingFee }}</span></div>
+    <div class="row total"><span>Grand Total</span><span>₹{{ (cart.subtotal() + shippingFee).toLocaleString('en-IN') }}</span></div>
+  </section>
+</ion-content>
+
+<div class="place-order-bar">
+  <button type="button" class="place-order-btn" [disabled]="placing() || !selectedAddressId()" (click)="placeOrder()">
+    {{ placing() ? 'Placing Order...' : 'Place Order' }}
+  </button>
+</div>

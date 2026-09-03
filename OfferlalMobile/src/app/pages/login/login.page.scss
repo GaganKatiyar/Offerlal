@@ -1,0 +1,123 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+.auth-wrap {
+  padding: 8px 24px 40px;
+}
+
+.brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin-bottom: 24px;
+
+  em {
+    color: var(--color-wine);
+    font-style: italic;
+  }
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin: 0 0 8px;
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--color-charcoal-mute);
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+.field {
+  display: block;
+  margin-bottom: 18px;
+
+  span {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    margin-bottom: 6px;
+  }
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  background: #fff;
+
+  ion-icon {
+    color: var(--color-charcoal-mute);
+    font-size: 17px;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 13px 0;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+}
+
+.error {
+  color: var(--color-wine);
+  font-size: 12.5px;
+  margin: -6px 0 14px;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--color-wine);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 6px;
+}
+
+.demo-note {
+  font-size: 11.5px;
+  color: var(--color-charcoal-mute);
+  text-align: center;
+  margin: 16px 0 0;
+  line-height: 1.5;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--color-wine);
+  font-size: 11.5px;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.switch {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-charcoal-soft);
+  margin-top: 28px;
+
+  a {
+    color: var(--color-wine);
+    font-weight: 600;
+    text-decoration: none;
+  }
+}

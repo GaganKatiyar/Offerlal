@@ -1,0 +1,145 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+ion-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+.hero {
+  background: var(--color-charcoal);
+  color: #fff;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gold-light);
+}
+
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  margin: 8px 0 10px;
+}
+
+.hero p {
+  font-size: 13px;
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-wine);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.services {
+  padding: 20px 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.service-card {
+  display: flex;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px;
+
+  ion-icon {
+    font-size: 22px;
+    color: var(--color-wine);
+    flex-shrink: 0;
+  }
+
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-charcoal);
+    margin: 0 0 3px;
+  }
+
+  .desc {
+    font-size: 12px;
+    color: var(--color-charcoal-mute);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.form-block {
+  padding: 24px 16px 40px;
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-charcoal);
+    margin: 0 0 16px;
+  }
+}
+
+.field {
+  display: block;
+  margin-bottom: 14px;
+
+  span {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1.5px solid var(--color-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--color-wine);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 4px;
+}
+
+.success-block {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--color-charcoal-soft);
+  font-size: 13px;
+}

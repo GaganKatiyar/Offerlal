@@ -1,0 +1,45 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Bridal Concierge</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="hero">
+    <span class="eyebrow">Bridal Concierge</span>
+    <h1>Talk to a Bridal Expert</h1>
+    <p>Personalised guidance for your bridal wardrobe — from first fitting to final drape.</p>
+    <a href="https://wa.me/917390965819" target="_blank" class="whatsapp-btn">
+      <ion-icon name="logo-whatsapp"></ion-icon> Chat on WhatsApp
+    </a>
+  </div>
+
+  <div class="services">
+    @for (s of services; track s.title) {
+      <div class="service-card">
+        <ion-icon [name]="s.icon"></ion-icon>
+        <div>
+          <p class="title">{{ s.title }}</p>
+          <p class="desc">{{ s.desc }}</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!submitted()) {
+    <div class="form-block">
+      <h3>Request a Consultation</h3>
+      <label class="field"><span>Full Name</span><input type="text" /></label>
+      <label class="field"><span>Mobile Number</span><input type="tel" /></label>
+      <label class="field"><span>Wedding Date</span><input type="date" /></label>
+      <button type="button" class="btn-primary" (click)="submit()">Submit Request</button>
+    </div>
+  } @else {
+    <div class="success-block">
+      <p>Thank you! Our styling team will reach out within 24 hours.</p>
+    </div>
+  }
+</ion-content>

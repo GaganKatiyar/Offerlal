@@ -5,10 +5,9 @@ import {
   IonToolbar,
   IonContent,
   IonIcon,
-  IonSearchbar,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { notificationsOutline } from 'ionicons/icons';
+import { notificationsOutline, searchOutline } from 'ionicons/icons';
 import { CATEGORIES, PRODUCTS } from '../../../data/mock-data';
 import { ProductCardComponent } from '../../../components/product-card/product-card.component';
 
@@ -17,7 +16,7 @@ import { ProductCardComponent } from '../../../components/product-card/product-c
   templateUrl: 'tab-home.page.html',
   styleUrls: ['tab-home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonContent, IonIcon, IonSearchbar, ProductCardComponent],
+  imports: [IonHeader, IonToolbar, IonContent, IonIcon, ProductCardComponent],
 })
 export class TabHomePage {
   protected categories = CATEGORIES;
@@ -25,10 +24,14 @@ export class TabHomePage {
   protected bestsellers = computed(() => PRODUCTS.filter((p) => p.isBestseller));
 
   constructor(private router: Router) {
-    addIcons({ notificationsOutline });
+    addIcons({ notificationsOutline, searchOutline });
   }
 
   openCategory(categoryId: string): void {
     this.router.navigate(['/tabs/shop'], { queryParams: { categoryId } });
+  }
+
+  openSearch(): void {
+    this.router.navigate(['/search']);
   }
 }

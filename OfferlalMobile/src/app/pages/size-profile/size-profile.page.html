@@ -1,0 +1,36 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Size Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="profile-wrap">
+    <p class="sub">Save your measurements once — we'll suggest a size automatically on every product page.</p>
+
+    <div class="field-row">
+      <label class="field"><span>Bust (in)</span><input type="number" [value]="form().bust" (input)="update('bust', +$any($event.target).value)" /></label>
+      <label class="field"><span>Waist (in)</span><input type="number" [value]="form().waist" (input)="update('waist', +$any($event.target).value)" /></label>
+    </div>
+    <div class="field-row">
+      <label class="field"><span>Hip (in)</span><input type="number" [value]="form().hip" (input)="update('hip', +$any($event.target).value)" /></label>
+      <label class="field"><span>Shoulder (in)</span><input type="number" [value]="form().shoulder" (input)="update('shoulder', +$any($event.target).value)" /></label>
+    </div>
+    <label class="field"><span>Height (in)</span><input type="number" [value]="form().height" (input)="update('height', +$any($event.target).value)" /></label>
+    <label class="field"><span>Preferred Size</span><input type="text" placeholder="e.g. M" [value]="form().preferredSize" (input)="update('preferredSize', $any($event.target).value)" /></label>
+
+    <button type="button" class="btn-primary" (click)="save()">Save My Measurements</button>
+  </div>
+
+  <ion-toast
+    [isOpen]="saved()"
+    message="Size profile saved."
+    duration="1800"
+    position="bottom"
+    color="success"
+    (didDismiss)="saved.set(false)"
+  ></ion-toast>
+</ion-content>

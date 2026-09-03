@@ -1,0 +1,24 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>My Wishlist</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (items().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="heart-dislike-outline"></ion-icon>
+      <p>Your wishlist is empty.</p>
+      <a routerLink="/tabs/shop" class="browse-link">Browse products</a>
+    </div>
+  } @else {
+    <div class="grid">
+      @for (p of items(); track p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  }
+</ion-content>

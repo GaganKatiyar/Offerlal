@@ -1,0 +1,35 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-searchbar
+    placeholder="Search for lehengas, sarees, gowns..."
+    mode="ios"
+    [value]="query()"
+    (ionInput)="setQuery($any($event.target).value)"
+    autofocus="true"
+  ></ion-searchbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (query().length < 2) {
+    <div class="suggestions">
+      <span class="label">Popular Searches</span>
+      <div class="chip-list">
+        @for (term of popular; track term) {
+          <button type="button" class="chip" (click)="setQuery(term)">{{ term }}</button>
+        }
+      </div>
+    </div>
+  } @else if (results().length === 0) {
+    <p class="no-results">No products found for "{{ query() }}"</p>
+  } @else {
+    <div class="grid">
+      @for (p of results(); track p.id) {
+        <app-product-card [product]="p" />
+      }
+    </div>
+  }
+</ion-content>

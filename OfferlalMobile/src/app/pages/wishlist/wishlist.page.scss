@@ -1,0 +1,44 @@
+ion-toolbar {
+  --background: var(--color-ivory);
+}
+
+ion-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  padding: 0 30px;
+
+  ion-icon {
+    font-size: 48px;
+    color: var(--color-charcoal-mute);
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin: 4px 0 14px;
+    color: var(--color-charcoal);
+    font-weight: 600;
+  }
+}
+
+.browse-link {
+  color: var(--color-wine);
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+}

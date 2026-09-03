@@ -1,0 +1,43 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="auth-wrap">
+    <div class="brand">Offerlal <em>Fashion</em></div>
+    <h1>Welcome Back</h1>
+    <p class="sub">Sign in to view your orders, wishlist and saved addresses.</p>
+
+    <label class="field">
+      <span>Email</span>
+      <div class="input-row">
+        <ion-icon name="mail-outline"></ion-icon>
+        <input type="email" placeholder="you@example.com" [value]="email()" (input)="email.set($any($event.target).value)" />
+      </div>
+    </label>
+
+    <label class="field">
+      <span>Password</span>
+      <div class="input-row">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <input type="password" placeholder="Enter your password" [value]="password()" (input)="password.set($any($event.target).value)" />
+      </div>
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="button" class="btn-primary" (click)="submit()">Sign In</button>
+
+    <p class="demo-note">
+      Prototype demo — try <button type="button" class="link-btn" (click)="fillDemo()">{{ demoEmail }}</button> with any password.
+    </p>
+
+    <p class="switch">New here? <a routerLink="/register">Create an account</a></p>
+  </div>
+</ion-content>

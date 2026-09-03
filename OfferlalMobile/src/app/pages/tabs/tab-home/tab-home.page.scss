@@ -27,11 +27,26 @@ ion-toolbar {
   }
 }
 
-ion-searchbar {
-  --background: var(--color-cream);
-  --border-radius: 999px;
-  --box-shadow: none;
-  padding: 0 0 8px;
+.search-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--color-cream);
+  border: none;
+  border-radius: 999px;
+  padding: 11px 16px;
+  margin-bottom: 8px;
+  color: var(--color-charcoal-mute);
+  font-size: 14px;
+  font-family: inherit;
+  text-align: left;
+
+  ion-icon {
+    font-size: 17px;
+    flex-shrink: 0;
+  }
 }
 
 .hero {

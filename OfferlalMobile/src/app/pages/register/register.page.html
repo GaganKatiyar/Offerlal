@@ -1,0 +1,39 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login" text=""></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="auth-wrap">
+    <h1>Create an Account</h1>
+    <p class="sub">Save addresses, track orders and store your measurements.</p>
+
+    <div class="field-row">
+      <label class="field">
+        <span>First Name</span>
+        <input type="text" [value]="firstName()" (input)="firstName.set($any($event.target).value)" />
+      </label>
+      <label class="field">
+        <span>Last Name</span>
+        <input type="text" [value]="lastName()" (input)="lastName.set($any($event.target).value)" />
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Email</span>
+      <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" />
+    </label>
+
+    <label class="field">
+      <span>Mobile Number</span>
+      <input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
+    </label>
+
+    <button type="button" class="btn-primary" (click)="submit()">Create Account</button>
+
+    <p class="switch">Already have an account? <a routerLink="/login">Sign In</a></p>
+  </div>
+</ion-content>

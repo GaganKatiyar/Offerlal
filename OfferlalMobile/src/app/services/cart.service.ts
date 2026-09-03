@@ -37,4 +37,8 @@ export class CartService {
   remove(line: CartLine): void {
     this._lines.update((list) => list.filter((l) => l !== line));
   }
+
+  clear(): void {
+    this._lines.set([]);
+  }
 }

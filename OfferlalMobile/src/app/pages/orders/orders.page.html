@@ -1,0 +1,30 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>My Orders</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (orderService.orders().length === 0) {
+    <div class="empty-state">
+      <p>You haven't placed any orders yet.</p>
+    </div>
+  } @else {
+    <div class="order-list">
+      @for (order of orderService.orders(); track order.id) {
+        <a [routerLink]="['/account/orders', order.orderNumber]" class="order-card">
+          <img [src]="order.items[0].imageUrl" [alt]="order.items[0].name" />
+          <div class="order-info">
+            <p class="order-number">{{ order.orderNumber }}</p>
+            <p class="item-name">{{ order.items[0].name }}@if (order.items.length > 1) { + {{ order.items.length - 1 }} more }</p>
+            <p class="total">₹{{ order.total.toLocaleString('en-IN') }}</p>
+          </div>
+          <span class="status-badge" [class]="statusClass(order.status)">{{ order.status }}</span>
+        </a>
+      }
+    </div>
+  }
+</ion-content>

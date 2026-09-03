@@ -1,0 +1,66 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/account/orders" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Order Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (order(); as o) {
+    <div class="detail-wrap">
+      <div class="header-row">
+        <div>
+          <p class="order-number">{{ o.orderNumber }}</p>
+          <p class="placed-date">Placed on {{ o.placedAt | date: 'mediumDate' }}</p>
+        </div>
+        <span class="status-pill">{{ o.status }}</span>
+      </div>
+
+      <div class="tracker">
+        @for (status of allStatuses; track status; let last = $last) {
+          <div class="tracker-step" [class.reached]="isStatusReached(status)">
+            <span class="dot"></span>
+            <span class="step-label">{{ status }}</span>
+            @if (!last) { <span class="connector" [class.reached]="isStatusReached(status)"></span> }
+          </div>
+        }
+      </div>
+
+      @if (o.trackingNumber) {
+        <div class="tracking-info">
+          <span>{{ o.carrier }} · {{ o.trackingNumber }}</span>
+        </div>
+      }
+
+      <h3>Items</h3>
+      @for (item of o.items; track item.productId) {
+        <div class="mini-line">
+          <img [src]="item.imageUrl" [alt]="item.name" />
+          <div class="mini-info">
+            <p class="name">{{ item.name }}</p>
+            <p class="meta">{{ item.color }} · {{ item.size }} · Qty {{ item.quantity }}</p>
+          </div>
+          <span class="price">₹{{ (item.unitPrice * item.quantity).toLocaleString('en-IN') }}</span>
+        </div>
+      }
+
+      <h3>Shipping Address</h3>
+      <p class="address-text">
+        {{ o.shippingAddress.fullName }}<br />
+        {{ o.shippingAddress.line1 }}@if (o.shippingAddress.line2) {, {{ o.shippingAddress.line2 }}}<br />
+        {{ o.shippingAddress.city }}, {{ o.shippingAddress.state }} {{ o.shippingAddress.pincode }}<br />
+        {{ o.shippingAddress.phone }}
+      </p>
+
+      <h3>Payment Summary</h3>
+      <div class="row"><span>Subtotal</span><span>₹{{ o.subtotal.toLocaleString('en-IN') }}</span></div>
+      <div class="row"><span>Shipping</span><span>{{ o.shippingFee === 0 ? 'Free' : '₹' + o.shippingFee }}</span></div>
+      <div class="row total"><span>Total</span><span>₹{{ o.total.toLocaleString('en-IN') }}</span></div>
+      <p class="paid-via">Paid via {{ o.paymentMethod }}</p>
+    </div>
+  } @else {
+    <p class="not-found">Order not found.</p>
+  }
+</ion-content>

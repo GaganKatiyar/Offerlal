@@ -1,0 +1,30 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Contact Us</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="info-list">
+    <div class="info-row"><ion-icon name="call-outline"></ion-icon><span>+91 73909 65819</span></div>
+    <div class="info-row"><ion-icon name="mail-outline"></ion-icon><span>support&#64;offerlal.com</span></div>
+    <div class="info-row"><ion-icon name="time-outline"></ion-icon><span>Mon–Sat, 10am–7pm IST</span></div>
+  </div>
+
+  @if (!submitted()) {
+    <div class="form-block">
+      <h3>Send Us a Message</h3>
+      <label class="field"><span>Name</span><input type="text" /></label>
+      <label class="field"><span>Email</span><input type="email" /></label>
+      <label class="field"><span>Message</span><textarea rows="4"></textarea></label>
+      <button type="button" class="btn-primary" (click)="submit()">Send Message</button>
+    </div>
+  } @else {
+    <div class="success-block">
+      <p>Thanks for reaching out — we'll get back to you within 24 hours.</p>
+    </div>
+  }
+</ion-content>
