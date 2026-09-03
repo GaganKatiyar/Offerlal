@@ -24,6 +24,20 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<Brand> Brands { get; set; }
 
+    public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
+
+    public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
+
+    public virtual DbSet<AttributeOption> AttributeOptions { get; set; }
+
+    public virtual DbSet<AttributeSet> AttributeSets { get; set; }
+
+    public virtual DbSet<AttributeSetAttribute> AttributeSetAttributes { get; set; }
+
+    public virtual DbSet<ProductAttributeOption> ProductAttributeOptions { get; set; }
+
+    public virtual DbSet<ProductAttributeNumber> ProductAttributeNumbers { get; set; }
+
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<Coupon> Coupons { get; set; }
@@ -218,6 +232,8 @@ public partial class OfferlalFashionDbContext : DbContext
                 .HasForeignKey(d => d.ParentId)
                 .HasConstraintName("FK_Categories_Parent");
         });
+
+        ConfigureAttributeSystem(modelBuilder);
 
         modelBuilder.Entity<Brand>(entity =>
         {
@@ -556,6 +572,15 @@ public partial class OfferlalFashionDbContext : DbContext
 
             entity.HasIndex(e => e.BrandId);
 
+            entity.Property(e => e.DisplayAttributesJson).HasDefaultValue("{}");
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_Products_DisplayAttributes_Json", "ISJSON(DisplayAttributesJson) = 1"));
+
+            entity.HasOne(d => d.AttributeSet).WithMany(s => s.Products)
+                .HasForeignKey(d => d.AttributeSetId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_Products_AttributeSet");
+
             entity.HasMany(d => d.Occasions).WithMany(p => p.Products)
                 .UsingEntity<Dictionary<string, object>>(
                     "ProductOccasion",
@@ -748,6 +773,142 @@ public partial class OfferlalFashionDbContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
+    }
+
+    /// <summary>
+    /// The dynamic attribute system. Kept in its own method rather than inline
+    /// above, because this is hand-written configuration — the rest of
+    /// OnModelCreating is scaffolded output.
+    /// </summary>
+    private static void ConfigureAttributeSystem(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AttributeGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.Code).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CatalogAttribute>(entity =>
+        {
+            entity.ToTable("Attributes");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+
+            entity.Property(e => e.Code).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(120);
+            entity.Property(e => e.ValueKind).HasMaxLength(12).IsUnicode(false);
+            entity.Property(e => e.InputType).HasMaxLength(12).IsUnicode(false);
+            entity.Property(e => e.Scope).HasMaxLength(10).IsUnicode(false)
+                .HasDefaultValue(AttributeScope.Product);
+            entity.Property(e => e.Unit).HasMaxLength(20);
+            entity.Property(e => e.ShowOnPdp).HasDefaultValue(true);
+
+            entity.HasOne(e => e.Group).WithMany(g => g.Attributes)
+                .HasForeignKey(e => e.GroupId)
+                .HasConstraintName("FK_Attributes_Group");
+
+            entity.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_Attributes_ValueKind",
+                    "ValueKind IN ('Option','Number','Text','Bool')");
+                t.HasCheckConstraint("CK_Attributes_Scope",
+                    "Scope IN ('product','variant','sku')");
+
+                // The load-bearing constraint: it is structurally impossible to make a
+                // free-text attribute facetable. This is what prevents recreating the
+                // current Fabric mess (31 prose values, exact-matched, filter broken)
+                // in Beauty or Electronics two years from now.
+                t.HasCheckConstraint("CK_Attributes_FacetableIsNotText",
+                    "IsFacetable = 0 OR ValueKind IN ('Option','Number','Bool')");
+            });
+        });
+
+        modelBuilder.Entity<AttributeOption>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.AttributeId, e.Slug }).IsUnique();
+
+            entity.Property(e => e.Slug).HasMaxLength(80).IsUnicode(false);
+            entity.Property(e => e.Value).HasMaxLength(120);
+            entity.Property(e => e.ColorHex).HasMaxLength(7).IsUnicode(false).IsFixedLength();
+            entity.Property(e => e.ImageUrl).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.HasOne(e => e.Attribute).WithMany(a => a.Options)
+                .HasForeignKey(e => e.AttributeId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AttributeOptions_Attribute");
+        });
+
+        modelBuilder.Entity<AttributeSet>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.Code).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(120);
+        });
+
+        modelBuilder.Entity<AttributeSetAttribute>(entity =>
+        {
+            entity.HasKey(e => new { e.AttributeSetId, e.AttributeId });
+
+            entity.HasOne(e => e.AttributeSet).WithMany(s => s.Attributes)
+                .HasForeignKey(e => e.AttributeSetId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AttributeSetAttributes_Set");
+
+            entity.HasOne(e => e.Attribute).WithMany()
+                .HasForeignKey(e => e.AttributeId)
+                .HasConstraintName("FK_AttributeSetAttributes_Attribute");
+        });
+
+        modelBuilder.Entity<ProductAttributeOption>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductId, e.AttributeId, e.OptionId });
+
+            // THE facet index. Every PLP filter goes through this as an
+            // index seek on (OptionId, ProductId) — covering, so no key lookup.
+            entity.HasIndex(e => new { e.OptionId, e.ProductId })
+                .HasDatabaseName("IX_PAO_Option_Product");
+            entity.HasIndex(e => new { e.AttributeId, e.OptionId, e.ProductId })
+                .HasDatabaseName("IX_PAO_Attr_Option_Product");
+
+            entity.HasOne(e => e.Product).WithMany(p => p.AttributeOptions)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ProductAttributeOptions_Product");
+
+            entity.HasOne(e => e.Attribute).WithMany()
+                .HasForeignKey(e => e.AttributeId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_ProductAttributeOptions_Attribute");
+
+            entity.HasOne(e => e.Option).WithMany()
+                .HasForeignKey(e => e.OptionId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_ProductAttributeOptions_Option");
+        });
+
+        modelBuilder.Entity<ProductAttributeNumber>(entity =>
+        {
+            entity.HasKey(e => new { e.ProductId, e.AttributeId });
+            entity.Property(e => e.NumericValue).HasColumnType("decimal(18, 4)");
+
+            entity.HasIndex(e => new { e.AttributeId, e.NumericValue })
+                .HasDatabaseName("IX_PAN_Attr_Value");
+
+            entity.HasOne(e => e.Product).WithMany(p => p.AttributeNumbers)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ProductAttributeNumbers_Product");
+
+            entity.HasOne(e => e.Attribute).WithMany()
+                .HasForeignKey(e => e.AttributeId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_ProductAttributeNumbers_Attribute");
+        });
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
