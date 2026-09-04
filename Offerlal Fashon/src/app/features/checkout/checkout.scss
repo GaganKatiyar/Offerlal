@@ -244,3 +244,19 @@ input[type='email'] {
     grid-template-columns: 1fr 380px;
   }
 }
+
+/* Availability problems from the server quote. Shown in the summary, next to
+   the total, because that is where the customer is looking before paying. */
+.quote-problems {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgb(181 75 35 / 0.1);
+  color: var(--color-error);
+  font-size: var(--fs-xs);
+  list-style: none;
+
+  li + li {
+    margin-top: var(--space-1);
+  }
+}

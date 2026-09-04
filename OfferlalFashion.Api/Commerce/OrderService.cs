@@ -10,7 +10,12 @@ public sealed record PlaceOrderRequest
     public string? CouponCode { get; init; }
     public bool ExpressDelivery { get; init; }
 
+    /// <summary>Existing customer, when signed in. Empty for a guest.</summary>
     public string CustomerId { get; init; } = "";
+
+    /// <summary>Guest contact details, used to find or create the customer record.</summary>
+    public string? Email { get; init; }
+
     public string PaymentMethod { get; init; } = "COD";
 
     public string ShippingName { get; init; } = "";
@@ -100,13 +105,14 @@ public sealed class OrderService(
                     return new PlaceOrderResult(false, null, 0m, problems);
                 }
 
+                    var customerId = await ResolveCustomerAsync(request, ct);
                 var orderNumber = await NextOrderNumberAsync(ct);
 
                 var order = new Order
                 {
                     Id = $"ord-{Guid.NewGuid():N}"[..20],
                     OrderNumber = orderNumber,
-                    CustomerId = request.CustomerId,
+                    CustomerId = customerId,
                     Status = "Placed",
                     Subtotal = quote.Subtotal,
                     Discount = quote.Discount,
@@ -208,6 +214,62 @@ public sealed class OrderService(
                 throw;
             }
         });
+    }
+
+    /// <summary>
+    /// Finds or creates the customer this order belongs to.
+    ///
+    /// Guest checkout is deliberate — for a boutique whose traffic comes from
+    /// WhatsApp and Instagram, forcing an account before payment costs more
+    /// orders than it gains accounts. But Orders.CustomerId is a foreign key,
+    /// so a guest still needs a row; matching on email means a returning guest
+    /// accumulates order history under one record rather than a new one each
+    /// time.
+    ///
+    /// A supplied CustomerId that does not exist is treated as absent rather
+    /// than trusted. Previously it went straight into the insert and failed the
+    /// FK with a 500 — the client's word about who it is deserves no more trust
+    /// than its word about prices.
+    /// </summary>
+    private async Task<string> ResolveCustomerAsync(PlaceOrderRequest request, CancellationToken ct)
+    {
+        if (!string.IsNullOrWhiteSpace(request.CustomerId))
+        {
+            var exists = await db.Customers.AnyAsync(c => c.Id == request.CustomerId, ct);
+            if (exists) return request.CustomerId;
+        }
+
+        var email = request.Email?.Trim().ToLowerInvariant();
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var byEmail = await db.Customers.FirstOrDefaultAsync(c => c.Email == email, ct);
+            if (byEmail is not null) return byEmail.Id;
+        }
+
+        var names = request.ShippingName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+
+        var guest = new Customer
+        {
+            Id = $"cust-{Guid.NewGuid():N}"[..20],
+            FirstName = names.ElementAtOrDefault(0) ?? "Guest",
+            LastName = names.ElementAtOrDefault(1) ?? "-",
+            Email = email ?? $"{request.ShippingPhone}@guest.offerlal.local",
+            Phone = request.ShippingPhone,
+            City = request.ShippingCity,
+            State = request.ShippingState,
+            RegisteredAt = DateTime.UtcNow,
+            Segment = "Guest",
+
+            // No password: this record cannot be signed into until the person
+            // registers properly. An empty hash never verifies, which is the
+            // behaviour we want rather than an account with no credentials.
+            PasswordHash = string.Empty,
+        };
+
+        db.Customers.Add(guest);
+        await db.SaveChangesAsync(ct);
+        return guest.Id;
     }
 
     /// <summary>

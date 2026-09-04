@@ -139,6 +139,20 @@
             <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
           }
           <div class="row"><span>Shipping</span><span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span></div>
+
+          <!--
+            Availability problems, surfaced before payment rather than after.
+            The server re-checks stock when the order is placed, so an item that
+            sold out mid-session is caught here instead of failing at the very
+            last step.
+          -->
+          @if (quoteProblems().length) {
+            <ul class="quote-problems">
+              @for (problem of quoteProblems(); track problem) {
+                <li>{{ problem }}</li>
+              }
+            </ul>
+          }
         </div>
         <div class="grand-total-row">
           <span>Total</span>

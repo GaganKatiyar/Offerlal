@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { of } from 'rxjs';
 import { CartService } from '../../core/services/cart.service';
+import { CheckoutApiService, toQuoteLines } from '../../core/services/checkout-api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { OrderService } from '../../core/services/order.service';
-import { CouponService } from '../../core/services/coupon.service';
 import { DemoDataStoreService } from '../../core/services/demo-data-store.service';
 import { Address, PaymentMethod } from '../../core/models';
 import { ImageWithFallback } from '../../shared/components/image-with-fallback/image-with-fallback';
@@ -20,8 +21,7 @@ import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 export class Checkout {
   protected cart = inject(CartService);
   protected auth = inject(AuthService);
-  private orderService = inject(OrderService);
-  private couponService = inject(CouponService);
+  private checkoutApi = inject(CheckoutApiService);
   private store = inject(DemoDataStoreService);
   private router = inject(Router);
 
@@ -40,33 +40,67 @@ export class Checkout {
 
   protected couponCode = signal('');
   protected appliedCode = signal<string | null>(null);
-  protected discount = signal(0);
+  protected discount = computed(() => this.quote()?.discount ?? 0);
   protected couponMessage = signal('');
 
   protected placingOrder = signal(false);
   protected formError = signal('');
 
-  protected shippingFee = computed(() => {
-    const base = this.cart.subtotal() - this.discount();
-    if (base >= 2999) return 0;
-    return this.deliveryMethod() === 'express' ? 250 : 150;
+  /**
+   * The server's price for the current bag.
+   *
+   * Every money figure on this page now comes from here. The previous version
+   * computed the shipping threshold and grand total in the browser AND sent
+   * its own `discount` to the order endpoint, which stored it verbatim — so a
+   * customer could pay whatever they chose.
+   *
+   * Recomputed whenever the bag, the coupon or the delivery method changes, so
+   * the number shown is the number that will be charged.
+   */
+  private quoteResource = rxResource({
+    params: () => ({
+      lines: toQuoteLines(this.cart.items()),
+      coupon: this.appliedCode(),
+      express: this.deliveryMethod() === 'express',
+    }),
+    stream: ({ params }) =>
+      params.lines.length === 0
+        ? of(null)
+        : this.checkoutApi.quote(params.lines, params.coupon, params.express),
   });
 
-  protected grandTotal = computed(() => this.cart.subtotal() - this.discount() + this.shippingFee());
+  protected quote = computed(() => this.quoteResource.value() ?? null);
+  protected quoteLoading = computed(() => this.quoteResource.isLoading());
+
+  protected serverSubtotal = computed(() => this.quote()?.subtotal ?? this.cart.subtotal());
+  protected shippingFee = computed(() => this.quote()?.shippingFee ?? 0);
+  protected grandTotal = computed(() => this.quote()?.total ?? this.cart.subtotal());
+
+  /** Stock or availability problems, surfaced before the customer pays. */
+  protected quoteProblems = computed(() => this.quote()?.problems ?? []);
 
   protected productFor(productId: string) {
     return this.store.products().find((p) => p.id === productId);
   }
 
+  /**
+   * Applies a coupon by asking the server to re-quote with it.
+   *
+   * Validation lives entirely server-side now; the client only shows the
+   * verdict. A coupon validated in the browser is a suggestion, not a rule.
+   */
   protected applyCoupon(): void {
     const code = this.couponCode().trim();
     if (!code) return;
-    this.couponService.validate(code, this.cart.subtotal()).subscribe((result) => {
-      this.couponMessage.set(result.message);
-      if (result.valid) {
-        this.discount.set(result.discountAmount);
-        this.appliedCode.set(code.toUpperCase());
-      }
+
+    this.checkoutApi.quote(toQuoteLines(this.cart.items()), code, this.deliveryMethod() === 'express').subscribe({
+      next: (quote) => {
+        this.couponMessage.set(quote.couponMessage ?? '');
+        // Only pin the code when the SERVER accepted it, so the quote resource
+        // does not keep re-sending a code that will be refused.
+        if (quote.couponApplied) this.appliedCode.set(code.toUpperCase());
+      },
+      error: () => this.couponMessage.set('Could not check that coupon just now.'),
     });
   }
 
@@ -100,19 +134,38 @@ export class Checkout {
     const address = this.buildAddress();
 
     const proceed = (customerId: string) => {
-      this.orderService
-        .create({
-          customerId,
-          shippingAddress: address,
-          billingAddress: address,
-          paymentMethod: this.paymentMethod(),
-          couponCode: this.appliedCode() ?? undefined,
-          discount: this.discount(),
+      this.checkoutApi
+        .placeOrder({
+          lines: toQuoteLines(this.cart.items()),
+          couponCode: this.appliedCode(),
           expressDelivery: this.deliveryMethod() === 'express',
+          customerId,
+          email: this.email(),
+          paymentMethod: this.paymentMethod(),
+          shippingName: this.fullName(),
+          shippingPhone: this.mobile(),
+          shippingLine1: this.line1(),
+          shippingCity: this.city(),
+          shippingState: this.state(),
+          shippingPincode: this.pincode(),
         })
-        .subscribe((order) => {
-          this.placingOrder.set(false);
-          this.router.navigate(['/checkout/confirmation', order.orderNumber]);
+        .subscribe({
+          next: (order) => {
+            this.placingOrder.set(false);
+            this.cart.clear();
+            this.router.navigate(['/checkout/confirmation', order.orderNumber]);
+          },
+          error: (err: unknown) => {
+            this.placingOrder.set(false);
+            // 409 means the world changed under the customer - usually stock.
+            // Showing the server's own reasons beats a generic failure.
+            const problems = (err as { error?: { problems?: string[]; message?: string } })?.error;
+            this.formError.set(
+              problems?.problems?.join(' ') ??
+                problems?.message ??
+                'We could not place your order. Please try again.',
+            );
+          },
         });
     };
 
