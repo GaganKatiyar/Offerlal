@@ -94,3 +94,30 @@ export interface CatalogQuery {
   /** Selected facet options keyed by attribute code, e.g. { colour: ['red'] }. */
   facets?: Record<string, string[]>;
 }
+
+/** A size chart column heading. */
+export interface SizeChartColumn {
+  code: string;
+  label: string;
+}
+
+export interface SizeChartRow {
+  size: string;
+  /** Measurement code -> value, aligned with the chart's columns. */
+  values: Record<string, number>;
+}
+
+/**
+ * A size chart for one size scheme.
+ *
+ * Both rows and columns are data. The PDP renders whatever comes back without
+ * knowing whether it is describing a bust or a foot length, which is what lets
+ * one component serve apparel, kids, footwear and jewellery.
+ */
+export interface SizeChart {
+  attributeCode: string;
+  label: string;
+  unit: string;
+  columns: SizeChartColumn[];
+  rows: SizeChartRow[];
+}

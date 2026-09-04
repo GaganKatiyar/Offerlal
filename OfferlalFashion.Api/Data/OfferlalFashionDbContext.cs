@@ -26,6 +26,8 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<MediaAsset> MediaAssets { get; set; }
 
+    public virtual DbSet<SizeChartMeasurement> SizeChartMeasurements { get; set; }
+
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
 
     public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
@@ -640,6 +642,31 @@ public partial class OfferlalFashionDbContext : DbContext
                             .HasMaxLength(50)
                             .IsUnicode(false);
                     });
+        });
+
+        modelBuilder.Entity<SizeChartMeasurement>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Code).HasMaxLength(40).IsUnicode(false);
+            entity.Property(e => e.Label).HasMaxLength(60);
+            entity.Property(e => e.Value).HasColumnType("decimal(6,2)");
+            entity.Property(e => e.Unit).HasMaxLength(10).IsUnicode(false).HasDefaultValue("in");
+
+            // One value per (size, measurement). Without this a re-seed silently
+            // doubles every row and the chart renders each size twice.
+            entity.HasIndex(e => new { e.OptionId, e.Code }, "UQ_SizeChart_Option_Code").IsUnique();
+            entity.HasIndex(e => e.AttributeId, "IX_SizeChart_AttributeId");
+
+            entity.HasOne(d => d.Attribute).WithMany()
+                .HasForeignKey(d => d.AttributeId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_SizeChart_Attribute");
+
+            entity.HasOne(d => d.Option).WithMany()
+                .HasForeignKey(d => d.OptionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_SizeChart_Option");
         });
 
         modelBuilder.Entity<MediaAsset>(entity =>

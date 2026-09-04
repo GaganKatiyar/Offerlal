@@ -1,8 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CatalogQuery, ProductSearchResult } from '../models/catalog-search.model';
+import { CatalogQuery, ProductSearchResult, SizeChart } from '../models/catalog-search.model';
 
 /**
  * The storefront's catalogue HTTP client.
@@ -19,6 +19,21 @@ export class CatalogApiService {
     return this.http.get<ProductSearchResult>(`${this.base}/products`, {
       params: buildParams(query),
     });
+  }
+
+  /**
+   * The size chart for a product, or null when its size scheme has none.
+   *
+   * The API answers 204 for jewellery and anything else without a chart, which
+   * arrives here as an empty body. Null is the honest representation of "this
+   * product has no size guide" — the caller then simply does not render one.
+   */
+  getSizeChart(productId: string): Observable<SizeChart | null> {
+    return this.http
+      .get<SizeChart>(`${this.base}/products/${encodeURIComponent(productId)}/size-chart`, {
+        observe: 'response',
+      })
+      .pipe(map((res) => (res.status === 204 ? null : res.body)));
   }
 }
 

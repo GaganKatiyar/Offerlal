@@ -16,6 +16,7 @@ namespace OfferlalFashion.Api.Controllers;
 [Route("api/admin/catalog")]
 public class CatalogAdminController(
     AttributeProjectionService projection,
+    SizeChartSeeder sizeCharts,
     IWebHostEnvironment env) : ControllerBase
 {
     /// <summary>
@@ -38,5 +39,21 @@ public class CatalogAdminController(
 
         var report = await projection.RebuildAllAsync(ct);
         return Ok(report);
+    }
+
+    /// <summary>Seeds size-chart measurements. Idempotent.</summary>
+    [HttpPost("seed-size-charts")]
+    public async Task<ActionResult<object>> SeedSizeCharts(CancellationToken ct = default)
+    {
+        if (!env.IsDevelopment())
+        {
+            return Problem(
+                title: "Not available",
+                detail: "Size chart seeding is restricted to Development until authentication is in place.",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        var added = await sizeCharts.SeedAsync(ct);
+        return Ok(new { measurementsAdded = added });
     }
 }

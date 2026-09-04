@@ -54,6 +54,7 @@ try
     // ── Catalog ──────────────────────────────────────────────────────────────
     builder.Services.AddScoped<AttributeProjectionService>();
     builder.Services.AddScoped<ProductQueryService>();
+    builder.Services.AddScoped<SizeChartSeeder>();
 
     // ── Media ────────────────────────────────────────────────────────────────
     builder.Services.AddSingleton(new LocalDiskMediaStorageOptions());

@@ -103,6 +103,71 @@ public class ProductsController(OfferlalFashionDbContext db, ProductQueryService
         return product is null ? NotFound() : Ok(product.ToDto());
     }
 
+    /// <summary>
+    /// The size chart that applies to this product, or 204 when none does.
+    ///
+    /// Resolved from the product's own SKUs: whichever size scheme its sizes
+    /// belong to is the scheme whose chart applies. Jewellery and footwear
+    /// have no seeded chart, so they get 204 and the PDP renders no size guide
+    /// — no category special-casing anywhere.
+    /// </summary>
+    [HttpGet("{id}/size-chart")]
+    public async Task<ActionResult<SizeChartDto>> GetSizeChart(string id, CancellationToken ct = default)
+    {
+        var optionIds = await db.ProductSkus
+            .Where(s => s.Variant.ProductId == id && s.SizeOptionId != null)
+            .Select(s => s.SizeOptionId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        if (optionIds.Count == 0) return NoContent();
+
+        var measurements = await db.SizeChartMeasurements
+            .AsNoTracking()
+            .Where(m => optionIds.Contains(m.OptionId))
+            .Include(m => m.Option)
+            .Include(m => m.Attribute)
+            .ToListAsync(ct);
+
+        if (measurements.Count == 0) return NoContent();
+
+        var attribute = measurements[0].Attribute;
+
+        var columns = measurements
+            .GroupBy(m => new { m.Code, m.Label, m.DisplayOrder })
+            .OrderBy(g => g.Key.DisplayOrder)
+            .Select(g => new SizeChartColumnDto { Code = g.Key.Code, Label = g.Key.Label })
+            .ToList();
+
+        // Group by OptionId, not by the Option reference.
+        //
+        // AsNoTracking disables EF's identity map, so every measurement row
+        // materialises its OWN Option instance even when they are the same
+        // size. Grouping by reference therefore produced one group per
+        // measurement — the chart rendered "S" five times with one column
+        // filled in each.
+        var rows = measurements
+            .GroupBy(m => m.OptionId)
+            .Select(g => new
+            {
+                g.First().Option.Value,
+                g.First().Option.DisplayOrder,
+                Values = g.ToDictionary(m => m.Code, m => m.Value),
+            })
+            .OrderBy(r => r.DisplayOrder)
+            .Select(r => new SizeChartRowDto { Size = r.Value, Values = r.Values })
+            .ToList();
+
+        return Ok(new SizeChartDto
+        {
+            AttributeCode = attribute.Code,
+            Label = attribute.Name,
+            Unit = measurements[0].Unit,
+            Columns = columns,
+            Rows = rows,
+        });
+    }
+
     private IQueryable<Models.Product> LoadDetail() =>
         db.Products.AsNoTracking()
             .Include(p => p.Brand)

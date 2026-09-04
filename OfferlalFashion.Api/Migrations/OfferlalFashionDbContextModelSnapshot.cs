@@ -1651,6 +1651,55 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("ReviewImages");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.SizeChartMeasurement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttributeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)")
+                        .HasDefaultValue("in");
+
+                    b.Property<decimal>("Value")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "AttributeId" }, "IX_SizeChart_AttributeId");
+
+                    b.HasIndex(new[] { "OptionId", "Code" }, "UQ_SizeChart_Option_Code")
+                        .IsUnique();
+
+                    b.ToTable("SizeChartMeasurements");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.SizeProfile", b =>
                 {
                     b.Property<string>("CustomerId")
@@ -2119,6 +2168,27 @@ namespace OfferlalFashion.Api.Migrations
                         .HasConstraintName("FK_ReviewImages_Review");
 
                     b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.SizeChartMeasurement", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.CatalogAttribute", "Attribute")
+                        .WithMany()
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_SizeChart_Attribute");
+
+                    b.HasOne("OfferlalFashion.Api.Models.AttributeOption", "Option")
+                        .WithMany()
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_SizeChart_Option");
+
+                    b.Navigation("Attribute");
+
+                    b.Navigation("Option");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.SizeProfile", b =>

@@ -120,3 +120,37 @@ public sealed record ProductSearchResult
     public IReadOnlyList<FacetDto> Facets { get; init; } = [];
     public PriceBoundsDto PriceBounds { get; init; } = new();
 }
+
+/// <summary>
+/// A size chart for one size scheme.
+///
+/// Rows and columns are both data: apparel has bust/waist/hip, footwear would
+/// have foot length, and the PDP renders whatever comes back without knowing
+/// which is which. An empty Rows list means this product has no chart, which is
+/// the correct answer for jewellery rather than a missing feature.
+/// </summary>
+public sealed record SizeChartDto
+{
+    public string AttributeCode { get; init; } = "";
+    public string Label { get; init; } = "";
+    public string Unit { get; init; } = "in";
+
+    /// <summary>Column headings in display order.</summary>
+    public IReadOnlyList<SizeChartColumnDto> Columns { get; init; } = [];
+
+    public IReadOnlyList<SizeChartRowDto> Rows { get; init; } = [];
+}
+
+public sealed record SizeChartColumnDto
+{
+    public string Code { get; init; } = "";
+    public string Label { get; init; } = "";
+}
+
+public sealed record SizeChartRowDto
+{
+    public string Size { get; init; } = "";
+
+    /// <summary>Measurement code -> value, aligned with Columns.</summary>
+    public IReadOnlyDictionary<string, decimal> Values { get; init; } = new Dictionary<string, decimal>();
+}

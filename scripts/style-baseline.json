@@ -9,7 +9,6 @@
     "src/app/features/cart/cart-page/cart-page.scss":  1,
     "src/app/features/checkout/checkout.scss":  3,
     "src/app/features/home/home.scss":  2,
-    "src/app/features/pdp/pdp.scss":  1,
     "src/app/features/shop-by-category/shop-by-category.scss":  1,
     "src/app/features/shop-by-occasion/shop-by-occasion.scss":  1,
     "src/app/features/static/about/about.scss":  1,
