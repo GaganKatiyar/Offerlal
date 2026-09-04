@@ -12,12 +12,13 @@ import { Product, Category, Occasion, BudgetTier, Review } from '../../core/mode
 import { ProductCard } from '../../shared/components/product-card/product-card';
 import { ImageWithFallback } from '../../shared/components/image-with-fallback/image-with-fallback';
 import { StarRating } from '../../shared/components/star-rating/star-rating';
+import { SectionHeader } from '../../shared/components/section-header/section-header';
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating],
+  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

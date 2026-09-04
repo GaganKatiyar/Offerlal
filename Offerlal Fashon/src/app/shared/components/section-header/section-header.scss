@@ -1,0 +1,102 @@
+@use '../../../../styles/mq' as *;
+
+:host {
+  display: block;
+}
+
+.sh-inner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+h2 {
+  margin: 0;
+}
+
+.sh-sub {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.sh-cta {
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Commerce — Myntra's shape.
+
+   A small bold uppercase label, centred, with the "view all" link pulled to the
+   right on desktop. Inter rather than Jost: Jost is a low-x-height geometric
+   display face and turns illegible when set small and letterspaced, which is
+   exactly what this treatment does.
+   --------------------------------------------------------------------------- */
+
+:host(.section-header--commerce) {
+  margin-bottom: var(--space-5);
+
+  .sh-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  h2 {
+    font-family: var(--font-body);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    line-height: var(--lh-snug);
+
+    @include mq(md) {
+      font-size: var(--fs-lg);
+    }
+  }
+
+  /* Above md the CTA sits on the heading's right, Myntra-style, while the
+     heading stays optically centred. */
+  @include mq(md) {
+    .sh-inner {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .sh-cta {
+      position: absolute;
+      right: 0;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Editorial — the original brand treatment, unchanged.
+   --------------------------------------------------------------------------- */
+
+:host(.section-header--editorial) {
+  margin-bottom: var(--space-10);
+
+  .sh-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  h2 {
+    margin-top: var(--space-2);
+  }
+}

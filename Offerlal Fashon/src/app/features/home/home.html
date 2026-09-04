@@ -27,7 +27,7 @@
     }
 
     @case ('category-rail') {
-      <section class="section alt">
+      <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
           <div class="category-tile-grid">
@@ -49,7 +49,7 @@
     }
 
     @case ('product-rail') {
-      <section class="section" [class.alt]="$even">
+      <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
           <div class="product-grid o-grid o-grid--products-full">
@@ -139,7 +139,7 @@
     }
 
     @case ('testimonial-rail') {
-      <section class="section alt">
+      <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
           <div class="testimonial-grid">
@@ -157,17 +157,19 @@
   }
 }
 
-<!-- Shared section heading, so eyebrow/heading/subheading come from one place. -->
+<!--
+  Section headings are one component with two treatments. Homepage sections use
+  "commerce" — a small bold uppercase label, Myntra's shape — while the editorial
+  split keeps the original gold-eyebrow + Jost display heading, because there the
+  heading IS the content.
+-->
 <ng-template #head let-section>
-  <div class="section-head center">
-    @if (section.eyebrow) {
-      <span class="eyebrow">{{ section.eyebrow }}</span>
-    }
-    @if (section.heading) {
-      <h2>{{ section.heading }}</h2>
-    }
-    @if (section.subheading) {
-      <p class="section-sub">{{ section.subheading }}</p>
-    }
-  </div>
+  <app-section-header
+    [eyebrow]="section.eyebrow"
+    [heading]="section.heading"
+    [subheading]="section.subheading"
+    [ctaLabel]="section.ctaLabel"
+    [ctaUrl]="section.ctaUrl"
+    density="commerce"
+  />
 </ng-template>

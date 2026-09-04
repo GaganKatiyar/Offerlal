@@ -1,47 +1,54 @@
-﻿:host {
+@use '../../../styles/mq' as *;
+
+:host {
   display: block;
+
+  /* The homepage is a shopping surface, not an editorial one.
+   *
+   * It previously alternated ivory and cream — a ~2% luminance step between two
+   * warm off-whites, so the banding did nothing visually while the warmth made
+   * dense product grids read muddy. White is the ground; sections separate by a
+   * hairline and by rhythm instead of by fill.
+   *
+   * Scoped to :host, NOT a global override of --surface-page: ivory IS the brand
+   * on About, the concierge and the bridal edit, and those must keep it. */
+  background: var(--surface-shop);
 }
 
+/* Vertical rhythm.
+ *
+ * Was 80px top AND bottom — 160px of empty ground between any two sections,
+ * roughly four times Myntra's. One token, so density is tunable in one place. */
 .section {
-  padding: var(--space-20) 0;
+  --section-pad-y: var(--space-6);
 
-  &.alt {
-    background: var(--surface-alt);
-  }
-}
+  padding: var(--section-pad-y) 0;
 
-.section-head {
-  margin-bottom: var(--space-10);
-
-  &.center {
-    text-align: center;
+  /* A hairline, not a fill. The ".alt" banding was keyed to the section's index
+   * in the whole CMS list, so the stripe pattern reshuffled whenever an admin
+   * reordered anything. */
+  & + .section {
+    border-top: var(--border-hairline);
   }
 
-  h2 {
-    margin: var(--space-2) 0 0;
+  @include mq(md) {
+    --section-pad-y: var(--space-8);
   }
-}
-
-.section-sub {
-  color: var(--text-secondary);
-  margin-top: var(--space-2);
 }
 
 .section-cta {
   text-align: center;
-  margin-top: var(--space-10);
+  margin-top: var(--space-5);
 }
 
 /* Occasion / category grids */
-.occasion-grid,
-.category-grid {
+.occasion-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-3);
 }
 
 .occasion-card,
-.category-card,
 .budget-card {
   position: relative;
   aspect-ratio: 3 / 4;
@@ -187,50 +194,11 @@
 }
 
 /* Complete the look */
-.look-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
-}
 
-.look-item {
-  display: block;
-  min-width: 0;
-  text-align: center;
 
-  app-image-with-fallback {
-    aspect-ratio: 3 / 4;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-}
 
-.look-item-name {
-  font-size: var(--font-size-xs);
-  margin: var(--space-2) 0 2px;
-  color: var(--text-primary);
-}
 
-.look-item-price {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--brand-primary);
-  margin: 0;
-}
 
-.look-footer {
-  margin-top: var(--space-8);
-  text-align: center;
-}
-
-.look-total {
-  font-size: var(--font-size-lg);
-  margin-bottom: var(--space-4);
-
-  strong {
-    color: var(--brand-primary);
-  }
-}
 
 /* Styled by you */
 .styled-grid {
@@ -282,9 +250,11 @@
 }
 
 /* Trust */
+/* Was painted --surface-page, the same ivory as the page behind it, so the band
+ * was invisible and only its hairlines showed. Now a genuine tonal step. */
 .trust-section {
-  padding: var(--space-16) 0;
-  background: var(--surface-page);
+  padding: var(--space-8) 0;
+  background: var(--surface-alt);
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -367,9 +337,6 @@
   }
   .budget-grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-  .look-grid {
-    grid-template-columns: repeat(5, 1fr);
   }
   .styled-grid {
     grid-template-columns: repeat(3, 1fr);
