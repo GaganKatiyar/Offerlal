@@ -117,12 +117,16 @@
   padding: 0;
   border: none;
   border-radius: var(--radius-full);
-  background: rgb(255 255 255 / 0.5);
+  /* Longhand, deliberately. The `background` shorthand resets background-clip,
+     and the coarse-pointer rule below relies on it to keep an 8px dot inside a
+     44px button. As a shorthand on .hero-dot.active it also won on specificity,
+     so the active dot painted its whole tap area solid white over the CTA. */
+  background-color: rgb(255 255 255 / 0.5);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-standard);
 
   &.active {
-    background: var(--color-white);
+    background-color: var(--color-white);
   }
 
   /* The visual dot stays small; the tap target does not. */
@@ -132,5 +136,38 @@
     content: '';
     position: absolute;
     inset: -8px;
+  }
+}
+
+/*
+  On a finger, -8px of overlay gives a 24x24 target - the WCAG 2.5.8 minimum,
+  but half what a thumb wants on a control sitting over a moving carousel.
+
+  Padding rather than a bigger overlay, for two reasons: the box grows for real
+  (an overlay leaves the button measuring 8px, so nothing can verify it), and
+  the targets then tile edge to edge instead of overlapping. Overlapping areas
+  would be the worse bug - a tap landing between two dots would silently go to
+  whichever painted last. background-clip keeps the dot itself 8px.
+*/
+@media (pointer: coarse) {
+  .hero-dots {
+    gap: 0;
+  }
+
+  .hero-dot {
+    box-sizing: content-box;
+    padding: calc((var(--control-h-touch) - 8px) / 2);
+    background-clip: content-box;
+
+    &::after {
+      content: none;
+    }
+  }
+
+  /* The taller dot row now reaches up into where the CTA sits. Give the caption
+     enough bottom padding to clear it: a tap target that overlaps the button it
+     sits next to is worse than the small dot this replaced. */
+  .hero-copy {
+    padding-bottom: calc(var(--space-3) + var(--control-h-touch) + var(--space-2));
   }
 }

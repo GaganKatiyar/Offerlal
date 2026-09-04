@@ -468,3 +468,38 @@ app-search-bar {
     color: var(--brand-primary);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Touch target sizing
+
+   Measured on a Pixel 7: the hamburger was 22x22, the three header actions
+   35x27 and the drawer close 34x34 - all well under the 44px a finger needs,
+   and all isolated icon controls where a miss costs a wrong page rather than a
+   mistyped character.
+
+   Only on coarse pointers. A mouse is precise, and inflating these on desktop
+   would loosen exactly the density this header was rebuilt for.
+
+   The hamburger grows by padding with a matching negative margin, so its bars
+   stay 22px and the bar beside it does not move: the target grows, the design
+   does not.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .hamburger {
+    box-sizing: content-box;
+    padding: calc((var(--control-h-touch) - 22px) / 2);
+    margin: calc((var(--control-h-touch) - 22px) / -2);
+  }
+
+  .action-item {
+    min-width: var(--control-h-touch);
+    min-height: var(--control-h-touch);
+    justify-content: center;
+  }
+
+  .mobile-nav-close {
+    width: var(--control-h-touch);
+    height: var(--control-h-touch);
+  }
+}

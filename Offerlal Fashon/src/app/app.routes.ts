@@ -4,6 +4,19 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
+  // Admin is matched before the storefront. The shell below has path '', which
+  // matches every URL as a prefix, so once the catch-all lives inside it any
+  // /admin URL would be swallowed as "not found" before these were considered.
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./admin/login/admin-login').then((m) => m.AdminLogin),
+    title: 'Admin Login | Offerlal Fashion',
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
   {
     path: '',
     component: StorefrontShell,
@@ -42,17 +55,15 @@ export const routes: Routes = [
           { path: 'size-profile', loadComponent: () => import('./features/account/size-profile/size-profile').then((m) => m.SizeProfilePage), title: 'Size Profile | Offerlal Fashion' },
         ],
       },
+
+      // Inside the shell, not beside it. Rendered as a sibling the 404 had no
+      // header and no footer, so the one page a lost visitor is guaranteed to
+      // reach was the one page with no way to leave.
+      {
+        path: '**',
+        loadComponent: () => import('./features/static/not-found/not-found').then((m) => m.NotFound),
+        title: 'Page Not Found | Offerlal Fashion',
+      },
     ],
   },
-  {
-    path: 'admin/login',
-    loadComponent: () => import('./admin/login/admin-login').then((m) => m.AdminLogin),
-    title: 'Admin Login | Offerlal Fashion',
-  },
-  {
-    path: 'admin',
-    canActivate: [adminGuard],
-    loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
-  },
-  { path: '**', loadComponent: () => import('./features/static/not-found/not-found').then((m) => m.NotFound) },
 ];

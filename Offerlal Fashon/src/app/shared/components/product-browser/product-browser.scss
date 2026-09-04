@@ -523,3 +523,22 @@
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
+
+/* ---------------------------------------------------------------------------
+   Touch target sizing
+
+   The sort select and the mobile filter button measured 34px and 33px tall on
+   a Pixel 7. Both are wide enough to hit horizontally; it is the height that
+   falls short, so only the height is raised - the toolbar keeps its shape.
+
+   Coarse pointers only: on desktop this toolbar sits at the top of a dense
+   grid and a 44px control row would push the first product row down for no
+   benefit to a mouse.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .sort-select,
+  .mobile-filter-btn {
+    min-height: var(--control-h-touch);
+  }
+}

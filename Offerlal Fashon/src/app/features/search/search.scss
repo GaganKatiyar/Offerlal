@@ -45,3 +45,17 @@
 
 // Columns and gaps come from .o-grid--products-full in styles/_layout.scss.
 // Search has no filter rail, so it gets the wider progression.
+
+/* ---------------------------------------------------------------------------
+   Touch target sizing
+
+   Trending and recent search terms are chips, 34px tall on a Pixel 7. They sit
+   in a wrapped row, so neighbours are close on all four sides and a short chip
+   is easy to clip - raising the height also widens the gap between rows.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .chip {
+    min-height: var(--control-h-touch);
+  }
+}
