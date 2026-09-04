@@ -1,0 +1,6 @@
+/*
+  Occasions render in the same two-pane shape as categories, minus the tree
+  indent and reorder controls. Sharing one stylesheet keeps them from drifting
+  apart, which is what happened to the coupons screens.
+*/
+@use './category-editor.scss';
