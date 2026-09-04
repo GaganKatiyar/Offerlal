@@ -15,6 +15,15 @@
       <app-hero-carousel [slides]="section.items" />
     }
 
+    @case ('app-download') {
+      <!-- Full-bleed band, so deliberately outside .container. -->
+      <app-app-download
+        [heading]="section.heading"
+        [subheading]="section.subheading"
+        [items]="section.items"
+      />
+    }
+
     @case ('promo-strip') {
       <app-promo-strip
         [heading]="section.heading"

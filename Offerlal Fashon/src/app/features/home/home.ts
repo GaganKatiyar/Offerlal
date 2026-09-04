@@ -16,12 +16,13 @@ import { SectionHeader } from '../../shared/components/section-header/section-he
 import { ScrollRail } from '../../shared/components/scroll-rail/scroll-rail';
 import { HeroCarousel } from '../../shared/components/hero-carousel/hero-carousel';
 import { PromoStrip } from '../../shared/components/promo-strip/promo-strip';
+import { AppDownload } from '../../shared/components/app-download/app-download';
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader, ScrollRail, HeroCarousel, PromoStrip],
+  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader, ScrollRail, HeroCarousel, PromoStrip, AppDownload],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -39,6 +39,7 @@ public sealed class HomepageSeeder(
         ("trust-strip",     "Trust Strip",      SectionItemKind.Trust,    6,    80),
         ("testimonial-rail","Testimonials",     null,                     null, 90),
         ("promo-strip",     "Promo Strip",      SectionItemKind.Banner,   1,    100),
+        ("app-download",    "App Download",     SectionItemKind.Link,     4,    110),
     ];
 
     /// <summary>
@@ -150,8 +151,14 @@ public sealed class HomepageSeeder(
         // must never overwrite edits made in admin.
         if (page.Sections.Count > 0)
         {
-            log.LogInformation("Homepage already has {Count} sections; seeder made no changes", page.Sections.Count);
-            return new { pageId = page.Id, sectionsCreated = 0, alreadySeeded = true };
+            // The page is seeded, but a section type added after the fact would
+            // otherwise never appear on it. Adding just the missing one keeps
+            // the guarantee that matters - existing sections and any admin
+            // edits to them are untouched.
+            var added = await EnsureAppDownloadAsync(page, ct);
+            log.LogInformation(
+                "Homepage already has {Count} sections; seeder added {Added}", page.Sections.Count, added);
+            return new { pageId = page.Id, sectionsCreated = added, alreadySeeded = true };
         }
 
         var rules = await db.ProductRules.ToDictionaryAsync(r => r.Name, ct);
@@ -295,6 +302,62 @@ public sealed class HomepageSeeder(
             });
         }
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Appends the app-download banner if the page does not already have one.
+    ///
+    /// Separate from the main seed because that runs only on an empty page, and
+    /// this section type was added long after the homepage was first seeded.
+    /// Keyed on the section type rather than a flag, so running twice is safe.
+    /// </summary>
+    private async Task<int> EnsureAppDownloadAsync(ContentPage page, CancellationToken ct)
+    {
+        if (page.Sections.Any(x => x.SectionTypeCode == "app-download")) return 0;
+
+        var lastOrder = page.Sections.Count == 0 ? 0 : page.Sections.Max(x => x.DisplayOrder);
+
+        var section = new PageSection
+        {
+            PageId = page.Id,
+            SectionTypeCode = "app-download",
+            Heading = "More to love on the app",
+            Subheading = "Early access to new drops, order tracking and your saved measurements — wherever you are.",
+            DisplayOrder = lastOrder + 10,
+            IsActive = true,
+            ConfigJson = "{\"v\":1}",
+        };
+
+        db.PageSections.Add(section);
+        await db.SaveChangesAsync(ct);
+
+        // The store links are items rather than ConfigJson so they can be
+        // retargeted from admin. They are deliberately empty: Offerlal is not
+        // published to either store yet, and inventing a listing URL would ship
+        // a button that 404s. The renderer hides a link with no URL.
+        var stores = new[]
+        {
+            ("Google Play", "Android", ""),
+            ("App Store", "iPhone", ""),
+        };
+
+        var i = 0;
+        foreach (var (title, subtitle, url) in stores)
+        {
+            db.PageSectionItems.Add(new PageSectionItem
+            {
+                SectionId = section.Id,
+                DisplayOrder = i += 10,
+                ItemKind = SectionItemKind.Link,
+                Title = title,
+                Subtitle = subtitle,
+                LinkUrl = string.IsNullOrEmpty(url) ? null : url,
+                IsActive = true,
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
+        return 1;
     }
 
     private async Task EnsureRulesAsync(CancellationToken ct)

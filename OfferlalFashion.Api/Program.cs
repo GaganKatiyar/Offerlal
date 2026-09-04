@@ -155,7 +155,10 @@ try
                 // iOS and the capacitor:// scheme report this instead. Neither
                 // is a port on this machine, so neither matched the rules above
                 // and every request from the installed app failed CORS.
-                or "capacitor://localhost" or "http://localhost"
+                // Capacitor 4+ defaults androidScheme to https, so the WebView
+                // reports https://localhost even though nothing is served over
+                // TLS. http://localhost covers androidScheme: 'http'.
+                or "capacitor://localhost" or "https://localhost" or "http://localhost"
                 // A phone on the LAN hitting either dev server directly.
                 || Regex.IsMatch(origin, @"^http://192\.168\.\d{1,3}\.\d{1,3}:(4300|8100)$"))
             .AllowAnyHeader()
