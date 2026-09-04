@@ -55,3 +55,66 @@ public sealed record ContentItemDto
     public string? CategoryId { get; init; }
     public string? OccasionId { get; init; }
 }
+
+// ---------------------------------------------------------------------------
+// Admin-side DTOs.
+//
+// Separate from the public ones on purpose: admin sees inactive and scheduled
+// sections, row versions and item counts, none of which the storefront should
+// ever receive.
+// ---------------------------------------------------------------------------
+
+public sealed record AdminPageDto
+{
+    public int Id { get; init; }
+    public string Key { get; init; } = "";
+    public string Name { get; init; } = "";
+    public int? PublishedRevisionId { get; init; }
+    public IReadOnlyList<AdminSectionDto> Sections { get; init; } = [];
+    public IReadOnlyList<SectionTypeDto> SectionTypes { get; init; } = [];
+    public IReadOnlyList<ProductRuleDto> ProductRules { get; init; } = [];
+}
+
+public sealed record AdminSectionDto
+{
+    public int Id { get; init; }
+    public string Type { get; init; } = "";
+    public string? Eyebrow { get; init; }
+    public string? Heading { get; init; }
+    public string? Subheading { get; init; }
+    public string? CtaLabel { get; init; }
+    public string? CtaUrl { get; init; }
+    public int DisplayOrder { get; init; }
+    public bool IsActive { get; init; }
+    public DateTime? StartsAtUtc { get; init; }
+    public DateTime? EndsAtUtc { get; init; }
+    public int? ProductRuleId { get; init; }
+
+    /// <summary>Round-tripped by the editor so a concurrent save conflicts rather than clobbers.</summary>
+    public string? RowVersion { get; init; }
+
+    public int ItemCount { get; init; }
+}
+
+public sealed record SectionTypeDto
+{
+    public string Code { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string? ItemKind { get; init; }
+    public int? MaxItems { get; init; }
+}
+
+public sealed record ProductRuleDto
+{
+    public int Id { get; init; }
+    public string Name { get; init; } = "";
+    public int MaxItems { get; init; }
+}
+
+public sealed record RevisionDto
+{
+    public int Id { get; init; }
+    public DateTime PublishedAtUtc { get; init; }
+    public string? Note { get; init; }
+    public bool IsCurrent { get; init; }
+}
