@@ -2245,6 +2245,58 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("SizeProfiles");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.StockLedgerEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActorId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("QuantityChange")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Reference" }, "IX_StockLedger_Reference");
+
+                    b.HasIndex(new[] { "Sku", "CreatedAtUtc" }, "IX_StockLedger_Sku_CreatedAt");
+
+                    b.ToTable("StockLedger", (string)null);
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.StoreSetting", b =>
                 {
                     b.Property<string>("Key")
@@ -2861,6 +2913,18 @@ namespace OfferlalFashion.Api.Migrations
                         .HasConstraintName("FK_SizeProfiles_Customer");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.StockLedgerEntry", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.ProductSku", "SkuNavigation")
+                        .WithMany()
+                        .HasForeignKey("Sku")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_StockLedger_Sku");
+
+                    b.Navigation("SkuNavigation");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.WishlistItem", b =>

@@ -49,6 +49,8 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public virtual DbSet<StockLedgerEntry> StockLedger { get; set; }
+
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
 
     public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
@@ -641,6 +643,29 @@ public partial class OfferlalFashionDbContext : DbContext
                             .HasMaxLength(50)
                             .IsUnicode(false);
                     });
+        });
+
+        modelBuilder.Entity<StockLedgerEntry>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("StockLedger");
+
+            entity.Property(e => e.Sku).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Reason).HasMaxLength(40).IsUnicode(false);
+            entity.Property(e => e.Reference).HasMaxLength(100);
+            entity.Property(e => e.Note).HasMaxLength(500);
+            entity.Property(e => e.ActorId).HasMaxLength(100);
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            entity.HasIndex(e => new { e.Sku, e.CreatedAtUtc }, "IX_StockLedger_Sku_CreatedAt");
+            entity.HasIndex(e => e.Reference, "IX_StockLedger_Reference");
+
+            // Restrict: a SKU with movement history must not be deletable, or
+            // the ledger develops holes exactly where something went wrong.
+            entity.HasOne(d => d.SkuNavigation).WithMany()
+                .HasForeignKey(d => d.Sku)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_StockLedger_Sku");
         });
 
         modelBuilder.Entity<AdminUser>(entity =>

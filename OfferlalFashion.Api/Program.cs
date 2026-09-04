@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using OfferlalFashion.Api.Auth;
 using OfferlalFashion.Api.Catalog;
+using OfferlalFashion.Api.Commerce;
 using OfferlalFashion.Api.Content;
 using OfferlalFashion.Api.Data;
 using OfferlalFashion.Api.Infrastructure;
@@ -118,6 +119,10 @@ try
     builder.Services.AddScoped<AttributeProjectionService>();
     builder.Services.AddScoped<ProductQueryService>();
     builder.Services.AddScoped<SizeChartSeeder>();
+
+    // ── Commerce ─────────────────────────────────────────────────────────────
+    builder.Services.AddScoped<PricingService>();
+    builder.Services.AddScoped<OrderService>();
 
     // ── Content ──────────────────────────────────────────────────────────────
     builder.Services.AddScoped<ContentService>();
