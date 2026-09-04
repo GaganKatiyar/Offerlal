@@ -17,6 +17,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   { label: 'Coupons', link: '/admin/coupons', icon: '🏷️' },
   { label: 'Homepage', link: '/admin/content/homepage', icon: '🏠' },
   { label: 'Navigation', link: '/admin/navigation', icon: '🧭' },
+  { label: 'Settings', link: '/admin/settings', icon: '⚙️' },
 ];
 
 @Component({

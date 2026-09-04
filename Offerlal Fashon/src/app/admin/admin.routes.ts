@@ -17,6 +17,7 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'customers', loadComponent: () => import('./customers/customer-list/customer-list').then((m) => m.CustomerList), title: 'Customers | Admin' },
       { path: 'customers/:id', loadComponent: () => import('./customers/customer-detail/customer-detail').then((m) => m.CustomerDetail), title: 'Customer Details | Admin' },
       { path: 'navigation', loadComponent: () => import('./navigation/nav-editor').then((m) => m.NavEditor), title: 'Navigation | Admin' },
+      { path: 'settings', loadComponent: () => import('./settings/settings-editor').then((m) => m.SettingsEditor), title: 'Settings | Admin' },
       { path: 'content/homepage', loadComponent: () => import('./content/homepage-editor').then((m) => m.HomepageEditor), title: 'Homepage | Admin' },
       { path: 'coupons', loadComponent: () => import('./coupons/coupon-list/coupon-list').then((m) => m.CouponList), title: 'Coupons | Admin' },
       { path: 'coupons/new', loadComponent: () => import('./coupons/coupon-form/coupon-form').then((m) => m.CouponForm), title: 'Add Coupon | Admin' },

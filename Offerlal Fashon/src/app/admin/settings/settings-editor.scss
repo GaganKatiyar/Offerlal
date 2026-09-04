@@ -1,0 +1,120 @@
+@use '../../../styles/mq' as *;
+
+.editor-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.editor-sub {
+  margin: var(--space-1) 0 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.editor-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.banner {
+  padding: var(--space-2-5) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--space-4);
+
+  &.ok {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+  }
+
+  &.err {
+    background: rgb(181 75 35 / 0.12);
+    color: var(--color-error);
+  }
+}
+
+.problem-note {
+  display: block;
+  margin-top: var(--space-1);
+  font-weight: var(--fw-semibold);
+}
+
+.problems {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+  list-style: disc;
+}
+
+.settings-group {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  border: var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+
+  h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
+    color: var(--text-secondary);
+  }
+}
+
+.setting {
+  display: grid;
+  gap: var(--space-1-5);
+  margin-bottom: var(--space-4);
+
+  @include mq(md) {
+    grid-template-columns: 200px minmax(0, 280px);
+    align-items: baseline;
+    column-gap: var(--space-4);
+  }
+
+  input {
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-hairline);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    background: var(--surface-page);
+
+    &:focus-visible {
+      outline: 2px solid var(--brand-primary);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.setting-label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+}
+
+.hint {
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+
+  @include mq(md) {
+    grid-column: 2;
+  }
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+// A caution rather than a description: same size, but coloured so it is not
+// mistaken for the field's own help text.
+.hint-note {
+  color: var(--brand-accent);
+}
