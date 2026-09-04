@@ -10,6 +10,20 @@
 -->
 @for (section of sections(); track section.id) {
   @switch (section.type) {
+    @case ('hero-carousel') {
+      <!-- Full-bleed, so deliberately outside .container. -->
+      <app-hero-carousel [slides]="section.items" />
+    }
+
+    @case ('promo-strip') {
+      <app-promo-strip
+        [heading]="section.heading"
+        [subheading]="section.subheading"
+        [ctaLabel]="section.ctaLabel"
+        [ctaUrl]="section.ctaUrl"
+      />
+    }
+
     @case ('occasion-rail') {
       <section class="section">
         <div class="container">

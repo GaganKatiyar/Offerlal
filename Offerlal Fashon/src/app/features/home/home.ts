@@ -14,12 +14,14 @@ import { ImageWithFallback } from '../../shared/components/image-with-fallback/i
 import { StarRating } from '../../shared/components/star-rating/star-rating';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
 import { ScrollRail } from '../../shared/components/scroll-rail/scroll-rail';
+import { HeroCarousel } from '../../shared/components/hero-carousel/hero-carousel';
+import { PromoStrip } from '../../shared/components/promo-strip/promo-strip';
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader, ScrollRail],
+  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader, ScrollRail, HeroCarousel, PromoStrip],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

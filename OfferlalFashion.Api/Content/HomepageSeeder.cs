@@ -47,6 +47,8 @@ public sealed class HomepageSeeder(
     /// </summary>
     private static readonly (string Type, string Eyebrow, string Heading, string Config)[] Sections =
     [
+        ("hero-carousel",    "",                            "",                           "{\"v\":1}"),
+        ("promo-strip",      "",                            "Free shipping over 2,999",   "{\"v\":1}"),
         ("occasion-rail",    "Curated For You",             "Shop by Occasion",           "{\"v\":1}"),
         ("category-rail",    "The Edit",                    "Shop by Category",           "{\"v\":1}"),
         ("product-rail",     "Just In",                     "New Arrivals",               "{\"v\":1,\"rule\":\"new-arrivals\"}"),
@@ -98,6 +100,31 @@ public sealed class HomepageSeeder(
         ("Anjali G.",  "Lucknow",   "Mustard Gota Patti Party Lehenga",       "mustard-gota-patti-party-lehenga",      30918414),
         ("Tanya C.",   "Delhi",     "Coral Sequin Party Lehenga",             "coral-sequin-party-lehenga",             3680632),
         ("Kritika J.", "Pune",      "Yellow Mirror Work Gharara Set",         "yellow-mirror-work-gharara-set",        20614154),
+    ];
+
+    /// <summary>
+    /// Hero slides, drawn from category imagery already in the media library.
+    ///
+    /// Placeholders on purpose: real wide banner artwork is a design job the
+    /// owner supplies. Using catalogue photography means the layout can be
+    /// judged immediately rather than staying empty until artwork exists, and
+    /// each slide is a normal PageSectionItem so swapping the image later is a
+    /// data change.
+    /// </summary>
+    private static readonly (string CategorySlug, string Badge, string Title, string Caption, string Cta, string Link)[] HeroSlides =
+    [
+        ("bridal-lehengas", "The Bridal Edit", "Heirloom Bridal Lehengas",
+            "Hand-worked zardozi, kundan and gota, made to your measurements.",
+            "Shop Bridal", "/category/bridal-lehengas"),
+        ("party-wear-lehengas", "New Season", "Party Wear, Reimagined",
+            "Lighter drapes and modern silhouettes for every celebration.",
+            "Shop Party Wear", "/category/party-wear-lehengas"),
+        ("bridal-jewellery", "Complete The Look", "Kundan & Polki Jewellery",
+            "Temple, choker and maang tikka sets to finish the ensemble.",
+            "Shop Jewellery", "/category/bridal-jewellery"),
+        ("sarees", "Timeless", "Handwoven Sarees",
+            "Banarasi, Kanjivaram and organza, woven to last generations.",
+            "Shop Sarees", "/sale"),
     ];
 
     /// <summary>COMPLETE_LOOK_PRODUCT_IDS, verbatim.</summary>
@@ -153,7 +180,38 @@ public sealed class HomepageSeeder(
             await db.SaveChangesAsync(ct);
             created++;
 
-            if (type == "trust-strip")
+            if (type == "hero-carousel")
+            {
+                var i = 0;
+                foreach (var (slug, badge, title, caption, cta, link) in HeroSlides)
+                {
+                    // Reuses the category's own hero asset, so a slide never
+                    // references an image the library does not already hold.
+                    var category = await db.Categories
+                        .FirstOrDefaultAsync(c => c.Slug == slug, ct);
+                    if (category?.HeroImageAssetId is null) continue;
+
+                    db.PageSectionItems.Add(new PageSectionItem
+                    {
+                        SectionId = section.Id,
+                        DisplayOrder = i += 10,
+                        ItemKind = SectionItemKind.Banner,
+                        BadgeText = badge,
+                        Title = title,
+                        Subtitle = cta,
+                        Caption = caption,
+                        LinkUrl = link,
+                        MediaAssetId = category.HeroImageAssetId,
+                    });
+                }
+            }
+            else if (type == "promo-strip")
+            {
+                section.Subheading = "Easy exchange · Secure payments · Delivered across India";
+                section.CtaLabel = "Shop the sale";
+                section.CtaUrl = "/sale";
+            }
+            else if (type == "trust-strip")
             {
                 var i = 0;
                 foreach (var (icon, title, caption) in TrustBadges)

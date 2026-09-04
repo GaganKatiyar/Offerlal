@@ -1,0 +1,68 @@
+@if (visible().length) {
+  <section
+    class="hero"
+    aria-roledescription="carousel"
+    aria-label="Featured"
+    (mouseenter)="pause()"
+    (mouseleave)="resume()"
+    (focusin)="pause()"
+    (focusout)="resume()"
+  >
+    <div #track class="hero-track" (scroll)="onScroll()">
+      @for (slide of visible(); track slide.id; let i = $index) {
+        <div
+          class="hero-slide"
+          role="group"
+          aria-roledescription="slide"
+          [attr.aria-label]="'Slide ' + (i + 1) + ' of ' + visible().length"
+        >
+          <!--
+            Only the first slide is eager. The rest are lazy: they are off-screen
+            at load, and fetching four full-bleed images up front would compete
+            with the one the shopper can actually see.
+          -->
+          <app-image-with-fallback
+            [src]="slide.imageUrl ?? ''"
+            [alt]="slide.imageAlt || slide.title || ''"
+            [loadingMode]="i === 0 ? 'eager' : 'lazy'"
+            sizes="100vw"
+          />
+
+          @if (slide.title || slide.caption || slide.linkUrl) {
+            <div class="hero-copy">
+              @if (slide.badgeText) {
+                <span class="hero-badge">{{ slide.badgeText }}</span>
+              }
+              @if (slide.title) {
+                <h2>{{ slide.title }}</h2>
+              }
+              @if (slide.caption) {
+                <p>{{ slide.caption }}</p>
+              }
+              @if (slide.linkUrl) {
+                <a class="btn btn-primary" [routerLink]="slide.linkUrl">
+                  {{ slide.subtitle || 'Shop Now' }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (visible().length > 1) {
+      <div class="hero-dots">
+        @for (slide of visible(); track slide.id; let i = $index) {
+          <button
+            type="button"
+            class="hero-dot"
+            [class.active]="active() === i"
+            [attr.aria-label]="'Go to slide ' + (i + 1)"
+            [attr.aria-current]="active() === i"
+            (click)="goTo(i)"
+          ></button>
+        }
+      </div>
+    }
+  </section>
+}
