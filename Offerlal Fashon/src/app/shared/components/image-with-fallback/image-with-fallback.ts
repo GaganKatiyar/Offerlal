@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 
 const FALLBACK_SRC = '/images/placeholder-product.svg';
 
@@ -32,6 +41,27 @@ export class ImageWithFallback {
 
   protected loaded = signal(false);
   protected errored = signal(false);
+
+  private imgRef = viewChild<ElementRef<HTMLImageElement>>('img');
+
+  constructor() {
+    // A cached image is already `complete` by the time Angular attaches the
+    // (load) handler, so the event never fires and the fade-in never runs —
+    // leaving a fully downloaded image sitting at opacity 0 forever.
+    //
+    // This went unnoticed while pages showed a handful of images at a time and
+    // most were cold. Horizontal rails put many on screen at once, and on a warm
+    // cache nearly all of them are already complete, which is what finally made
+    // an entire homepage render blank.
+    //
+    // Re-checked whenever the source changes, because the same race applies to
+    // the next image as much as the first.
+    effect(() => {
+      this.src();
+      const el = this.imgRef()?.nativeElement;
+      if (el?.complete && el.naturalWidth > 0) this.loaded.set(true);
+    });
+  }
 
   protected resolvedSrc(): string {
     return this.errored() ? FALLBACK_SRC : this.src();

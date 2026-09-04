@@ -262,10 +262,18 @@
 // ---------------------------------------------------------------------------
 
 :host(.card-host--rail) {
-  width: var(--rail-card-w, 200px);
+  /* Narrower than the PLP grid card on purpose: a rail wants a partially
+     visible next card at the edge to signal that it scrolls, and at these
+     price points the shopper still needs enough image to judge the garment. */
+  width: var(--rail-card-w, 160px);
 
   @include mq(md) {
-    width: var(--rail-card-w, 240px);
+    width: var(--rail-card-w, 210px);
+  }
+
+  /* Hover actions belong to a browsable grid, not a rail the user is dragging. */
+  .hover-actions {
+    display: none;
   }
 }
 

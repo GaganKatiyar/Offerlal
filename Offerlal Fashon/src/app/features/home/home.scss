@@ -360,3 +360,81 @@
     grid-template-columns: repeat(6, 1fr);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Circular browse tiles — occasions and categories.
+
+   Replaces two wrapping grids of large 3:4 and 4:3 rectangles. A circle reads
+   as a browse affordance rather than a product, which is exactly the
+   distinction Myntra draws at the top of its homepage: circles are where you
+   are going, rectangles are what you are buying.
+   --------------------------------------------------------------------------- */
+
+.circle-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 92px;
+  text-align: center;
+  color: inherit;
+
+  @include mq(md) {
+    width: 112px;
+  }
+}
+
+.circle-media {
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+
+  @include mq(md) {
+    width: 112px;
+    height: 112px;
+  }
+
+  :is(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.circle-tile:hover .circle-media {
+  border-color: var(--brand-primary);
+}
+
+.circle-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  color: var(--text-primary);
+
+  /* Two lines maximum: "Dupattas, Clutches & Footwear" would otherwise push the
+     rail's rows out of alignment with each other. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.circle-meta {
+  font-size: var(--fs-2xs);
+  color: var(--price-discount);
+  font-weight: var(--fw-semibold);
+}
+
+/* Rail-sized budget tiles, replacing the wrapping 3-up grid. */
+.budget-card {
+  width: 150px;
+
+  @include mq(md) {
+    width: 190px;
+  }
+}

@@ -13,12 +13,13 @@ import { ProductCard } from '../../shared/components/product-card/product-card';
 import { ImageWithFallback } from '../../shared/components/image-with-fallback/image-with-fallback';
 import { StarRating } from '../../shared/components/star-rating/star-rating';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
+import { ScrollRail } from '../../shared/components/scroll-rail/scroll-rail';
 
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader],
+  imports: [RouterLink, NgTemplateOutlet, ProductCard, ImageWithFallback, StarRating, SectionHeader, ScrollRail],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

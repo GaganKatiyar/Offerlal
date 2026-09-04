@@ -14,14 +14,21 @@
       <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
-          <div class="occasion-grid">
+          <!--
+            Circular tiles in a scrolling rail. Myntra's most recognisable
+            homepage element, and the shape that says "browse by" rather than
+            "here is a product".
+          -->
+          <app-scroll-rail>
             @for (occ of occasions(); track occ.id) {
-              <a class="occasion-card" [routerLink]="['/occasion', occ.slug]">
-                <app-image-with-fallback [src]="occ.imageUrl" [alt]="occ.name" />
-                <span class="overlay-label">{{ occ.name }}</span>
+              <a class="circle-tile" [routerLink]="['/occasion', occ.slug]">
+                <span class="circle-media">
+                  <app-image-with-fallback [src]="occ.imageUrl" [alt]="occ.name" />
+                </span>
+                <span class="circle-label">{{ occ.name }}</span>
               </a>
             }
-          </div>
+          </app-scroll-rail>
         </div>
       </section>
     }
@@ -30,20 +37,17 @@
       <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
-          <div class="category-tile-grid">
+          <app-scroll-rail>
             @for (cat of categories(); track cat.id) {
-              <a class="category-tile" [routerLink]="['/category', cat.slug]">
-                <div class="category-tile-media">
+              <a class="circle-tile" [routerLink]="['/category', cat.slug]">
+                <span class="circle-media">
                   <app-image-with-fallback [src]="cat.thumbnailUrl" [alt]="cat.name" />
-                </div>
-                <div class="category-tile-info">
-                  <p class="tile-name">{{ cat.name }}</p>
-                  <p class="tile-discount">{{ categoryDiscountLabel(cat.id) }}</p>
-                  <span class="tile-cta">Shop Now</span>
-                </div>
+                </span>
+                <span class="circle-label">{{ cat.name }}</span>
+                <span class="circle-meta">{{ categoryDiscountLabel(cat.id) }}</span>
               </a>
             }
-          </div>
+          </app-scroll-rail>
         </div>
       </section>
     }
@@ -52,11 +56,18 @@
       <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
-          <div class="product-grid o-grid o-grid--products-full">
+          <!--
+            A rail of the card's existing "rail" variant, which was built in
+            Phase 1 and never used. This also removes a real bug: .product-grid
+            is component-scoped (specificity 0,2,0) and silently beat the global
+            .o-grid (0,1,0), so the --cols progression never applied and the
+            density toggle had no effect on the homepage at all.
+          -->
+          <app-scroll-rail>
             @for (p of section.products; track p.id) {
-              <app-product-card [card]="p" />
+              <app-product-card [card]="p" variant="rail" />
             }
-          </div>
+          </app-scroll-rail>
           @if (section.ctaLabel && section.ctaUrl) {
             <div class="section-cta">
               <a [routerLink]="section.ctaUrl" class="btn btn-outline">{{ section.ctaLabel }}</a>
@@ -90,14 +101,14 @@
       <section class="section">
         <div class="container">
           <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
-          <div class="budget-grid">
+          <app-scroll-rail>
             @for (tier of budgetTiers(); track tier.id) {
               <a class="budget-card" [routerLink]="['/shop']" [queryParams]="{ priceMin: tier.min, priceMax: tier.max }">
                 <app-image-with-fallback [src]="tier.imageUrl" [alt]="tier.label" />
                 <span class="overlay-label">{{ tier.label }}</span>
               </a>
             }
-          </div>
+          </app-scroll-rail>
         </div>
       </section>
     }
