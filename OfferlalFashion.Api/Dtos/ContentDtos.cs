@@ -118,3 +118,17 @@ public sealed record RevisionDto
     public string? Note { get; init; }
     public bool IsCurrent { get; init; }
 }
+
+/// <summary>One navigation entry, with its children nested.</summary>
+public sealed record NavItemDto
+{
+    public int Id { get; init; }
+    public string Label { get; init; } = "";
+    public string Url { get; init; } = "#";
+    public string? IconName { get; init; }
+    public string? ImageUrl { get; init; }
+    public byte ColumnIndex { get; init; }
+    public bool IsHighlighted { get; init; }
+    public string? BadgeText { get; init; }
+    public IReadOnlyList<NavItemDto> Children { get; init; } = [];
+}

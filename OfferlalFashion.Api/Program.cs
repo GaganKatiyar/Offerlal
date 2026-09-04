@@ -60,6 +60,7 @@ try
     // ── Content ──────────────────────────────────────────────────────────────
     builder.Services.AddScoped<ContentService>();
     builder.Services.AddScoped<HomepageSeeder>();
+    builder.Services.AddScoped<NavigationSeeder>();
 
     // ── Media ────────────────────────────────────────────────────────────────
     builder.Services.AddSingleton(new LocalDiskMediaStorageOptions());

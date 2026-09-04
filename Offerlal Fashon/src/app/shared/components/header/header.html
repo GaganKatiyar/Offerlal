@@ -79,9 +79,9 @@
 
   <nav class="category-nav">
     <div class="container category-nav-inner">
-      @for (item of navLinks; track item.link) {
-        <a [routerLink]="item.link" routerLinkActive="active">
-          <span class="nav-icon">{{ item.icon }}</span>
+      @for (item of navLinks(); track item.id) {
+        <a [routerLink]="item.url" routerLinkActive="active" [class.highlighted]="item.isHighlighted">
+          <span class="nav-icon">{{ item.iconName }}</span>
           {{ item.label }}
         </a>
       }
@@ -142,9 +142,9 @@
   <div class="mobile-nav-body">
     <div class="mobile-nav-section">
       <span class="mobile-nav-section-title">Shop</span>
-      @for (item of navLinks; track item.link) {
-        <a [routerLink]="item.link" routerLinkActive="active" (click)="closeMobileMenu()">
-          <span class="nav-icon">{{ item.icon }}</span
+      @for (item of navLinks(); track item.id) {
+        <a [routerLink]="item.url" routerLinkActive="active" [class.highlighted]="item.isHighlighted" (click)="closeMobileMenu()">
+          <span class="nav-icon">{{ item.iconName }}</span
           >{{ item.label }}
         </a>
       }

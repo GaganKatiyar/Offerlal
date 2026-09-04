@@ -931,6 +931,110 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("MediaAssets");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.NavItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BadgeText")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<byte>("ColumnIndex")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IconName")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsHighlighted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int?>("MediaAssetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MenuId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OccasionId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("MediaAssetId");
+
+                    b.HasIndex("OccasionId");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex(new[] { "MenuId", "ParentId", "DisplayOrder" }, "IX_NavItems_Menu_Parent_Order");
+
+                    b.ToTable("NavItems");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.NavMenu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Code" }, "UQ_NavMenus_Code")
+                        .IsUnique();
+
+                    b.ToTable("NavMenus");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Occasion", b =>
                 {
                     b.Property<string>("Id")
@@ -2068,6 +2172,45 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("SizeProfiles");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.StoreSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Group")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("Value")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("ValueType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Key");
+
+                    b.HasIndex(new[] { "Group" }, "IX_StoreSettings_Group");
+
+                    b.ToTable("StoreSettings");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.WishlistItem", b =>
                 {
                     b.Property<string>("Id")
@@ -2267,6 +2410,50 @@ namespace OfferlalFashion.Api.Migrations
                         .HasConstraintName("FK_CustomizationOptions_Product");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.NavItem", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_NavItems_Category");
+
+                    b.HasOne("OfferlalFashion.Api.Models.MediaAsset", "MediaAsset")
+                        .WithMany()
+                        .HasForeignKey("MediaAssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_NavItems_MediaAsset");
+
+                    b.HasOne("OfferlalFashion.Api.Models.NavMenu", "Menu")
+                        .WithMany("Items")
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_NavItems_Menu");
+
+                    b.HasOne("OfferlalFashion.Api.Models.Occasion", "Occasion")
+                        .WithMany()
+                        .HasForeignKey("OccasionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_NavItems_Occasion");
+
+                    b.HasOne("OfferlalFashion.Api.Models.NavItem", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_NavItems_Parent");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("MediaAsset");
+
+                    b.Navigation("Menu");
+
+                    b.Navigation("Occasion");
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.Occasion", b =>
@@ -2697,6 +2884,16 @@ namespace OfferlalFashion.Api.Migrations
             modelBuilder.Entity("OfferlalFashion.Api.Models.MediaAsset", b =>
                 {
                     b.Navigation("ProductImages");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.NavItem", b =>
+                {
+                    b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.NavMenu", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.Order", b =>

@@ -40,6 +40,12 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<PageRevision> PageRevisions { get; set; }
 
+    public virtual DbSet<NavMenu> NavMenus { get; set; }
+
+    public virtual DbSet<NavItem> NavItems { get; set; }
+
+    public virtual DbSet<StoreSetting> StoreSettings { get; set; }
+
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
 
     public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
@@ -654,6 +660,67 @@ public partial class OfferlalFashionDbContext : DbContext
                             .HasMaxLength(50)
                             .IsUnicode(false);
                     });
+        });
+
+        modelBuilder.Entity<NavMenu>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Code).HasMaxLength(40).IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(120);
+            entity.HasIndex(e => e.Code, "UQ_NavMenus_Code").IsUnique();
+        });
+
+        modelBuilder.Entity<NavItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Label).HasMaxLength(120);
+            entity.Property(e => e.Url).HasMaxLength(500);
+            entity.Property(e => e.CategoryId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.OccasionId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.IconName).HasMaxLength(60);
+            entity.Property(e => e.BadgeText).HasMaxLength(40);
+
+            entity.HasIndex(e => new { e.MenuId, e.ParentId, e.DisplayOrder }, "IX_NavItems_Menu_Parent_Order");
+
+            entity.HasOne(d => d.Menu).WithMany(p => p.Items)
+                .HasForeignKey(d => d.MenuId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_NavItems_Menu");
+
+            // NoAction, not Cascade: SQL Server rejects a self-referencing
+            // cascade because it cannot prove the delete terminates. Children
+            // are removed explicitly by the admin path.
+            entity.HasOne(d => d.Parent).WithMany(p => p.Children)
+                .HasForeignKey(d => d.ParentId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_NavItems_Parent");
+
+            entity.HasOne(d => d.Category).WithMany()
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_NavItems_Category");
+
+            entity.HasOne(d => d.Occasion).WithMany()
+                .HasForeignKey(d => d.OccasionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_NavItems_Occasion");
+
+            entity.HasOne(d => d.MediaAsset).WithMany()
+                .HasForeignKey(d => d.MediaAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_NavItems_MediaAsset");
+        });
+
+        modelBuilder.Entity<StoreSetting>(entity =>
+        {
+            entity.HasKey(e => e.Key);
+            entity.Property(e => e.Key).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Value).HasMaxLength(2000);
+            entity.Property(e => e.ValueType).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Group).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(e => e.Group, "IX_StoreSettings_Group");
         });
 
         modelBuilder.Entity<ContentPage>(entity =>

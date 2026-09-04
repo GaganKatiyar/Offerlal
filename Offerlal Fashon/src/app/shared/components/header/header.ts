@@ -4,22 +4,10 @@ import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SearchBar } from '../search-bar/search-bar';
-
-interface NavLink {
-  label: string;
-  link: string;
-  icon: string;
-}
-
-const NAV_LINKS: NavLink[] = [
-  { label: 'New Arrivals', link: '/new-arrivals', icon: '✨' },
-  { label: 'Lehengas', link: '/category/bridal-lehengas', icon: '👗' },
-  { label: 'Bridal', link: '/bridal', icon: '💍' },
-  { label: 'Wedding Edit', link: '/occasion/wedding-guest', icon: '🎊' },
-  { label: 'Bridesmaids', link: '/occasion/sangeet-mehendi', icon: '👯' },
-  { label: 'Collections', link: '/collections', icon: '🗂️' },
-  { label: 'Sale', link: '/sale', icon: '🏷️' },
-];
+import { NavApiService, NavItem } from '../../../core/services/nav-api.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-header',
@@ -30,7 +18,20 @@ const NAV_LINKS: NavLink[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Header {
-  protected navLinks = NAV_LINKS;
+  /**
+   * Header links, from the CMS.
+   *
+   * Was a NAV_LINKS constant of seven hardcoded label/URL/emoji triples that
+   * was NOT derived from the category tree, so renaming a category left the
+   * nav pointing at a stale label or a dead URL.
+   *
+   * Falls back to an empty menu on error rather than breaking the header,
+   * which renders on every route.
+   */
+  protected navLinks = toSignal(
+    inject(NavApiService).getMenu('header').pipe(catchError(() => of<NavItem[]>([]))),
+    { initialValue: [] as NavItem[] },
+  );
   protected cart = inject(CartService);
   protected wishlist = inject(WishlistService);
   protected auth = inject(AuthService);
