@@ -37,8 +37,14 @@ try {
 
     if (-not $NoStart) {
         $log = Join-Path $env:TEMP 'offerlal-api.log'
+        # Bind 0.0.0.0, not localhost. The Ionic app installed on a phone
+        # reaches this over the LAN, and a loopback binding refuses those
+        # connections with no server-side log line at all - the request never
+        # arrives, so the failure looks like a bug in the app.
+        # (A comment cannot sit between backtick-continued lines below: the
+        # backtick continues to the NEXT line, and a comment there breaks it.)
         Start-Process -FilePath 'dotnet' `
-            -ArgumentList @('run', '--no-build', '--urls', "http://localhost:$Port") `
+            -ArgumentList @('run', '--no-build', '--urls', "http://0.0.0.0:$Port") `
             -WorkingDirectory $api -RedirectStandardOutput $log `
             -RedirectStandardError "$log.err" -WindowStyle Hidden | Out-Null
 

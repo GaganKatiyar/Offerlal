@@ -146,8 +146,18 @@ try
     {
         options.AddPolicy(CorsPolicy, policy => policy
             .SetIsOriginAllowed(origin =>
+                // The Angular storefront's dev server.
                 origin is "http://localhost:4200" or "http://localhost:4300"
-                || Regex.IsMatch(origin, @"^http://192\.168\.\d{1,3}\.\d{1,3}:4300$"))
+                // Ionic's dev server, in a browser.
+                or "http://localhost:8100"
+                // The Capacitor WebView on a device. Android with the default
+                // http scheme reports a bare "http://localhost" with no port;
+                // iOS and the capacitor:// scheme report this instead. Neither
+                // is a port on this machine, so neither matched the rules above
+                // and every request from the installed app failed CORS.
+                or "capacitor://localhost" or "http://localhost"
+                // A phone on the LAN hitting either dev server directly.
+                || Regex.IsMatch(origin, @"^http://192\.168\.\d{1,3}\.\d{1,3}:(4300|8100)$"))
             .AllowAnyHeader()
             .AllowAnyMethod());
     });
