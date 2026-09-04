@@ -138,7 +138,7 @@
 // Horizontal scroll rail (category rails, product rails, filter chips).
 .o-rail {
   display: flex;
-  gap: var(--rail-gap, var(--space-3));
+  gap: var(--rail-gap, var(--space-16));
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;

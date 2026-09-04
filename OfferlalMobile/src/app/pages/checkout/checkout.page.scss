@@ -200,3 +200,42 @@ h3 {
     opacity: 0.5;
   }
 }
+
+.tax-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--ion-color-medium, #92949c);
+}
+
+.muted {
+  color: var(--ion-color-medium, #92949c);
+  font-size: 13px;
+}
+
+.link-btn {
+  min-height: 44px;
+  border: none;
+  background: none;
+  padding: 0 8px;
+  color: var(--ion-color-primary, #7b1d2b);
+  text-decoration: underline;
+  font-size: 13px;
+}
+
+/* A refusal from the server, with the per-line reasons it gave. */
+.error-block {
+  background: rgb(181 75 35 / 0.1);
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #8c2f14;
+  }
+
+  ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    font-size: 12px;
+    color: #8c2f14;
+  }
+}

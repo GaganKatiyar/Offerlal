@@ -1,4 +1,7 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using OfferlalFashion.Api.Auth;
 using OfferlalFashion.Api.Commerce;
 
 namespace OfferlalFashion.Api.Controllers;
@@ -24,6 +27,20 @@ public class CheckoutController(PricingService pricing, OrderService orders) : C
     [HttpPost("place-order")]
     public async Task<ActionResult<object>> PlaceOrder([FromBody] PlaceOrderRequest request, CancellationToken ct = default)
     {
+        // The customer is decided HERE, from the token, and the body's value is
+        // discarded either way.
+        //
+        // It used to be taken straight from the request, which was wrong twice
+        // over. A signed-in app that did not happen to send its own id had its
+        // order filed as a guest's and then could not see it in order history -
+        // which is how this was noticed. The more serious half is that anyone
+        // could send someone else's customer id and attach an order, with an
+        // address of their choosing, to that person's account.
+        //
+        // Guest checkout still works: no token means no customer id, and the
+        // order service finds or creates a customer from the contact details.
+        request = request with { CustomerId = AuthenticatedCustomerId() ?? "" };
+
         var result = await orders.PlaceAsync(request, ct);
 
         if (!result.Success)
@@ -33,5 +50,23 @@ public class CheckoutController(PricingService pricing, OrderService orders) : C
         }
 
         return Ok(new { orderNumber = result.OrderNumber, total = result.Total, paymentStatus = "Pending" });
+    }
+
+    /// <summary>
+    /// The caller's customer id, or null when this is a guest checkout.
+    ///
+    /// Checks the subject type as well: an admin token also carries a subject
+    /// id, and using it here would file an order against a customer row that
+    /// does not exist.
+    /// </summary>
+    private string? AuthenticatedCustomerId()
+    {
+        if (User?.Identity?.IsAuthenticated != true) return null;
+
+        var type = User.FindFirstValue("stype");
+        if (!string.Equals(type, TokenService.SubjectTypeCustomer, StringComparison.OrdinalIgnoreCase)) return null;
+
+        var id = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        return string.IsNullOrWhiteSpace(id) ? null : id;
     }
 }

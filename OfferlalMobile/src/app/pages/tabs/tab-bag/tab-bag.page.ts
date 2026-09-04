@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonHeader,
@@ -26,6 +26,16 @@ export class TabBagPage {
     private router: Router,
   ) {
     addIcons({ addOutline, removeOutline, trashOutline, bagHandleOutline });
+
+    // Re-quote whenever the bag changes. Any edit clears the previous quote, so
+    // without this the subtotal would simply disappear after a quantity change
+    // rather than being recalculated.
+    effect(() => {
+      const lines = this.cart.lines();
+      if (lines.length && !this.cart.quote() && !this.cart.quoting()) {
+        this.cart.refreshQuote().subscribe({ next: () => undefined, error: () => undefined });
+      }
+    });
   }
 
   goToCheckout(): void {

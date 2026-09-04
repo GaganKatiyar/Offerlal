@@ -386,8 +386,8 @@
 
 .circle-media {
   display: block;
-  width: 92px;
-  height: 92px;
+  width: 165px;
+  height: 165px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background: var(--surface-alt);
@@ -395,8 +395,8 @@
   transition: border-color var(--dur-fast) var(--ease-standard);
 
   @include mq(md) {
-    width: 112px;
-    height: 112px;
+    width: 165px;
+    height: 165px;
   }
 
   :is(img) {

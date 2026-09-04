@@ -8,18 +8,31 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  @if (orderService.orders().length === 0) {
+  <ion-refresher slot="fixed" (ionRefresh)="load($any($event))">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (loading() && !orders().length) {
+    <div class="empty-state"><p>Loading your orders…</p></div>
+  } @else if (failed()) {
+    <div class="empty-state">
+      <p>Could not load your orders.</p>
+      <button type="button" class="retry" (click)="load()">Try again</button>
+    </div>
+  } @else if (!orders().length) {
     <div class="empty-state">
       <p>You haven't placed any orders yet.</p>
     </div>
   } @else {
     <div class="order-list">
-      @for (order of orderService.orders(); track order.id) {
+      @for (order of orders(); track order.orderNumber) {
         <a [routerLink]="['/account/orders', order.orderNumber]" class="order-card">
-          <img [src]="order.items[0].imageUrl" [alt]="order.items[0].name" />
+          @if (order.thumbnailUrl) {
+            <img [src]="order.thumbnailUrl" alt="" />
+          }
           <div class="order-info">
             <p class="order-number">{{ order.orderNumber }}</p>
-            <p class="item-name">{{ order.items[0].name }}@if (order.items.length > 1) { + {{ order.items.length - 1 }} more }</p>
+            <p class="item-name">{{ order.itemCount }} item{{ order.itemCount === 1 ? '' : 's' }}</p>
             <p class="total">₹{{ order.total.toLocaleString('en-IN') }}</p>
           </div>
           <span class="status-badge" [class]="statusClass(order.status)">{{ order.status }}</span>

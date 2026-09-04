@@ -92,3 +92,14 @@ ion-title {
     color: var(--color-charcoal-mute);
   }
 }
+
+.retry {
+  margin-top: 12px;
+  padding: 10px 20px;
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: var(--ion-color-primary, #7b1d2b);
+  color: #fff;
+  font-size: 14px;
+}

@@ -3,7 +3,7 @@
     <div class="confirm-wrap">
       <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
       <h1>Order Confirmed!</h1>
-      <p class="sub">Thank you, {{ o.shippingAddress.fullName }}. Your order has been placed successfully.</p>
+      <p class="sub">Thank you, {{ o.shipFullName }}. Your order has been placed successfully.</p>
 
       <div class="order-card">
         <div class="row"><span>Order Number</span><strong>{{ o.orderNumber }}</strong></div>
@@ -12,13 +12,36 @@
         <div class="row"><span>Expected Delivery</span><strong>{{ o.expectedDeliveryDate | date: 'mediumDate' }}</strong></div>
       </div>
 
+      <!--
+        Payment status is stated plainly. The server writes "Pending" until a
+        verified gateway webhook says otherwise, and a receipt that implies
+        money has changed hands when it has not is the worst thing this screen
+        could do.
+      -->
+      @if (o.paymentStatus !== 'Paid') {
+        <p class="pay-note">Payment status: {{ o.paymentStatus }} — pay on delivery.</p>
+      }
+
       <a [routerLink]="['/account/orders', o.orderNumber]" class="btn-outline">Track Order</a>
       <a routerLink="/tabs/home" class="btn-primary">Continue Shopping</a>
     </div>
+  } @else if (loading()) {
+    <div class="confirm-wrap"><p>Confirming your order…</p></div>
   } @else {
+    <!--
+      The order number came from the server's own response, so the order exists
+      even if reading it back just failed. Saying "not found" here would tell a
+      customer their order had vanished when it had not.
+    -->
     <div class="confirm-wrap">
-      <p>Order not found.</p>
-      <a routerLink="/tabs/home" class="btn-primary">Go Home</a>
+      <ion-icon name="checkmark-circle" class="success-icon"></ion-icon>
+      <h1>Order Confirmed!</h1>
+      @if (orderNumber()) {
+        <p class="sub">Your order number is <strong>{{ orderNumber() }}</strong>.</p>
+        <p class="sub">We could not load the details just now — they will be in My Orders.</p>
+        <a [routerLink]="['/account/orders', orderNumber()]" class="btn-outline">Track Order</a>
+      }
+      <a routerLink="/tabs/home" class="btn-primary">Continue Shopping</a>
     </div>
   }
 </ion-content>

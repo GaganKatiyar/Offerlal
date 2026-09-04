@@ -13,6 +13,14 @@ export interface MobileProduct {
   isBestseller?: boolean;
   isNewArrival?: boolean;
   colors: { name: string; hex: string }[];
+  /**
+   * Purchasable variants, with their ids.
+   *
+   * `colors` above is for display only. The server addresses a SKU by product +
+   * variant + size, so the bag has to carry a real variant id - a colour name
+   * cannot be resolved back to one.
+   */
+  variants?: { id: string; color: string; hex: string }[];
   sizes: string[];
   fabric: string;
   workDetails: string;

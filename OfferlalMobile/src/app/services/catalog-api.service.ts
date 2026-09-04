@@ -213,6 +213,9 @@ function toDetail(p: Record<string, unknown>): MobileProduct {
     colors: variants
       .filter((v) => v.color)
       .map((v) => ({ name: v.color!, hex: v.colorHex ?? '#cccccc' })),
+    variants: variants
+      .filter((v) => v.id)
+      .map((v) => ({ id: v.id!, color: v.color ?? '', hex: v.colorHex ?? '#cccccc' })),
     sizes,
     fabric: String(p['fabric'] ?? ''),
     workDetails: String(p['workDetails'] ?? ''),
@@ -221,6 +224,7 @@ function toDetail(p: Record<string, unknown>): MobileProduct {
 }
 
 interface VariantLike {
+  id?: string;
   color?: string;
   colorHex?: string;
   images?: { url: string }[];

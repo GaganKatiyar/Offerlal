@@ -105,8 +105,28 @@ public sealed class OrderService(
                     return new PlaceOrderResult(false, null, 0m, problems);
                 }
 
-                    var customerId = await ResolveCustomerAsync(request, ct);
+                var customerId = await ResolveCustomerAsync(request, ct);
                 var orderNumber = await NextOrderNumberAsync(ct);
+
+                // Expected delivery was never set, so every order carried
+                // DateOnly's default and the app rendered "Jan 1, 1" as the
+                // delivery date on the confirmation screen.
+                //
+                // The slowest line decides: a bag is delivered when its last
+                // item is, so taking the maximum is the promise that can
+                // actually be kept.
+                var productIds = quote.Lines.Select(l => l.ProductId).Distinct().ToList();
+                var deliveryDays = await db.Products
+                    .Where(p => productIds.Contains(p.Id))
+                    .Select(p => request.ExpressDelivery && p.DeliveryExpressDays != null
+                        ? p.DeliveryExpressDays!.Value
+                        : p.DeliveryStandardDays)
+                    .ToListAsync(ct);
+
+                // A product with no stated lead time falls back to a week
+                // rather than to today, which would promise same-day delivery.
+                var leadDays = deliveryDays.Count > 0 ? deliveryDays.Max() : 7;
+                if (leadDays <= 0) leadDays = 7;
 
                 var order = new Order
                 {
@@ -128,6 +148,7 @@ public sealed class OrderService(
 
                     CouponCode = quote.CouponCode,
                     PlacedAt = DateTime.UtcNow,
+                    ExpectedDeliveryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(leadDays)),
                     ShipFullName = request.ShippingName,
                     ShipPhone = request.ShippingPhone,
                     ShipLine1 = request.ShippingLine1,

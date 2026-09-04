@@ -74,3 +74,10 @@ h1 {
   background: var(--color-wine);
   color: #fff;
 }
+
+/* Stated plainly: nothing has been charged yet. */
+.pay-note {
+  margin: 4px 0 16px;
+  font-size: 13px;
+  color: var(--ion-color-medium, #92949c);
+}

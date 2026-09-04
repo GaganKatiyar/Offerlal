@@ -149,3 +149,9 @@ ion-title {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
+/* Shown while the server total is unknown. Muted, so it does not read as a
+   real figure. */
+.pending {
+  color: var(--ion-color-medium, #92949c);
+}

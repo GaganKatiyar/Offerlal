@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject } from '@angular/core';
 import { Observable, map, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AddressService } from './address.service';
 import { AuthTokenService } from './auth-token.service';
 
 export interface MobileUser {
@@ -34,6 +35,7 @@ interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private tokens = inject(AuthTokenService);
+  private addressBook = inject(AddressService);
   private base = environment.apiBaseUrl;
 
   /** Derived from stored tokens, so a restart resumes the session. */
@@ -84,6 +86,9 @@ export class AuthService {
   logout(): void {
     const refreshToken = this.tokens.refreshToken;
     this.tokens.clear();
+    // Addresses are personal data held in memory. Signing out must not leave
+    // them visible to whoever signs in next on the same device.
+    this.addressBook.clear();
     if (refreshToken) {
       this.http.post(`${this.base}/auth/logout`, { refreshToken }).subscribe({
         next: () => undefined,
