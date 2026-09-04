@@ -1,5 +1,6 @@
 <div class="announcement-bar">
-  Free Shipping on Orders Above ₹2,999 &nbsp;|&nbsp; Easy Exchange &nbsp;|&nbsp; Secure Payments
+  <!-- Announcement copy is a store setting, editable without a deploy. -->
+  {{ settings.announcementText() || 'Free Shipping on Orders Above ₹2,999  |  Easy Exchange  |  Secure Payments' }}
 </div>
 
 <header class="site-header">

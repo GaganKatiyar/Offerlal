@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { SettingsService } from '../../../core/services/settings.service';
 import { SearchBar } from '../search-bar/search-bar';
 import { NavApiService, NavItem } from '../../../core/services/nav-api.service';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -35,6 +36,7 @@ export class Header {
   protected cart = inject(CartService);
   protected wishlist = inject(WishlistService);
   protected auth = inject(AuthService);
+  protected settings = inject(SettingsService);
 
   protected mobileMenuOpen = signal(false);
 

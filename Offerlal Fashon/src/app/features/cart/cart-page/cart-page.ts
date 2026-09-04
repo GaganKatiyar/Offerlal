@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
-import { CouponService } from '../../../core/services/coupon.service';
+import { CheckoutApiService, toQuoteLines } from '../../../core/services/checkout-api.service';
 import { DemoDataStoreService } from '../../../core/services/demo-data-store.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ImageWithFallback } from '../../../shared/components/image-with-fallback/image-with-fallback';
@@ -20,47 +22,61 @@ import { InrCurrencyPipe } from '../../../shared/pipes/inr-currency.pipe';
 export class CartPage {
   protected cart = inject(CartService);
   protected wishlist = inject(WishlistService);
-  private coupon = inject(CouponService);
+  private checkoutApi = inject(CheckoutApiService);
   private store = inject(DemoDataStoreService);
   private toast = inject(ToastService);
 
   protected couponCode = signal('');
   protected appliedCode = signal<string | null>(null);
-  protected discount = signal(0);
   protected couponMessage = signal('');
   protected couponError = signal(false);
+
+  /**
+   * The server's price for the bag.
+   *
+   * The bag previously computed its own shipping threshold and total, using a
+   * hardcoded 2,999 / 150 that also existed in checkout.html and pdp.html.
+   * Three copies of a pricing rule means two of them are eventually wrong, and
+   * the bag disagreeing with checkout is the version a customer notices.
+   */
+  private quoteResource = rxResource({
+    params: () => ({ lines: toQuoteLines(this.cart.items()), coupon: this.appliedCode() }),
+    stream: ({ params }) =>
+      params.lines.length === 0 ? of(null) : this.checkoutApi.quote(params.lines, params.coupon, false),
+  });
+
+  protected quote = computed(() => this.quoteResource.value() ?? null);
+  protected discount = computed(() => this.quote()?.discount ?? 0);
+  protected quoteProblems = computed(() => this.quote()?.problems ?? []);
 
   protected productFor(productId: string) {
     return this.store.products().find((p) => p.id === productId);
   }
 
-  protected shippingFee(): number {
-    return this.cart.subtotal() - this.discount() >= 2999 ? 0 : 150;
-  }
+  /** Falls back to the local subtotal only while the first quote is in flight. */
+  protected shippingFee = computed(() => this.quote()?.shippingFee ?? 0);
 
-  protected grandTotal(): number {
-    return this.cart.subtotal() - this.discount() + this.shippingFee();
-  }
+  protected grandTotal = computed(() => this.quote()?.total ?? this.cart.subtotal());
 
   protected applyCoupon(): void {
     const code = this.couponCode().trim();
     if (!code) return;
-    this.coupon.validate(code, this.cart.subtotal()).subscribe((result) => {
-      this.couponMessage.set(result.message);
-      this.couponError.set(!result.valid);
-      if (result.valid) {
-        this.discount.set(result.discountAmount);
-        this.appliedCode.set(code.toUpperCase());
-      } else {
-        this.discount.set(0);
-        this.appliedCode.set(null);
-      }
+    // Validated server-side; the client only shows the verdict.
+    this.checkoutApi.quote(toQuoteLines(this.cart.items()), code, false).subscribe({
+      next: (quote) => {
+        this.couponMessage.set(quote.couponMessage ?? '');
+        this.couponError.set(!quote.couponApplied);
+        this.appliedCode.set(quote.couponApplied ? code.toUpperCase() : null);
+      },
+      error: () => {
+        this.couponMessage.set('Could not check that coupon just now.');
+        this.couponError.set(true);
+      },
     });
   }
 
   protected removeCoupon(): void {
     this.appliedCode.set(null);
-    this.discount.set(0);
     this.couponMessage.set('');
     this.couponCode.set('');
   }

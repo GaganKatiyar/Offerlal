@@ -228,7 +228,7 @@
             @if (p.deliveryEstimateDays.express) {
               Express delivery available in {{ p.deliveryEstimateDays.express }} days.
             }
-            Free shipping on orders above ₹2,999.
+            Free shipping on orders above {{ settings.freeShippingLabel() }}.
           </p>
         </app-accordion-item>
         <app-accordion-item heading="Exchange &amp; Return">

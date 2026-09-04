@@ -25,6 +25,7 @@ import { Modal } from '../../shared/ui/modal/modal';
 import { ProductCard } from '../../shared/components/product-card/product-card';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { SizeChart } from '../../core/models/catalog-search.model';
 
 
@@ -52,6 +53,7 @@ export class Pdp implements OnInit {
   private router = inject(Router);
   private productService = inject(ProductService);
   private catalogApi = inject(CatalogApiService);
+  protected settings = inject(SettingsService);
   private reviewService = inject(ReviewService);
   private cart = inject(CartService);
   private wishlist = inject(WishlistService);
