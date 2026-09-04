@@ -1,5 +1,17 @@
 @use '../../../styles/mq' as *;
 
+/* A shopping surface, not an editorial one.
+ *
+ * Dense product grids and image galleries read muddy on the warm ivory ground,
+ * which is why --surface-shop exists. Scoped to :host rather than a global
+ * token change: ivory IS the brand on About, the concierge and the homepage's
+ * editorial block.
+ */
+:host {
+  display: block;
+  background: var(--surface-shop);
+}
+
 :host {
   display: block;
 }
@@ -500,5 +512,67 @@
   }
   .related-grid {
     grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mobile sticky action bar
+   --------------------------------------------------------------------------- */
+
+.sticky-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sticky-cta);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--container-pad);
+  background: var(--surface-overlay);
+  border-top: var(--border-hairline);
+
+  /* Upward shadow: a bottom bar lifted off the page reads as fixed, whereas the
+     default downward drop would look like it belongs to whatever is beneath. */
+  box-shadow: var(--shadow-sticky-bottom);
+
+  /* Clears the iOS home indicator, otherwise the button sits under it. */
+  padding-bottom: max(var(--space-2-5), env(safe-area-inset-bottom));
+
+  /* Desktop already keeps the buy controls in view via the sticky info column;
+     a second fixed bar there would just cover content. */
+  @include mq(lg) {
+    display: none;
+  }
+}
+
+.sticky-price {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sticky-amount {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  line-height: 1.2;
+}
+
+.sticky-hint {
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+
+.sticky-cta {
+  flex: 1;
+  min-height: var(--control-h-touch);
+}
+
+/* The bar covers the last of the page, so the content ends above it. */
+.pdp-layout {
+  padding-bottom: calc(var(--control-h-touch) + var(--space-8));
+
+  @include mq(lg) {
+    padding-bottom: 0;
   }
 }

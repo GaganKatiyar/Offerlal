@@ -387,3 +387,22 @@
     </div>
   </app-modal>
 }
+
+<!--
+  Mobile sticky action bar.
+  On a phone the buy controls sit well below the fold — past the gallery, the
+  price and the size chips — so a shopper who has decided has to scroll back up
+  to act. Desktop already keeps them visible via the sticky info column, which
+  is why this is mobile-only.
+-->
+@if (product(); as p) {
+  <div class="sticky-actions">
+    <div class="sticky-price">
+      <span class="sticky-amount" data-numeric>{{ unitPrice() | inr }}</span>
+      @if (!selectedSize()) {
+        <span class="sticky-hint">Select a size</span>
+      }
+    </div>
+    <button type="button" class="btn btn-primary sticky-cta" (click)="addToBag()">Add to Bag</button>
+  </div>
+}

@@ -15,19 +15,36 @@
   display: none;
 }
 
+/* On a phone the three controls fought over 390px and both labels wrapped —
+ * "60 / items" and "Sort / by" each on two lines, which reads as broken rather
+ * than dense. The count moves to its own line and the controls share the next. */
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: var(--border-hairline);
+
+  @include mq(md) {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
 }
 
 .item-count {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+
+  /* Full width below md so it never competes with the controls for space. */
+  flex: 1 0 100%;
+
+  @include mq(md) {
+    flex: 0 0 auto;
+  }
 }
 
 .mobile-filter-btn {
@@ -125,12 +142,22 @@
   align-items: center;
   gap: var(--space-2);
   margin-left: auto;
+  min-width: 0;
 }
 
 .sort-label {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+
+  /* "Sort by" is redundant next to a dropdown that already reads
+     "Recommended"; on a phone it is two wrapped words of pure cost. */
+  display: none;
+
+  @include mq(md) {
+    display: inline;
+  }
 }
 
 .sort-select {

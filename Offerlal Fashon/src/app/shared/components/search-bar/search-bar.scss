@@ -1,3 +1,5 @@
+@use '../../../../styles/mq' as *;
+
 :host {
   display: block;
   flex: 1 1 100%;
@@ -49,7 +51,13 @@
   }
 }
 
+/* Hidden on phones.
+ *
+ * The button ate enough of a 390px row that the placeholder was clipped
+ * mid-word ("…sarees, gow"). Submitting still works: the input is type=search,
+ * so the on-screen keyboard shows a Search key, and Enter is already bound. */
 .search-submit-btn {
+  display: none;
   padding: var(--space-2) var(--space-5);
   background: var(--brand-primary);
   color: var(--color-white);
@@ -62,6 +70,10 @@
   text-transform: uppercase;
   letter-spacing: var(--ls-wide);
   white-space: nowrap;
+
+  @include mq(md) {
+    display: inline-flex;
+  }
 }
 
 .suggestions-panel {

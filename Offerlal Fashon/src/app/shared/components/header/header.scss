@@ -7,13 +7,27 @@
   z-index: var(--z-header);
 }
 
+/* One line, always.
+ *
+ * The full announcement wrapped to two lines on a phone, costing ~40px of the
+ * first screen before anything shoppable appeared. Truncating is better than
+ * wrapping here: the copy is reassurance, not instruction, and the part that
+ * matters ("Free shipping over X") is at the front. */
 .announcement-bar {
   background: var(--color-charcoal);
   color: var(--color-cream);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   letter-spacing: 0.03em;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-1-5) var(--space-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include mq(md) {
+    font-size: 12px;
+    padding: var(--space-2) var(--space-4);
+  }
 }
 
 .site-header {
