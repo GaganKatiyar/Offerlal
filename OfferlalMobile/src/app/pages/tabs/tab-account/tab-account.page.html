@@ -7,9 +7,9 @@
 <ion-content [fullscreen]="true">
   @if (auth.isLoggedIn() && auth.user(); as user) {
     <div class="profile-card">
-      <div class="avatar">{{ user.firstName.charAt(0) }}</div>
+      <div class="avatar">{{ user.displayName.charAt(0) }}</div>
       <div>
-        <p class="name">{{ user.firstName }} {{ user.lastName }}</p>
+        <p class="name">{{ user.displayName }}</p>
         <p class="email">{{ user.email }}</p>
       </div>
     </div>

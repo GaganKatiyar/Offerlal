@@ -7,6 +7,14 @@ const IDENTITY_KEY = 'offerlal_mobile_identity_v1';
 export interface StoredIdentity {
   displayName: string;
   roles: string[];
+  /**
+   * The address used to sign in.
+   *
+   * Neither the login response nor /auth/me returns an email, and the account
+   * screen shows one. This is what the customer typed - their own address, so
+   * echoing it back is honest - rather than anything the server asserted.
+   */
+  email: string;
 }
 
 /**

@@ -32,7 +32,24 @@
       <input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
     </label>
 
-    <button type="button" class="btn-primary" (click)="submit()">Create Account</button>
+    <label class="field">
+      <span>Password</span>
+      <input
+        type="password"
+        autocomplete="new-password"
+        [value]="password()"
+        (input)="password.set($any($event.target).value)"
+      />
+      <small class="hint">At least 8 characters.</small>
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="button" class="btn-primary" (click)="submit()" [disabled]="busy()">
+      {{ busy() ? 'Creating…' : 'Create Account' }}
+    </button>
 
     <p class="switch">Already have an account? <a routerLink="/login">Sign In</a></p>
   </div>
