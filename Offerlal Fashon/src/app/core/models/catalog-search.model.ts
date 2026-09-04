@@ -32,6 +32,10 @@ export interface ProductCardModel {
   fabric: string;
   hasCustomSizing: boolean;
   thumbnailUrl?: string;
+  /** Alt text from the media library — describes the picture, not the product. */
+  thumbnailAlt?: string;
+  /** Derivative widths that exist for this image; empty for externally hosted ones. */
+  thumbnailWidths: number[];
   swatches: Swatch[];
 }
 

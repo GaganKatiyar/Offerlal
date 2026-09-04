@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace OfferlalFashion.Api.Dtos;
 
 /// <summary>
@@ -34,6 +36,35 @@ public sealed record ProductCardDto
     public bool HasCustomSizing { get; init; }
 
     public string? ThumbnailUrl { get; init; }
+
+    /// <summary>
+    /// Alt text from the media library, describing the PICTURE.
+    ///
+    /// Previously the card fell back to the product name, so a screen reader
+    /// read the title twice — once as the image and once as the heading — and
+    /// said nothing about what the photo actually showed.
+    /// </summary>
+    public string? ThumbnailAlt { get; init; }
+
+    /// <summary>
+    /// Raw CSV as stored on the asset. EF projects this directly; it is not
+    /// serialised, because the client wants a list.
+    /// </summary>
+    [JsonIgnore]
+    public string? ThumbnailWidthsCsv { get; init; }
+
+    /// <summary>
+    /// Derivative widths that exist for this image, so the client can build a
+    /// srcset. Empty for externally hosted images, whose host resizes for us.
+    /// </summary>
+    public IReadOnlyList<int> ThumbnailWidths =>
+        string.IsNullOrWhiteSpace(ThumbnailWidthsCsv)
+            ? []
+            : [.. ThumbnailWidthsCsv
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(v => int.TryParse(v, out var n) ? n : 0)
+                .Where(n => n > 0)];
+
     public IReadOnlyList<SwatchDto> Swatches { get; init; } = [];
 }
 

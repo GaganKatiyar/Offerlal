@@ -83,11 +83,22 @@ export class ProductCard {
       fabric: p.fabric,
       hasCustomSizing: p.sizes.includes(CUSTOM_SIZE),
       thumbnailUrl: p.variants[0]?.images[0]?.url,
+      thumbnailAlt: p.variants[0]?.images[0]?.alt,
+      thumbnailWidths: [],
       swatches: p.variants.map((v) => ({ color: v.color, colorHex: v.colorHex })),
     };
   });
 
   protected primaryImage = computed(() => this.vm().thumbnailUrl ?? '');
+
+  /**
+   * Prefers the library's description of the picture over the product name.
+   * Falling back to the name made screen readers announce the title twice and
+   * said nothing about what the photo showed.
+   */
+  protected imageAlt = computed(() => this.vm().thumbnailAlt?.trim() || this.vm().name);
+
+  protected imageWidths = computed(() => this.vm().thumbnailWidths ?? []);
   protected inWishlist = computed(() => this.wishlist.has(this.vm().id));
 
   /**

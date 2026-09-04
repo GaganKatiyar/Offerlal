@@ -94,3 +94,7 @@ OfferlalMobile/ios/
 
 # Local build tooling (portable JDK / Android SDK, not for version control)
 tools/
+
+# Uploaded media lives on disk, not in the repo — content-addressed and
+# reproducible from the media library.
+OfferlalFashion.Api/wwwroot/media/

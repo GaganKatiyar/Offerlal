@@ -2,7 +2,8 @@
   <div class="media">
     <app-image-with-fallback
       [src]="primaryImage()"
-      [alt]="vm().name"
+      [alt]="imageAlt()"
+      [derivativeWidths]="imageWidths()"
       sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 48vw"
     />
 

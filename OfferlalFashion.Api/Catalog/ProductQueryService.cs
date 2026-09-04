@@ -189,7 +189,22 @@ public sealed class ProductQueryService(OfferlalFashionDbContext db)
                     .SelectMany(v => v.ProductImages)
                     .OrderByDescending(i => i.IsPrimary)
                     .ThenBy(i => i.SortOrder)
-                    .Select(i => i.Url)
+                    .Select(i => i.MediaAsset != null ? i.MediaAsset.Url : i.Url)
+                    .FirstOrDefault(),
+                ThumbnailAlt = p.ProductVariants
+                    .SelectMany(v => v.ProductImages)
+                    .OrderByDescending(i => i.IsPrimary)
+                    .ThenBy(i => i.SortOrder)
+                    // Reference alt first: it is specific to THIS product's use
+                    // of the picture. The asset's alt describes the picture
+                    // itself and is the fallback, not the override.
+                    .Select(i => i.Alt ?? (i.MediaAsset != null ? i.MediaAsset.AltText : null))
+                    .FirstOrDefault(),
+                ThumbnailWidthsCsv = p.ProductVariants
+                    .SelectMany(v => v.ProductImages)
+                    .OrderByDescending(i => i.IsPrimary)
+                    .ThenBy(i => i.SortOrder)
+                    .Select(i => i.MediaAsset != null ? i.MediaAsset.DerivativeWidths : null)
                     .FirstOrDefault(),
                 Swatches = p.ProductVariants
                     .OrderBy(v => v.Id)

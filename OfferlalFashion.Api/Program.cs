@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Catalog;
 using OfferlalFashion.Api.Data;
 using OfferlalFashion.Api.Infrastructure;
+using OfferlalFashion.Api.Media;
 using Serilog;
 
 // Bootstrap logger — captures failures that happen before the host is built
@@ -54,6 +55,12 @@ try
     builder.Services.AddScoped<AttributeProjectionService>();
     builder.Services.AddScoped<ProductQueryService>();
 
+    // ── Media ────────────────────────────────────────────────────────────────
+    builder.Services.AddSingleton(new LocalDiskMediaStorageOptions());
+    builder.Services.AddSingleton<IMediaStorage, LocalDiskMediaStorage>();
+    builder.Services.AddScoped<MediaService>();
+    builder.Services.AddScoped<MediaBackfillService>();
+
     builder.Services.AddControllers();
     builder.Services.AddOpenApi();
 
@@ -88,6 +95,21 @@ try
         app.UseHsts();
         app.UseHttpsRedirection();
     }
+
+    // Serves wwwroot, which is where LocalDiskMediaStorage writes. Media is
+    // content-addressed (the storage key contains a hash of the bytes), so a
+    // given URL can never point at different bytes later and is safe to cache
+    // for a year.
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            if (ctx.Context.Request.Path.StartsWithSegments("/media"))
+            {
+                ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+            }
+        },
+    });
 
     app.UseCors(CorsPolicy);
     app.UseAuthorization();

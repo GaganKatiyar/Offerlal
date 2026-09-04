@@ -24,6 +24,8 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<Brand> Brands { get; set; }
 
+    public virtual DbSet<MediaAsset> MediaAssets { get; set; }
+
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
 
     public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
@@ -231,6 +233,19 @@ public partial class OfferlalFashionDbContext : DbContext
             entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
                 .HasForeignKey(d => d.ParentId)
                 .HasConstraintName("FK_Categories_Parent");
+
+            entity.HasIndex(e => e.HeroImageAssetId, "IX_Categories_HeroImageAssetId");
+            entity.HasIndex(e => e.ThumbnailAssetId, "IX_Categories_ThumbnailAssetId");
+
+            entity.HasOne<MediaAsset>().WithMany()
+                .HasForeignKey(d => d.HeroImageAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Categories_HeroImageAsset");
+
+            entity.HasOne<MediaAsset>().WithMany()
+                .HasForeignKey(d => d.ThumbnailAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Categories_ThumbnailAsset");
         });
 
         ConfigureAttributeSystem(modelBuilder);
@@ -253,6 +268,13 @@ public partial class OfferlalFashionDbContext : DbContext
             entity.Property(e => e.SeoKeywords).HasMaxLength(500);
             entity.Property(e => e.SeoTitle).HasMaxLength(200);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasIndex(e => e.LogoAssetId, "IX_Brands_LogoAssetId");
+
+            entity.HasOne<MediaAsset>().WithMany()
+                .HasForeignKey(d => d.LogoAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Brands_LogoAsset");
         });
 
         modelBuilder.Entity<Coupon>(entity =>
@@ -373,6 +395,13 @@ public partial class OfferlalFashionDbContext : DbContext
             entity.Property(e => e.Slug)
                 .HasMaxLength(120)
                 .IsUnicode(false);
+
+            entity.HasIndex(e => e.ImageAssetId, "IX_Occasions_ImageAssetId");
+
+            entity.HasOne<MediaAsset>().WithMany()
+                .HasForeignKey(d => d.ImageAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Occasions_ImageAsset");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -613,6 +642,30 @@ public partial class OfferlalFashionDbContext : DbContext
                     });
         });
 
+        modelBuilder.Entity<MediaAsset>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.StorageKey).HasMaxLength(500).IsUnicode(false);
+            entity.Property(e => e.Url).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.SourceUrl).HasMaxLength(1000);
+            entity.Property(e => e.ContentType).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.AltText).HasMaxLength(300);
+            entity.Property(e => e.Folder).HasMaxLength(200).IsUnicode(false).HasDefaultValue("uploads");
+            entity.Property(e => e.Tags).HasMaxLength(500);
+            entity.Property(e => e.DerivativeWidths).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.ChecksumSha256).HasMaxLength(64).IsUnicode(false).IsFixedLength();
+            entity.Property(e => e.CreatedBy).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // Url unique is what makes the backfill deduplicating. This
+            // catalogue's 166 image references resolve to 74 distinct pictures;
+            // without this constraint a re-run would insert them all again.
+            entity.HasIndex(e => e.Url, "UQ_MediaAssets_Url").IsUnique();
+            entity.HasIndex(e => e.ChecksumSha256, "IX_MediaAssets_Checksum");
+            entity.HasIndex(e => new { e.Folder, e.CreatedAt }, "IX_MediaAssets_Folder_CreatedAt");
+        });
+
         modelBuilder.Entity<ProductImage>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -631,6 +684,17 @@ public partial class OfferlalFashionDbContext : DbContext
             entity.HasOne(d => d.Variant).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.VariantId)
                 .HasConstraintName("FK_ProductImages_Variant");
+
+            entity.HasIndex(e => e.MediaAssetId, "IX_ProductImages_MediaAssetId");
+
+            // Restrict, not Cascade: deleting a library asset must not silently
+            // delete the product images referencing it. The admin has to
+            // detach or replace them first, which is the behaviour that keeps
+            // a shared asset safe to delete.
+            entity.HasOne(d => d.MediaAsset).WithMany(p => p.ProductImages)
+                .HasForeignKey(d => d.MediaAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_ProductImages_MediaAsset");
         });
 
         modelBuilder.Entity<ProductSku>(entity =>
