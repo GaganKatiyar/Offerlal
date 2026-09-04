@@ -1,6 +1,11 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using OfferlalFashion.Api.Auth;
 using OfferlalFashion.Api.Catalog;
 using OfferlalFashion.Api.Content;
 using OfferlalFashion.Api.Data;
@@ -51,6 +56,63 @@ try
         .AddDbContextCheck<OfferlalFashionDbContext>(
             name: "database",
             tags: ["ready"]);
+
+    // ── Authentication ───────────────────────────────────────────────────────
+    var jwt = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
+
+    if (string.IsNullOrWhiteSpace(jwt.SigningKey))
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            // Development-only: a per-process random key. Restarting the API
+            // invalidates existing tokens, which is mildly annoying and far
+            // better than shipping a known default that anyone could use to
+            // mint valid admin tokens.
+            jwt.SigningKey = Convert.ToBase64String(
+                System.Security.Cryptography.RandomNumberGenerator.GetBytes(48));
+            Log.Warning("No Jwt:SigningKey configured. Generated a temporary development key; tokens will not survive a restart.");
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                "Jwt:SigningKey is not configured. Refusing to start with an unsigned or default-signed token scheme.");
+        }
+    }
+
+    builder.Services.AddSingleton(jwt);
+    builder.Services.AddScoped<TokenService>();
+    builder.Services.AddScoped<AdminBootstrapper>();
+    builder.Services.AddScoped<IPasswordHasher<OfferlalFashion.Api.Models.AdminUser>,
+        PasswordHasher<OfferlalFashion.Api.Models.AdminUser>>();
+    builder.Services.AddScoped<IPasswordHasher<OfferlalFashion.Api.Models.Customer>,
+        PasswordHasher<OfferlalFashion.Api.Models.Customer>>();
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(o =>
+        {
+            // Without this, the bearer handler rewrites standard JWT claim
+            // names to long WS-* URIs, so reading "sub" returns null and every
+            // subject lookup silently misses. Clearing the legacy
+            // JwtSecurityTokenHandler map does NOT help here: .NET 8+ uses
+            // JsonWebTokenHandler, which honours this flag instead.
+            o.MapInboundClaims = false;
+
+            o.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwt.Issuer,
+                ValidAudience = jwt.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
+                // Default is 5 minutes, which quietly extends every token's
+                // life past its stated expiry.
+                ClockSkew = TimeSpan.FromSeconds(30),
+            };
+        });
+
+    builder.Services.AddAuthorization();
 
     // ── Catalog ──────────────────────────────────────────────────────────────
     builder.Services.AddScoped<AttributeProjectionService>();
@@ -119,7 +181,14 @@ try
     });
 
     app.UseCors(CorsPolicy);
+    app.UseAuthentication();
     app.UseAuthorization();
+
+    // Roles and the first-run admin account, before the app serves traffic.
+    using (var scope = app.Services.CreateScope())
+    {
+        await scope.ServiceProvider.GetRequiredService<AdminBootstrapper>().RunAsync();
+    }
 
     app.MapControllers();
 

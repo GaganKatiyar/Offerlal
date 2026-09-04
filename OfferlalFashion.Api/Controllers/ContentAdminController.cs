@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Content;
@@ -8,18 +9,15 @@ using OfferlalFashion.Api.Models;
 namespace OfferlalFashion.Api.Controllers;
 
 /// <summary>
-/// The CMS write API.
-///
-/// SECURITY: gated on Development until authentication exists. When JWT and
-/// roles land this becomes [Authorize(Roles = "Admin")] — do not simply delete
-/// the gate, or anyone who finds the route can rewrite the homepage.
+/// The CMS write API. Back-office only — anyone who can reach this can rewrite
+/// the homepage.
 /// </summary>
 [ApiController]
 [Route("api/admin/content")]
+[Authorize(Roles = $"{Roles.Admin},{Roles.Content}")]
 public class ContentAdminController(
     OfferlalFashionDbContext db,
-    ContentService content,
-    IWebHostEnvironment env) : ControllerBase
+    ContentService content) : ControllerBase
 {
     /// <summary>
     /// The editable page graph: every section including inactive and scheduled
@@ -28,7 +26,6 @@ public class ContentAdminController(
     [HttpGet("pages/{key}")]
     public async Task<ActionResult<AdminPageDto>> GetPage(string key, CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
 
         var page = await db.ContentPages.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Key == key, ct);
@@ -97,7 +94,6 @@ public class ContentAdminController(
         [FromBody] UpdateSectionsRequest request,
         CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
 
         var page = await db.ContentPages.FirstOrDefaultAsync(p => p.Key == key, ct);
         if (page is null) return NotFound($"Unknown content page '{key}'.");
@@ -163,7 +159,6 @@ public class ContentAdminController(
     [HttpPost("pages/{key}/publish")]
     public async Task<ActionResult<object>> Publish(string key, [FromBody] PublishRequest? request, CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
 
         var page = await db.ContentPages.FirstOrDefaultAsync(p => p.Key == key, ct);
         if (page is null) return NotFound($"Unknown content page '{key}'.");
@@ -193,7 +188,6 @@ public class ContentAdminController(
     [HttpGet("pages/{key}/revisions")]
     public async Task<ActionResult<IReadOnlyList<RevisionDto>>> Revisions(string key, CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
 
         var page = await db.ContentPages.AsNoTracking().FirstOrDefaultAsync(p => p.Key == key, ct);
         if (page is null) return NotFound();
@@ -214,10 +208,6 @@ public class ContentAdminController(
         return Ok(revisions);
     }
 
-    private ActionResult Forbidden() => Problem(
-        title: "Not available",
-        detail: "Content administration is restricted to Development until authentication is in place.",
-        statusCode: StatusCodes.Status403Forbidden);
 
     private static string? Trim(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

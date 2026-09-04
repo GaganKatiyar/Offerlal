@@ -3,9 +3,9 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
 import { Customer } from '../models';
 import { DemoDataStoreService } from './demo-data-store.service';
+import { AuthTokenService } from './auth-token.service';
 
 const SESSION_KEY = 'offerlal_session_v1';
-const ADMIN_KEY = 'offerlal_admin_session_v1';
 
 interface RegisterInput {
   firstName: string;
@@ -18,6 +18,7 @@ interface RegisterInput {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private tokens = inject(AuthTokenService);
   private store = inject(DemoDataStoreService);
 
   private readonly _currentUserId = signal<string | null>(this.readSession());
@@ -28,17 +29,22 @@ export class AuthService {
   });
   readonly isLoggedIn = computed(() => this._currentUserId() !== null);
 
-  readonly isAdmin = signal<boolean>(this.readAdminSession());
+  /**
+   * Whether the current session can reach the back office.
+   *
+   * Derived from the token service's persisted identity rather than a
+   * standalone localStorage flag. The flag version broke as soon as sign-in
+   * moved to the API: nothing wrote it any more, so a page reload logged the
+   * admin straight back out — and it was never a security control anyway,
+   * because the server re-checks the token on every protected request.
+   */
+  readonly isAdmin = computed(() => this.tokens.isAdmin());
 
   private readSession(): string | null {
     if (typeof localStorage === 'undefined') return null;
     return localStorage.getItem(SESSION_KEY);
   }
 
-  private readAdminSession(): boolean {
-    if (typeof localStorage === 'undefined') return false;
-    return localStorage.getItem(ADMIN_KEY) === 'true';
-  }
 
   /** Demo login: matches by email only (any password is accepted) since there is no real backend. */
   login(email: string, _password: string): Observable<Customer> {
@@ -93,22 +99,24 @@ export class AuthService {
     if (typeof localStorage !== 'undefined') localStorage.removeItem(SESSION_KEY);
   }
 
+  /**
+   * Admin sign-in, against the API.
+   *
+   * Was a client-side comparison against 'admin' / 'admin123' in shipped
+   * JavaScript — the credentials were readable by anyone who opened devtools,
+   * and setting a localStorage flag was the entire authorisation check. There
+   * is now no client-side authorisation decision: the server issues a token
+   * and every protected endpoint verifies it independently, so faking the flag
+   * gains nothing.
+   */
   loginAdmin(username: string, password: string): Observable<boolean> {
-    const ok = username.trim().toLowerCase() === 'admin' && password === 'admin123';
-    if (!ok) return throwError(() => new Error('Invalid admin credentials.')).pipe(delay(400));
-    return of(true).pipe(
-      delay(400),
+    return this.tokens.adminLogin(username, password).pipe(
       map(() => true),
-      tap(() => {
-        this.isAdmin.set(true);
-        if (typeof localStorage !== 'undefined') localStorage.setItem(ADMIN_KEY, 'true');
-      }),
     );
   }
 
   logoutAdmin(): void {
-    this.isAdmin.set(false);
-    if (typeof localStorage !== 'undefined') localStorage.removeItem(ADMIN_KEY);
+    this.tokens.logout();
   }
 
   private setSession(id: string): void {

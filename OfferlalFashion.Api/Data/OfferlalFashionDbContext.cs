@@ -46,6 +46,9 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<StoreSetting> StoreSettings { get; set; }
 
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
 
     public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
@@ -125,28 +128,6 @@ public partial class OfferlalFashionDbContext : DbContext
             entity.HasOne(d => d.Customer).WithMany(p => p.Addresses)
                 .HasForeignKey(d => d.CustomerId)
                 .HasConstraintName("FK_Addresses_Customer");
-        });
-
-        modelBuilder.Entity<AdminUser>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.HasIndex(e => e.Username).IsUnique();
-
-            entity.Property(e => e.Id)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
-            entity.Property(e => e.PasswordHash)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-            entity.Property(e => e.Role)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasDefaultValue("admin");
-            entity.Property(e => e.Username)
-                .HasMaxLength(50)
-                .IsUnicode(false);
         });
 
         modelBuilder.Entity<BudgetTier>(entity =>
@@ -660,6 +641,52 @@ public partial class OfferlalFashionDbContext : DbContext
                             .HasMaxLength(50)
                             .IsUnicode(false);
                     });
+        });
+
+        modelBuilder.Entity<AdminUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Username).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.PasswordHash).HasMaxLength(500).IsUnicode(false);
+            entity.Property(e => e.DisplayName).HasMaxLength(120);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(e => e.Username, "UQ_AdminUsers_Username").IsUnique();
+        });
+
+        modelBuilder.Entity<AdminUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Existing column types, stated explicitly so the migration only
+            // ADDS the new fields. Left to EF's defaults it wanted to widen
+            // Id to nvarchar(450), which SQL Server refuses while the primary
+            // key depends on it.
+            entity.Property(e => e.Id).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Username).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.PasswordHash).HasMaxLength(255).IsUnicode(false);
+            entity.Property(e => e.Role).HasMaxLength(20).IsUnicode(false);
+
+            entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.DisplayName).HasMaxLength(120);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.HasIndex(e => e.Username, "UQ_AdminUsers_Username").IsUnique();
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TokenHash).HasMaxLength(64).IsUnicode(false).IsFixedLength();
+            entity.Property(e => e.SubjectId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.SubjectType).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.CreatedByIp).HasMaxLength(64).IsUnicode(false);
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // Lookup is always by hash; the raw token never reaches the server
+            // in a form we store.
+            entity.HasIndex(e => e.TokenHash, "UQ_RefreshTokens_Hash").IsUnique();
+            entity.HasIndex(e => new { e.SubjectType, e.SubjectId }, "IX_RefreshTokens_Subject");
         });
 
         modelBuilder.Entity<NavMenu>(entity =>

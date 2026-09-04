@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OfferlalFashion.Api.Models;
 using OfferlalFashion.Api.Content;
 using OfferlalFashion.Api.Dtos;
 
@@ -8,8 +10,7 @@ namespace OfferlalFashion.Api.Controllers;
 [Route("api/content")]
 public class ContentController(
     ContentService content,
-    HomepageSeeder seeder,
-    IWebHostEnvironment env) : ControllerBase
+    HomepageSeeder seeder) : ControllerBase
 {
     /// <summary>
     /// A composed content page. One request returns everything the page needs.
@@ -35,15 +36,9 @@ public class ContentController(
     /// overwrite edits made in admin.
     /// </summary>
     [HttpPost("seed-homepage")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Content}")]
     public async Task<ActionResult<object>> SeedHomepage(CancellationToken ct = default)
     {
-        if (!env.IsDevelopment())
-        {
-            return Problem(
-                title: "Not available",
-                detail: "Content seeding is restricted to Development until authentication is in place.",
-                statusCode: StatusCodes.Status403Forbidden);
-        }
 
         return Ok(await seeder.SeedAsync(ct));
     }

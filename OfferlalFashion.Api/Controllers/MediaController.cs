@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OfferlalFashion.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Data;
 using OfferlalFashion.Api.Dtos;
@@ -9,18 +11,16 @@ namespace OfferlalFashion.Api.Controllers;
 /// <summary>
 /// The media library API, backing the admin picker.
 ///
-/// SECURITY: uploads and the backfill are gated on Development until
-/// authentication exists. When JWT and roles land, replace the gate with
-/// [Authorize(Roles = "Admin")] rather than deleting it — an open upload
-/// endpoint is a file-drop for anyone who finds it.
+/// Authorised in full: an open upload endpoint is a file-drop for anyone who
+/// finds it, and the browse endpoints expose the whole asset inventory.
 /// </summary>
 [ApiController]
 [Route("api/media")]
+[Authorize(Roles = $"{Roles.Admin},{Roles.Catalog},{Roles.Content}")]
 public class MediaController(
     OfferlalFashionDbContext db,
     MediaService media,
-    MediaBackfillService backfill,
-    IWebHostEnvironment env) : ControllerBase
+    MediaBackfillService backfill) : ControllerBase
 {
     /// <summary>Browse the library — the admin picker's list.</summary>
     [HttpGet]
@@ -93,7 +93,6 @@ public class MediaController(
         [FromForm] string? altText = null,
         CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
         if (file is null || file.Length == 0) return BadRequest("No file supplied.");
 
         try
@@ -117,7 +116,6 @@ public class MediaController(
     [HttpPatch("{id:int}")]
     public async Task<ActionResult<MediaAssetDto>> Update(int id, [FromBody] UpdateMediaAssetRequest request, CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
 
         var asset = await db.MediaAssets.FirstOrDefaultAsync(a => a.Id == id, ct);
         if (asset is null) return NotFound();
@@ -134,14 +132,9 @@ public class MediaController(
     [HttpPost("backfill")]
     public async Task<ActionResult<BackfillReport>> Backfill(CancellationToken ct = default)
     {
-        if (!env.IsDevelopment()) return Forbidden();
         return Ok(await backfill.RunAsync(ct));
     }
 
-    private ActionResult Forbidden() => Problem(
-        title: "Not available",
-        detail: "Media administration is restricted to Development until authentication is in place.",
-        statusCode: StatusCodes.Status403Forbidden);
 }
 
 public sealed record UpdateMediaAssetRequest

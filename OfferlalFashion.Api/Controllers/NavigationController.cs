@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OfferlalFashion.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Content;
 using OfferlalFashion.Api.Data;
@@ -10,8 +12,7 @@ namespace OfferlalFashion.Api.Controllers;
 [Route("api")]
 public class NavigationController(
     OfferlalFashionDbContext db,
-    NavigationSeeder seeder,
-    IWebHostEnvironment env) : ControllerBase
+    NavigationSeeder seeder) : ControllerBase
 {
     /// <summary>
     /// A menu as a nested tree, in one request.
@@ -80,15 +81,9 @@ public class NavigationController(
     }
 
     [HttpPost("admin/nav/seed")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Content}")]
     public async Task<ActionResult<object>> Seed(CancellationToken ct = default)
     {
-        if (!env.IsDevelopment())
-        {
-            return Problem(
-                title: "Not available",
-                detail: "Navigation seeding is restricted to Development until authentication is in place.",
-                statusCode: StatusCodes.Status403Forbidden);
-        }
 
         return Ok(await seeder.SeedAsync(ct));
     }

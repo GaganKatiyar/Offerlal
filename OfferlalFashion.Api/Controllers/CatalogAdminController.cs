@@ -1,23 +1,19 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OfferlalFashion.Api.Models;
 using OfferlalFashion.Api.Catalog;
 
 namespace OfferlalFashion.Api.Controllers;
 
 /// <summary>
-/// Catalogue maintenance operations.
-///
-/// SECURITY: there is no authentication in the application yet, so every action
-/// here is gated on the hosting environment being Development. When JWT and
-/// roles land, replace that gate with [Authorize(Roles = "Admin")] — do not
-/// simply delete it, or a catalogue rebuild becomes an unauthenticated public
-/// endpoint.
+/// Catalogue maintenance operations. Back-office only.
 /// </summary>
 [ApiController]
 [Route("api/admin/catalog")]
+[Authorize(Roles = $"{Roles.Admin},{Roles.Catalog}")]
 public class CatalogAdminController(
     AttributeProjectionService projection,
-    SizeChartSeeder sizeCharts,
-    IWebHostEnvironment env) : ControllerBase
+    SizeChartSeeder sizeCharts) : ControllerBase
 {
     /// <summary>
     /// Rebuilds the facet projection from the authoritative catalogue tables.
@@ -29,13 +25,6 @@ public class CatalogAdminController(
     [HttpPost("rebuild-attributes")]
     public async Task<ActionResult<ProjectionReport>> RebuildAttributes(CancellationToken ct = default)
     {
-        if (!env.IsDevelopment())
-        {
-            return Problem(
-                title: "Not available",
-                detail: "Catalogue rebuild is restricted to Development until authentication is in place.",
-                statusCode: StatusCodes.Status403Forbidden);
-        }
 
         var report = await projection.RebuildAllAsync(ct);
         return Ok(report);
@@ -45,13 +34,6 @@ public class CatalogAdminController(
     [HttpPost("seed-size-charts")]
     public async Task<ActionResult<object>> SeedSizeCharts(CancellationToken ct = default)
     {
-        if (!env.IsDevelopment())
-        {
-            return Problem(
-                title: "Not available",
-                detail: "Size chart seeding is restricted to Development until authentication is in place.",
-                statusCode: StatusCodes.Status403Forbidden);
-        }
 
         var added = await sizeCharts.SeedAsync(ct);
         return Ok(new { measurementsAdded = added });
