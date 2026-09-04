@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using OfferlalFashion.Api.Catalog;
+using OfferlalFashion.Api.Content;
 using OfferlalFashion.Api.Data;
 using OfferlalFashion.Api.Infrastructure;
 using OfferlalFashion.Api.Media;
@@ -55,6 +56,10 @@ try
     builder.Services.AddScoped<AttributeProjectionService>();
     builder.Services.AddScoped<ProductQueryService>();
     builder.Services.AddScoped<SizeChartSeeder>();
+
+    // ── Content ──────────────────────────────────────────────────────────────
+    builder.Services.AddScoped<ContentService>();
+    builder.Services.AddScoped<HomepageSeeder>();
 
     // ── Media ────────────────────────────────────────────────────────────────
     builder.Services.AddSingleton(new LocalDiskMediaStorageOptions());

@@ -28,6 +28,18 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<SizeChartMeasurement> SizeChartMeasurements { get; set; }
 
+    public virtual DbSet<ContentPage> ContentPages { get; set; }
+
+    public virtual DbSet<SectionType> SectionTypes { get; set; }
+
+    public virtual DbSet<PageSection> PageSections { get; set; }
+
+    public virtual DbSet<PageSectionItem> PageSectionItems { get; set; }
+
+    public virtual DbSet<ProductRule> ProductRules { get; set; }
+
+    public virtual DbSet<PageRevision> PageRevisions { get; set; }
+
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
 
     public virtual DbSet<CatalogAttribute> CatalogAttributes { get; set; }
@@ -642,6 +654,132 @@ public partial class OfferlalFashionDbContext : DbContext
                             .HasMaxLength(50)
                             .IsUnicode(false);
                     });
+        });
+
+        modelBuilder.Entity<ContentPage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(120);
+            entity.HasIndex(e => e.Key, "UQ_ContentPages_Key").IsUnique();
+        });
+
+        modelBuilder.Entity<SectionType>(entity =>
+        {
+            entity.HasKey(e => e.Code);
+            entity.Property(e => e.Code).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(120);
+            entity.Property(e => e.ItemKind).HasMaxLength(40).IsUnicode(false);
+        });
+
+        modelBuilder.Entity<PageSection>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SectionTypeCode).HasMaxLength(60).IsUnicode(false);
+            entity.Property(e => e.Eyebrow).HasMaxLength(120);
+            entity.Property(e => e.Heading).HasMaxLength(200);
+            entity.Property(e => e.Subheading).HasMaxLength(500);
+            entity.Property(e => e.CtaLabel).HasMaxLength(80);
+            entity.Property(e => e.CtaUrl).HasMaxLength(500);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // Optimistic concurrency: the admin editor saves the whole page
+            // graph in one PUT, so two people reordering at once must conflict
+            // rather than silently overwrite each other.
+            entity.Property(e => e.RowVersion).IsRowVersion();
+
+            entity.HasIndex(e => new { e.PageId, e.DisplayOrder }, "IX_PageSections_Page_Order");
+
+            entity.HasCheckConstraint("CK_PageSections_Config_Json", "ISJSON(ConfigJson) = 1");
+
+            entity.HasOne(d => d.Page).WithMany(p => p.Sections)
+                .HasForeignKey(d => d.PageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PageSections_Page");
+
+            entity.HasOne<SectionType>().WithMany()
+                .HasForeignKey(d => d.SectionTypeCode)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_PageSections_SectionType");
+
+            entity.HasOne(d => d.ProductRule).WithMany(p => p.Sections)
+                .HasForeignKey(d => d.ProductRuleId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_PageSections_ProductRule");
+        });
+
+        modelBuilder.Entity<PageSectionItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ItemKind).HasMaxLength(40).IsUnicode(false);
+            entity.Property(e => e.ProductId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.CategoryId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.OccasionId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.Subtitle).HasMaxLength(300);
+            entity.Property(e => e.Caption).HasMaxLength(500);
+            entity.Property(e => e.BadgeText).HasMaxLength(60);
+            entity.Property(e => e.LinkUrl).HasMaxLength(500);
+
+            entity.HasIndex(e => new { e.SectionId, e.DisplayOrder }, "IX_PageSectionItems_Section_Order");
+
+            entity.HasOne(d => d.Section).WithMany(p => p.Items)
+                .HasForeignKey(d => d.SectionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PageSectionItems_Section");
+
+            // Restrict on every content FK. A homepage rail must not be
+            // silently emptied by a product delete - the admin has to remove
+            // the pin first, which is the whole point of typed rows.
+            entity.HasOne(d => d.Product).WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_PageSectionItems_Product");
+
+            entity.HasOne(d => d.Category).WithMany()
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_PageSectionItems_Category");
+
+            entity.HasOne(d => d.Occasion).WithMany()
+                .HasForeignKey(d => d.OccasionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_PageSectionItems_Occasion");
+
+            entity.HasOne(d => d.MediaAsset).WithMany()
+                .HasForeignKey(d => d.MediaAssetId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_PageSectionItems_MediaAsset");
+
+            entity.HasOne(d => d.MediaAssetMobile).WithMany()
+                .HasForeignKey(d => d.MediaAssetMobileId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_PageSectionItems_MediaAssetMobile");
+        });
+
+        modelBuilder.Entity<ProductRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(120);
+            entity.HasIndex(e => e.Name, "UQ_ProductRules_Name").IsUnique();
+            entity.HasCheckConstraint("CK_ProductRules_Definition_Json", "ISJSON(DefinitionJson) = 1");
+        });
+
+        modelBuilder.Entity<PageRevision>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PublishedBy).HasMaxLength(100);
+            entity.Property(e => e.Note).HasMaxLength(500);
+            entity.Property(e => e.PublishedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            entity.HasIndex(e => new { e.PageId, e.PublishedAtUtc }, "IX_PageRevisions_Page_PublishedAt");
+
+            entity.HasOne(d => d.Page).WithMany()
+                .HasForeignKey(d => d.PageId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PageRevisions_Page");
         });
 
         modelBuilder.Entity<SizeChartMeasurement>(entity =>

@@ -55,6 +55,63 @@ public sealed class ProductQueryService(OfferlalFashionDbContext db)
     public const int MaxPageSize = 100;
 
     /// <summary>
+    /// The one definition of what a product card contains.
+    ///
+    /// Shared by the PLP, the CMS rails and pinned lookups. Duplicating it
+    /// would let the homepage and the PLP drift into showing different fields
+    /// for the same product, and only one of them would ever get fixed.
+    ///
+    /// Deliberately projected rather than materialised: the previous
+    /// implementation Included every variant and every image on every variant
+    /// to render a thumbnail and a few swatches.
+    /// </summary>
+    private static readonly System.Linq.Expressions.Expression<Func<Product, ProductCardDto>> CardProjection =
+        p => new ProductCardDto
+            {
+                Id = p.Id,
+                Slug = p.Slug,
+                Name = p.Name,
+                CategoryId = p.CategoryId,
+                SubCategory = p.SubCategory,
+                Price = p.Price,
+                CompareAtPrice = p.CompareAtPrice,
+                Currency = p.Currency,
+                Rating = p.Rating,
+                ReviewCount = p.ReviewCount,
+                StockStatus = p.StockStatus,
+                IsBestseller = p.IsBestseller,
+                IsNewArrival = p.IsNewArrival,
+                Fabric = p.Fabric,
+                HasCustomSizing = p.ProductVariants.Any(v => v.ProductSkus.Any(s => s.Size == "Custom")),
+                ThumbnailUrl = p.ProductVariants
+                    .SelectMany(v => v.ProductImages)
+                    .OrderByDescending(i => i.IsPrimary)
+                    .ThenBy(i => i.SortOrder)
+                    .Select(i => i.MediaAsset != null ? i.MediaAsset.Url : i.Url)
+                    .FirstOrDefault(),
+                ThumbnailAlt = p.ProductVariants
+                    .SelectMany(v => v.ProductImages)
+                    .OrderByDescending(i => i.IsPrimary)
+                    .ThenBy(i => i.SortOrder)
+                    // Reference alt first: it is specific to THIS product's use
+                    // of the picture. The asset's alt describes the picture
+                    // itself and is the fallback, not the override.
+                    .Select(i => i.Alt ?? (i.MediaAsset != null ? i.MediaAsset.AltText : null))
+                    .FirstOrDefault(),
+                ThumbnailWidthsCsv = p.ProductVariants
+                    .SelectMany(v => v.ProductImages)
+                    .OrderByDescending(i => i.IsPrimary)
+                    .ThenBy(i => i.SortOrder)
+                    .Select(i => i.MediaAsset != null ? i.MediaAsset.DerivativeWidths : null)
+                    .FirstOrDefault(),
+                Swatches = p.ProductVariants
+                    .OrderBy(v => v.Id)
+                    .Select(v => new SwatchDto { Color = v.Color, ColorHex = v.ColorHex })
+                    .ToList(),
+        };
+
+
+    /// <summary>
     /// Applies every filter EXCEPT the named attribute.
     ///
     /// Facet counts must exclude their own attribute's selection, otherwise
@@ -140,6 +197,44 @@ public sealed class ProductQueryService(OfferlalFashionDbContext db)
         _ => query.OrderByDescending(p => p.IsFeatured).ThenByDescending(p => p.Rating).ThenBy(p => p.Id),
     };
 
+    /// <summary>
+    /// Cards for an arbitrary query, without facets or a total count.
+    ///
+    /// Used by the CMS for homepage rails, which need the products but none of
+    /// the PLP's faceting machinery.
+    /// </summary>
+    public async Task<IReadOnlyList<ProductCardDto>> GetCardsAsync(ProductQuery q, CancellationToken ct = default)
+    {
+        string? categoryPath = null;
+        if (!string.IsNullOrWhiteSpace(q.CategoryId))
+        {
+            categoryPath = await db.Categories.AsNoTracking()
+                .Where(c => c.Id == q.CategoryId)
+                .Select(c => c.Path)
+                .FirstOrDefaultAsync(ct);
+
+            if (categoryPath is null) return [];
+        }
+
+        return await ApplySort(BuildQuery(q, null, categoryPath), q.Sort)
+            .Take(Math.Clamp(q.PageSize, 1, MaxPageSize))
+            .Select(CardProjection)
+            .ToListAsync(ct);
+    }
+
+    /// <summary>Cards for specific ids, for manually pinned rail items.</summary>
+    public async Task<IReadOnlyList<ProductCardDto>> GetCardsByIdsAsync(
+        IReadOnlyCollection<string> ids,
+        CancellationToken ct = default)
+    {
+        if (ids.Count == 0) return [];
+
+        return await db.Products.AsNoTracking()
+            .Where(p => ids.Contains(p.Id))
+            .Select(CardProjection)
+            .ToListAsync(ct);
+    }
+
     public async Task<ProductSearchResult?> SearchAsync(ProductQuery q, CancellationToken ct = default)
     {
         string? categoryPath = null;
@@ -168,49 +263,7 @@ public sealed class ProductQueryService(OfferlalFashionDbContext db)
         var items = await ApplySort(baseQuery, q.Sort)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(p => new ProductCardDto
-            {
-                Id = p.Id,
-                Slug = p.Slug,
-                Name = p.Name,
-                CategoryId = p.CategoryId,
-                SubCategory = p.SubCategory,
-                Price = p.Price,
-                CompareAtPrice = p.CompareAtPrice,
-                Currency = p.Currency,
-                Rating = p.Rating,
-                ReviewCount = p.ReviewCount,
-                StockStatus = p.StockStatus,
-                IsBestseller = p.IsBestseller,
-                IsNewArrival = p.IsNewArrival,
-                Fabric = p.Fabric,
-                HasCustomSizing = p.ProductVariants.Any(v => v.ProductSkus.Any(s => s.Size == "Custom")),
-                ThumbnailUrl = p.ProductVariants
-                    .SelectMany(v => v.ProductImages)
-                    .OrderByDescending(i => i.IsPrimary)
-                    .ThenBy(i => i.SortOrder)
-                    .Select(i => i.MediaAsset != null ? i.MediaAsset.Url : i.Url)
-                    .FirstOrDefault(),
-                ThumbnailAlt = p.ProductVariants
-                    .SelectMany(v => v.ProductImages)
-                    .OrderByDescending(i => i.IsPrimary)
-                    .ThenBy(i => i.SortOrder)
-                    // Reference alt first: it is specific to THIS product's use
-                    // of the picture. The asset's alt describes the picture
-                    // itself and is the fallback, not the override.
-                    .Select(i => i.Alt ?? (i.MediaAsset != null ? i.MediaAsset.AltText : null))
-                    .FirstOrDefault(),
-                ThumbnailWidthsCsv = p.ProductVariants
-                    .SelectMany(v => v.ProductImages)
-                    .OrderByDescending(i => i.IsPrimary)
-                    .ThenBy(i => i.SortOrder)
-                    .Select(i => i.MediaAsset != null ? i.MediaAsset.DerivativeWidths : null)
-                    .FirstOrDefault(),
-                Swatches = p.ProductVariants
-                    .OrderBy(v => v.Id)
-                    .Select(v => new SwatchDto { Color = v.Color, ColorHex = v.ColorHex })
-                    .ToList(),
-            })
+            .Select(CardProjection)
             .ToListAsync(ct);
 
         var facets = await BuildFacetsAsync(q, categoryPath, ct);

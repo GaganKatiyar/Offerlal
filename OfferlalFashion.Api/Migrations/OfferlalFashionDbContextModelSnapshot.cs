@@ -641,6 +641,36 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.ContentPage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int?>("PublishedRevisionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Key" }, "UQ_ContentPages_Key")
+                        .IsUnique();
+
+                    b.ToTable("ContentPages");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Coupon", b =>
                 {
                     b.Property<string>("Id")
@@ -1209,6 +1239,217 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("OrderStatusHistory", (string)null);
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageRevision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PublishedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("PublishedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "PageId", "PublishedAtUtc" }, "IX_PageRevisions_Page_PublishedAt");
+
+                    b.ToTable("PageRevisions");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConfigJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("CtaLabel")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("CtaUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Eyebrow")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Heading")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PageId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductRuleId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SectionTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<DateTime?>("StartsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subheading")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductRuleId");
+
+                    b.HasIndex("SectionTypeCode");
+
+                    b.HasIndex(new[] { "PageId", "DisplayOrder" }, "IX_PageSections_Page_Order");
+
+                    b.ToTable("PageSections", t =>
+                        {
+                            t.HasCheckConstraint("CK_PageSections_Config_Json", "ISJSON(ConfigJson) = 1");
+                        });
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageSectionItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BadgeText")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ItemKind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("LinkUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("MediaAssetId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MediaAssetMobileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OccasionId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ProductId")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("SectionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subtitle")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("MediaAssetId");
+
+                    b.HasIndex("MediaAssetMobileId");
+
+                    b.HasIndex("OccasionId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex(new[] { "SectionId", "DisplayOrder" }, "IX_PageSectionItems_Section_Order");
+
+                    b.ToTable("PageSectionItems");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Product", b =>
                 {
                     b.Property<string>("Id")
@@ -1491,6 +1732,40 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("ProductImages");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.ProductRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxItems")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Name" }, "UQ_ProductRules_Name")
+                        .IsUnique();
+
+                    b.ToTable("ProductRules", t =>
+                        {
+                            t.HasCheckConstraint("CK_ProductRules_Definition_Json", "ISJSON(DefinitionJson) = 1");
+                        });
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.ProductSku", b =>
                 {
                     b.Property<string>("Sku")
@@ -1649,6 +1924,40 @@ namespace OfferlalFashion.Api.Migrations
                     b.HasIndex("ReviewId");
 
                     b.ToTable("ReviewImages");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.SectionType", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(60)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ItemKind")
+                        .HasMaxLength(40)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<int?>("MaxItems")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("SchemaJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("SectionTypes");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.SizeChartMeasurement", b =>
@@ -2004,6 +2313,97 @@ namespace OfferlalFashion.Api.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageRevision", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.ContentPage", "Page")
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PageRevisions_Page");
+
+                    b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageSection", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.ContentPage", "Page")
+                        .WithMany("Sections")
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PageSections_Page");
+
+                    b.HasOne("OfferlalFashion.Api.Models.ProductRule", "ProductRule")
+                        .WithMany("Sections")
+                        .HasForeignKey("ProductRuleId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_PageSections_ProductRule");
+
+                    b.HasOne("OfferlalFashion.Api.Models.SectionType", null)
+                        .WithMany()
+                        .HasForeignKey("SectionTypeCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_PageSections_SectionType");
+
+                    b.Navigation("Page");
+
+                    b.Navigation("ProductRule");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageSectionItem", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PageSectionItems_Category");
+
+                    b.HasOne("OfferlalFashion.Api.Models.MediaAsset", "MediaAsset")
+                        .WithMany()
+                        .HasForeignKey("MediaAssetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PageSectionItems_MediaAsset");
+
+                    b.HasOne("OfferlalFashion.Api.Models.MediaAsset", "MediaAssetMobile")
+                        .WithMany()
+                        .HasForeignKey("MediaAssetMobileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PageSectionItems_MediaAssetMobile");
+
+                    b.HasOne("OfferlalFashion.Api.Models.Occasion", "Occasion")
+                        .WithMany()
+                        .HasForeignKey("OccasionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PageSectionItems_Occasion");
+
+                    b.HasOne("OfferlalFashion.Api.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_PageSectionItems_Product");
+
+                    b.HasOne("OfferlalFashion.Api.Models.PageSection", "Section")
+                        .WithMany("Items")
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PageSectionItems_Section");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("MediaAsset");
+
+                    b.Navigation("MediaAssetMobile");
+
+                    b.Navigation("Occasion");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Section");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Product", b =>
                 {
                     b.HasOne("OfferlalFashion.Api.Models.AttributeSet", "AttributeSet")
@@ -2274,6 +2674,11 @@ namespace OfferlalFashion.Api.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.ContentPage", b =>
+                {
+                    b.Navigation("Sections");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Customer", b =>
                 {
                     b.Navigation("Addresses");
@@ -2301,6 +2706,11 @@ namespace OfferlalFashion.Api.Migrations
                     b.Navigation("OrderStatusHistories");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PageSection", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Product", b =>
                 {
                     b.Navigation("AttributeNumbers");
@@ -2316,6 +2726,11 @@ namespace OfferlalFashion.Api.Migrations
                     b.Navigation("Reviews");
 
                     b.Navigation("WishlistItems");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.ProductRule", b =>
+                {
+                    b.Navigation("Sections");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.ProductVariant", b =>
