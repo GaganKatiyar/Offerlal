@@ -4,9 +4,13 @@ import { DatePipe } from '@angular/common';
 import {
   AdminPage,
   AdminSection,
+  AdminSectionItem,
   ContentAdminService,
   RevisionInfo,
+  SectionItemWrite,
 } from '../../core/services/content-api.service';
+import { MediaPicker } from '../shared/media-picker/media-picker';
+import { MediaAsset } from '../../core/services/media-api.service';
 
 const PAGE_KEY = 'home';
 
@@ -25,7 +29,7 @@ const PAGE_KEY = 'home';
 @Component({
   selector: 'app-homepage-editor',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, MediaPicker],
   templateUrl: './homepage-editor.html',
   styleUrl: './homepage-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +51,29 @@ export class HomepageEditor {
   protected dirty = signal(false);
 
   protected selected = computed(() => this.sections().find((s) => s.id === this.selectedId()) ?? null);
+
+  /** Items belong to the selected section; there is no separate fetch. */
+  protected items = computed<AdminSectionItem[]>(() => this.selected()?.items ?? []);
+
+  protected pickerOpen = signal(false);
+  private pickerTargetId = signal<number | null>(null);
+
+  /**
+   * Which fields an item shows, decided by the SECTION type rather than by the
+   * item. A trust badge has an icon, a title and a caption; a hero slide has an
+   * image, a headline and a link. Showing every field for every kind would make
+   * the common case unreadable.
+   */
+  protected itemShape = computed(() => {
+    const type = this.selected()?.type ?? '';
+    return {
+      image: type === 'hero-carousel' || type === 'ugc-grid',
+      badge: type === 'hero-carousel' || type === 'trust-strip',
+      caption: type !== 'product-rail',
+      link: type !== 'trust-strip',
+      product: type === 'product-rail',
+    };
+  });
 
   protected typeName = computed(() => {
     const types = this.page()?.sectionTypes ?? [];
@@ -140,6 +167,85 @@ export class HomepageEditor {
         this.saving.set(false);
       },
     });
+  }
+
+  // --- Items ----------------------------------------------------------------
+
+  protected addItem(): void {
+    const section = this.selected();
+    if (!section) return;
+
+    this.saving.set(true);
+    this.api.createItem(section.id, { isActive: false, title: 'New item' }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.message.set('Item added. It is hidden until you make it visible.');
+        this.load();
+      },
+      error: (err) => {
+        this.error.set(describeError(err));
+        this.saving.set(false);
+      },
+    });
+  }
+
+  protected saveItem(item: AdminSectionItem): void {
+    this.saving.set(true);
+    const payload: SectionItemWrite = {
+      title: item.title,
+      subtitle: item.subtitle,
+      caption: item.caption,
+      badgeText: item.badgeText,
+      linkUrl: item.linkUrl,
+      isActive: item.isActive,
+      mediaAssetId: item.mediaAssetId,
+      productId: item.productId,
+    };
+
+    this.api.updateItem(item.id, payload).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.message.set('Item saved.');
+      },
+      error: (err) => {
+        this.error.set(describeError(err));
+        this.saving.set(false);
+      },
+    });
+  }
+
+  protected deleteItem(item: AdminSectionItem): void {
+    if (typeof window !== 'undefined' && !window.confirm(`Delete "${item.title || 'this item'}"?`)) return;
+
+    this.saving.set(true);
+    this.api.deleteItem(item.id).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.load();
+      },
+      error: (err) => {
+        this.error.set(describeError(err));
+        this.saving.set(false);
+      },
+    });
+  }
+
+  protected openPicker(item: AdminSectionItem): void {
+    this.pickerTargetId.set(item.id);
+    this.pickerOpen.set(true);
+  }
+
+  protected onPicked(asset: MediaAsset): void {
+    const id = this.pickerTargetId();
+    const item = this.items().find((i) => i.id === id);
+    if (!item) return;
+
+    item.mediaAssetId = asset.id;
+    item.mediaUrl = asset.url;
+    item.mediaAlt = asset.altText ?? null;
+    // Saved immediately: a picked image that needs a second Save is the kind of
+    // thing people assume already applied.
+    this.saveItem(item);
   }
 
   protected reload(): void {

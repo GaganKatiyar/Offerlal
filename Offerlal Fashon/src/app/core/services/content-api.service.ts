@@ -40,6 +40,7 @@ export interface AdminSection {
   productRuleId?: number | null;
   rowVersion?: string | null;
   itemCount: number;
+  items: AdminSectionItem[];
 }
 
 export interface SectionTypeInfo {
@@ -102,7 +103,61 @@ export class ContentAdminService {
     );
   }
 
+  // --- Section items --------------------------------------------------------
+
+  createItem(sectionId: number, item: SectionItemWrite): Observable<AdminSectionItem> {
+    return this.http.post<AdminSectionItem>(`${this.base}/admin/content/sections/${sectionId}/items`, item);
+  }
+
+  updateItem(id: number, item: SectionItemWrite): Observable<AdminSectionItem> {
+    return this.http.put<AdminSectionItem>(`${this.base}/admin/content/items/${id}`, item);
+  }
+
+  reorderItems(sectionId: number, items: { id: number; displayOrder: number; isActive: boolean }[]) {
+    return this.http.put<{ updated: number }>(
+      `${this.base}/admin/content/sections/${sectionId}/items/reorder`,
+      { items },
+    );
+  }
+
+  deleteItem(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/content/items/${id}`);
+  }
+
   revisions(key: string): Observable<RevisionInfo[]> {
     return this.http.get<RevisionInfo[]>(`${this.base}/admin/content/pages/${encodeURIComponent(key)}/revisions`);
   }
+}
+
+export interface AdminSectionItem {
+  id: number;
+  displayOrder: number;
+  itemKind: string;
+  title?: string | null;
+  subtitle?: string | null;
+  caption?: string | null;
+  badgeText?: string | null;
+  linkUrl?: string | null;
+  isActive: boolean;
+  mediaAssetId?: number | null;
+  mediaUrl?: string | null;
+  mediaAlt?: string | null;
+  productId?: string | null;
+  productName?: string | null;
+  categoryId?: string | null;
+  occasionId?: string | null;
+}
+
+export interface SectionItemWrite {
+  itemKind?: string;
+  title?: string | null;
+  subtitle?: string | null;
+  caption?: string | null;
+  badgeText?: string | null;
+  linkUrl?: string | null;
+  isActive: boolean;
+  mediaAssetId?: number | null;
+  productId?: string | null;
+  categoryId?: string | null;
+  occasionId?: string | null;
 }

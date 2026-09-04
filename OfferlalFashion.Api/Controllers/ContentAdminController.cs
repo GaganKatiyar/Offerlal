@@ -34,7 +34,8 @@ public class ContentAdminController(
         var sections = await db.PageSections.AsNoTracking()
             .Where(s => s.PageId == page.Id)
             .OrderBy(s => s.DisplayOrder)
-            .Include(s => s.Items.OrderBy(i => i.DisplayOrder))
+            .Include(s => s.Items.OrderBy(i => i.DisplayOrder)).ThenInclude(i => i.MediaAsset)
+            .Include(s => s.Items).ThenInclude(i => i.Product)
             .ToListAsync(ct);
 
         var types = await db.SectionTypes.AsNoTracking()
@@ -73,6 +74,7 @@ public class ContentAdminController(
                 ProductRuleId = s.ProductRuleId,
                 RowVersion = s.RowVersion is null ? null : Convert.ToBase64String(s.RowVersion),
                 ItemCount = s.Items.Count,
+                Items = [.. s.Items.OrderBy(i => i.DisplayOrder).Select(ToItemDto)],
             })],
         });
     }
@@ -147,6 +149,143 @@ public class ContentAdminController(
 
         await db.SaveChangesAsync(ct);
         return Ok(new { updated });
+    }
+
+    // -----------------------------------------------------------------------
+    // Section items — hero slides, trust badges, tiles, pinned products.
+    //
+    // These were database-only until now: the editor could reorder and reword
+    // SECTIONS but not touch what was inside them, so changing a hero slide
+    // meant SQL.
+    // -----------------------------------------------------------------------
+
+    [HttpPost("sections/{sectionId:int}/items")]
+    public async Task<ActionResult<AdminSectionItemDto>> CreateItem(
+        int sectionId,
+        [FromBody] SectionItemWrite request,
+        CancellationToken ct = default)
+    {
+        var section = await db.PageSections
+            .Include(s => s.Items)
+            .FirstOrDefaultAsync(s => s.Id == sectionId, ct);
+
+        if (section is null) return NotFound();
+
+        // The section type declares how many items it holds and the renderer
+        // assumes it. A hero with nine slides would silently drop five, so the
+        // limit is refused here rather than discovered on the storefront.
+        var type = await db.SectionTypes.FirstOrDefaultAsync(t => t.Code == section.SectionTypeCode, ct);
+        if (type?.MaxItems is int max && section.Items.Count >= max)
+        {
+            return Conflict(new { message = $"{type.Name} holds at most {max} items." });
+        }
+
+        var item = new PageSectionItem
+        {
+            SectionId = sectionId,
+            DisplayOrder = (section.Items.Select(i => i.DisplayOrder).DefaultIfEmpty(0).Max() / 10 + 1) * 10,
+        };
+
+        ApplyItem(item, request, type?.ItemKind);
+        db.PageSectionItems.Add(item);
+        await db.SaveChangesAsync(ct);
+
+        return Ok(await ItemDtoAsync(item.Id, ct));
+    }
+
+    [HttpPut("items/{id:int}")]
+    public async Task<ActionResult<AdminSectionItemDto>> UpdateItem(
+        int id,
+        [FromBody] SectionItemWrite request,
+        CancellationToken ct = default)
+    {
+        var item = await db.PageSectionItems.Include(i => i.Section).FirstOrDefaultAsync(i => i.Id == id, ct);
+        if (item is null) return NotFound();
+
+        var type = await db.SectionTypes.FirstOrDefaultAsync(t => t.Code == item.Section.SectionTypeCode, ct);
+        ApplyItem(item, request, type?.ItemKind);
+        await db.SaveChangesAsync(ct);
+
+        return Ok(await ItemDtoAsync(item.Id, ct));
+    }
+
+    [HttpPut("sections/{sectionId:int}/items/reorder")]
+    public async Task<ActionResult<object>> ReorderItems(
+        int sectionId,
+        [FromBody] ItemReorderRequest request,
+        CancellationToken ct = default)
+    {
+        var items = await db.PageSectionItems
+            .Where(i => i.SectionId == sectionId)
+            .ToDictionaryAsync(i => i.Id, ct);
+
+        foreach (var entry in request.Items)
+        {
+            if (!items.TryGetValue(entry.Id, out var item)) continue;
+            item.DisplayOrder = entry.DisplayOrder;
+            item.IsActive = entry.IsActive;
+        }
+
+        await db.SaveChangesAsync(ct);
+        return Ok(new { updated = request.Items.Count });
+    }
+
+    [HttpDelete("items/{id:int}")]
+    public async Task<IActionResult> DeleteItem(int id, CancellationToken ct = default)
+    {
+        var item = await db.PageSectionItems.FirstOrDefaultAsync(i => i.Id == id, ct);
+        if (item is null) return NotFound();
+
+        db.PageSectionItems.Remove(item);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    private static void ApplyItem(PageSectionItem item, SectionItemWrite request, string? sectionKind)
+    {
+        // The SECTION TYPE decides the kind, not the client: a trust badge
+        // inside a hero carousel would render as an empty slide.
+        item.ItemKind = sectionKind ?? request.ItemKind;
+        item.Title = Trim(request.Title);
+        item.Subtitle = Trim(request.Subtitle);
+        item.Caption = Trim(request.Caption);
+        item.BadgeText = Trim(request.BadgeText);
+        item.LinkUrl = Trim(request.LinkUrl);
+        item.IsActive = request.IsActive;
+        item.MediaAssetId = request.MediaAssetId;
+        item.ProductId = Trim(request.ProductId);
+        item.CategoryId = Trim(request.CategoryId);
+        item.OccasionId = Trim(request.OccasionId);
+    }
+
+    private static AdminSectionItemDto ToItemDto(PageSectionItem i) => new()
+    {
+        Id = i.Id,
+        DisplayOrder = i.DisplayOrder,
+        ItemKind = i.ItemKind,
+        Title = i.Title,
+        Subtitle = i.Subtitle,
+        Caption = i.Caption,
+        BadgeText = i.BadgeText,
+        LinkUrl = i.LinkUrl,
+        IsActive = i.IsActive,
+        MediaAssetId = i.MediaAssetId,
+        MediaUrl = i.MediaAsset?.Url,
+        MediaAlt = i.MediaAsset?.AltText,
+        ProductId = i.ProductId,
+        ProductName = i.Product?.Name,
+        CategoryId = i.CategoryId,
+        OccasionId = i.OccasionId,
+    };
+
+    private async Task<AdminSectionItemDto> ItemDtoAsync(int id, CancellationToken ct)
+    {
+        var i = await db.PageSectionItems.AsNoTracking()
+            .Include(x => x.MediaAsset)
+            .Include(x => x.Product)
+            .FirstAsync(x => x.Id == id, ct);
+
+        return ToItemDto(i);
     }
 
     /// <summary>
@@ -232,6 +371,18 @@ public sealed record AdminSectionEdit
     public DateTime? EndsAtUtc { get; init; }
     public int? ProductRuleId { get; init; }
     public string? RowVersion { get; init; }
+}
+
+public sealed record ItemReorderRequest
+{
+    public IReadOnlyList<ItemReorderEntry> Items { get; init; } = [];
+}
+
+public sealed record ItemReorderEntry
+{
+    public int Id { get; init; }
+    public int DisplayOrder { get; init; }
+    public bool IsActive { get; init; } = true;
 }
 
 public sealed record PublishRequest

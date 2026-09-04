@@ -94,6 +94,49 @@ public sealed record AdminSectionDto
     public string? RowVersion { get; init; }
 
     public int ItemCount { get; init; }
+
+    /// <summary>
+    /// The section's typed child rows — hero slides, trust badges, pinned
+    /// products, tiles. Returned so the editor can manage them.
+    /// </summary>
+    public IReadOnlyList<AdminSectionItemDto> Items { get; init; } = [];
+}
+
+public sealed record AdminSectionItemDto
+{
+    public int Id { get; init; }
+    public int DisplayOrder { get; init; }
+    public string ItemKind { get; init; } = "";
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public string? Caption { get; init; }
+    public string? BadgeText { get; init; }
+    public string? LinkUrl { get; init; }
+    public bool IsActive { get; init; }
+
+    public int? MediaAssetId { get; init; }
+    public string? MediaUrl { get; init; }
+    public string? MediaAlt { get; init; }
+
+    public string? ProductId { get; init; }
+    public string? ProductName { get; init; }
+    public string? CategoryId { get; init; }
+    public string? OccasionId { get; init; }
+}
+
+public sealed record SectionItemWrite
+{
+    public string ItemKind { get; init; } = "Banner";
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public string? Caption { get; init; }
+    public string? BadgeText { get; init; }
+    public string? LinkUrl { get; init; }
+    public bool IsActive { get; init; } = true;
+    public int? MediaAssetId { get; init; }
+    public string? ProductId { get; init; }
+    public string? CategoryId { get; init; }
+    public string? OccasionId { get; init; }
 }
 
 public sealed record SectionTypeDto

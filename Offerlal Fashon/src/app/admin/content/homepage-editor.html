@@ -116,12 +116,75 @@
           </div>
           <small class="hint">Leave both empty for always on. Scheduling is checked when the page is served.</small>
 
-          @if (s.itemCount) {
-            <p class="hint items-note">
-              This section has {{ s.itemCount }} item{{ s.itemCount === 1 ? '' : 's' }} (tiles, badges or pinned
-              products). Item editing is not built yet — they are managed in the database for now.
-            </p>
-          }
+          <!--
+            Section items: hero slides, trust badges, tiles, pinned products.
+            Which fields show is decided by the SECTION type, because a trust
+            badge and a hero slide have almost nothing in common.
+          -->
+          <div class="items-block">
+            <div class="items-head">
+              <h3>Items <span class="count">{{ items().length }}</span></h3>
+              <button type="button" class="btn btn-outline btn-sm" (click)="addItem()" [disabled]="saving()">
+                + Add item
+              </button>
+            </div>
+
+            @for (item of items(); track item.id) {
+              <div class="item-card" [class.inactive]="!item.isActive">
+                @if (itemShape().image) {
+                  <button type="button" class="item-thumb" (click)="openPicker(item)" title="Change image">
+                    @if (item.mediaUrl) {
+                      <img [src]="item.mediaUrl" [alt]="item.mediaAlt || ''" />
+                    } @else {
+                      <span class="no-image">Pick image</span>
+                    }
+                  </button>
+                }
+
+                <div class="item-fields">
+                  <input
+                    type="text"
+                    [(ngModel)]="item.title"
+                    (blur)="saveItem(item)"
+                    placeholder="Title"
+                    class="item-title"
+                  />
+
+                  @if (itemShape().caption) {
+                    <input type="text" [(ngModel)]="item.caption" (blur)="saveItem(item)" placeholder="Caption" />
+                  }
+
+                  <div class="item-row">
+                    @if (itemShape().badge) {
+                      <input type="text" [(ngModel)]="item.badgeText" (blur)="saveItem(item)" placeholder="Badge" />
+                    }
+                    @if (itemShape().link) {
+                      <input type="text" [(ngModel)]="item.linkUrl" (blur)="saveItem(item)" placeholder="Link e.g. /sale" />
+                      <input type="text" [(ngModel)]="item.subtitle" (blur)="saveItem(item)" placeholder="Button label" />
+                    }
+                  </div>
+
+                  @if (itemShape().product && item.productName) {
+                    <p class="hint">Pinned: {{ item.productName }}</p>
+                  }
+                </div>
+
+                <div class="item-actions">
+                  <button
+                    type="button"
+                    class="vis-toggle"
+                    [class.on]="item.isActive"
+                    (click)="item.isActive = !item.isActive; saveItem(item)"
+                  >
+                    {{ item.isActive ? 'Visible' : 'Hidden' }}
+                  </button>
+                  <button type="button" class="del" (click)="deleteItem(item)" aria-label="Delete item">&times;</button>
+                </div>
+              </div>
+            } @empty {
+              <p class="hint">This section has no items yet.</p>
+            }
+          </div>
         } @else {
           <p class="muted">Select a section to edit it.</p>
         }
@@ -149,3 +212,10 @@
     }
   }
 </div>
+
+<app-media-picker
+  [open]="pickerOpen()"
+  folder="banners"
+  (picked)="onPicked($event)"
+  (closed)="pickerOpen.set(false)"
+/>
