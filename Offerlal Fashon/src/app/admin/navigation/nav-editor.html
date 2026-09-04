@@ -1,0 +1,203 @@
+<div class="admin-page">
+  <header class="editor-head">
+    <div>
+      <h1>Navigation</h1>
+      <p class="editor-sub">
+        Header, footer and mega-menu links. Items pointed at a category or occasion follow it
+        automatically when it is renamed.
+      </p>
+    </div>
+    <div class="editor-actions">
+      <button type="button" class="btn btn-outline" (click)="reload()" [disabled]="saving()">Reload</button>
+      <button type="button" class="btn btn-outline" (click)="addItem()" [disabled]="saving()">+ Add item</button>
+      <button type="button" class="btn btn-primary" (click)="save()" [disabled]="!dirty() || saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </div>
+  </header>
+
+  @if (message()) {
+    <p class="banner ok">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="banner err">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    <div class="menu-tabs" role="tablist">
+      @for (m of menus(); track m.code) {
+        <button
+          type="button"
+          class="menu-tab"
+          [class.active]="activeCode() === m.code"
+          [attr.aria-selected]="activeCode() === m.code"
+          (click)="switchMenu(m.code)"
+        >
+          {{ m.name }}
+        </button>
+      }
+    </div>
+
+    <div class="editor-layout">
+      <aside class="item-list">
+        @for (row of flat(); track row.item.id) {
+          <div
+            class="item-row"
+            [class.selected]="row.item.id === selectedId()"
+            [class.inactive]="!row.item.isActive"
+            [style.padding-left.px]="12 + row.depth * 22"
+          >
+            <div class="reorder">
+              <button type="button" (click)="move(row.item, -1)" aria-label="Move up">▲</button>
+              <button type="button" (click)="move(row.item, 1)" aria-label="Move down">▼</button>
+            </div>
+
+            <button type="button" class="item-summary" (click)="select(row.item.id)">
+              <span class="item-label">
+                {{ row.item.label }}
+                @if (row.item.isHighlighted) {
+                  <span class="pill accent">Highlighted</span>
+                }
+              </span>
+              <span class="item-meta">
+                @if (row.depth > 0 && row.item.columnIndex > 0) {
+                  <span class="pill col-pill">col {{ row.item.columnIndex }}</span>
+                }
+                <span class="target">{{ row.item.resolvedUrl }}</span>
+                @if (row.item.categoryName) {
+                  <span class="pill">category</span>
+                } @else if (row.item.occasionName) {
+                  <span class="pill">occasion</span>
+                } @else {
+                  <span class="pill muted-pill">custom</span>
+                }
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="vis-toggle"
+              [class.on]="row.item.isActive"
+              (click)="toggleActive(row.item)"
+              [attr.aria-pressed]="row.item.isActive"
+            >
+              {{ row.item.isActive ? 'Visible' : 'Hidden' }}
+            </button>
+
+            <button type="button" class="del" (click)="removeItem(row.item)" aria-label="Delete item">&times;</button>
+          </div>
+        } @empty {
+          <p class="muted">This menu has no items yet.</p>
+        }
+      </aside>
+
+      <section class="item-form">
+        @if (draft(); as d) {
+          <h2>Edit link</h2>
+
+          <label>
+            <span>Label</span>
+            <input type="text" [(ngModel)]="d.label" (ngModelChange)="touch()" />
+          </label>
+
+          <fieldset class="link-type">
+            <legend>Links to</legend>
+            <!--
+              A category or occasion reference resolves its URL from the entity's
+              own slug, so renaming it updates this link instead of breaking it.
+              A custom URL cannot do that, which is why it is the last option.
+            -->
+            <label class="radio">
+              <input type="radio" name="linkType" value="category" [(ngModel)]="d.linkType" (ngModelChange)="touch()" />
+              <span>A category</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="linkType" value="occasion" [(ngModel)]="d.linkType" (ngModelChange)="touch()" />
+              <span>An occasion</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="linkType" value="url" [(ngModel)]="d.linkType" (ngModelChange)="touch()" />
+              <span>A custom URL</span>
+            </label>
+          </fieldset>
+
+          @if (d.linkType === 'category') {
+            <label>
+              <span>Category</span>
+              <select [(ngModel)]="d.categoryId" (ngModelChange)="touch()">
+                <option [ngValue]="''">Select a category…</option>
+                @for (c of categories(); track c.id) {
+                  <option [ngValue]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </label>
+          } @else if (d.linkType === 'occasion') {
+            <label>
+              <span>Occasion</span>
+              <select [(ngModel)]="d.occasionId" (ngModelChange)="touch()">
+                <option [ngValue]="''">Select an occasion…</option>
+                @for (o of occasions(); track o.id) {
+                  <option [ngValue]="o.id">{{ o.name }}</option>
+                }
+              </select>
+            </label>
+          } @else {
+            <label>
+              <span>URL</span>
+              <input type="text" [(ngModel)]="d.url" (ngModelChange)="touch()" placeholder="/sale" />
+              <small class="hint">A custom URL will not update if a category is renamed.</small>
+            </label>
+          }
+
+          <div class="field-row">
+            <label>
+              <span>Mega-menu column</span>
+              <select [(ngModel)]="d.columnIndex" (ngModelChange)="touch()">
+                <option [ngValue]="0">Not in a column (top-level tab)</option>
+                <option [ngValue]="1">Column 1</option>
+                <option [ngValue]="2">Column 2</option>
+                <option [ngValue]="3">Column 3</option>
+              </select>
+            </label>
+            <label>
+              <span>Icon</span>
+              <input type="text" [(ngModel)]="d.iconName" (ngModelChange)="touch()" placeholder="✨" />
+            </label>
+          </div>
+
+          <div class="field-row">
+            <label>
+              <span>Badge text</span>
+              <input type="text" [(ngModel)]="d.badgeText" (ngModelChange)="touch()" placeholder="NEW" />
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" [(ngModel)]="d.isHighlighted" (ngModelChange)="touch()" />
+              <span>Highlight in brand colour</span>
+            </label>
+          </div>
+
+          <div class="field-row">
+            <label>
+              <span>Starts (UTC)</span>
+              <input type="datetime-local" [(ngModel)]="d.startsAtUtc" (ngModelChange)="touch()" />
+            </label>
+            <label>
+              <span>Ends (UTC)</span>
+              <input type="datetime-local" [(ngModel)]="d.endsAtUtc" (ngModelChange)="touch()" />
+            </label>
+          </div>
+          <small class="hint">Leave both empty for always on. Checked when the menu is served.</small>
+        } @else {
+          <p class="muted">Select a link to edit it.</p>
+        }
+      </section>
+    </div>
+
+    <p class="hint depth-note">
+      Navigation is limited to three levels — tab, column group, link — because that is the shape the
+      mega menu draws. Nesting is changed with the parent field, not the arrows.
+    </p>
+  }
+</div>
