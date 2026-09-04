@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
@@ -37,6 +37,73 @@ export class Header {
   protected auth = inject(AuthService);
 
   protected mobileMenuOpen = signal(false);
+
+  // --- Mega menu ----------------------------------------------------------
+
+  /**
+   * Which tab's panel is open. Only one can be, so this is an id rather than a
+   * flag per item.
+   */
+  protected openMenuId = signal<number | null>(null);
+
+  /**
+   * Hover intent.
+   *
+   * Opening on raw mouseenter makes the panel flash open while the pointer is
+   * merely crossing the nav on its way somewhere else. A short delay before
+   * closing also lets the pointer travel from the tab down into the panel
+   * without the panel vanishing underneath it.
+   */
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  protected openMenu = computed(() => {
+    const id = this.openMenuId();
+    return id === null ? null : (this.navLinks().find((i) => i.id === id) ?? null);
+  });
+
+  /** Children grouped into their mega-menu columns, in column order. */
+  protected megaColumns = computed(() => {
+    const menu = this.openMenu();
+    if (!menu) return [];
+
+    const titles: Record<number, string> = { 1: 'Shop by Category', 2: 'Shop by Occasion', 3: 'Shop by Price' };
+    const byColumn = new Map<number, NavItem[]>();
+
+    for (const child of menu.children) {
+      const list = byColumn.get(child.columnIndex) ?? [];
+      list.push(child);
+      byColumn.set(child.columnIndex, list);
+    }
+
+    return [...byColumn.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([index, items]) => ({ index, title: titles[index] ?? '', items }));
+  });
+
+  protected openMega(item: NavItem): void {
+    this.cancelClose();
+    // A tab with no children is a plain link; opening an empty panel over the
+    // page would be worse than not opening one.
+    this.openMenuId.set(item.children.length > 0 ? item.id : null);
+  }
+
+  protected closeMega(): void {
+    this.cancelClose();
+    this.closeTimer = setTimeout(() => this.openMenuId.set(null), 120);
+  }
+
+  protected cancelClose(): void {
+    if (this.closeTimer !== null) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cancelClose();
+    this.openMenuId.set(null);
+  }
 
   protected toggleMobileMenu(): void {
     this.mobileMenuOpen.update((v) => !v);

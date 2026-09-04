@@ -77,15 +77,49 @@
     </div>
   </div>
 
-  <nav class="category-nav">
+  <nav class="category-nav" (mouseleave)="closeMega()">
     <div class="container category-nav-inner">
       @for (item of navLinks(); track item.id) {
-        <a [routerLink]="item.url" routerLinkActive="active" [class.highlighted]="item.isHighlighted">
+        <a
+          [routerLink]="item.url"
+          routerLinkActive="active"
+          [class.highlighted]="item.isHighlighted"
+          [class.open]="openMenuId() === item.id"
+          [attr.aria-expanded]="item.children.length ? openMenuId() === item.id : null"
+          [attr.aria-haspopup]="item.children.length ? 'true' : null"
+          (mouseenter)="openMega(item)"
+          (focus)="openMega(item)"
+        >
           <span class="nav-icon">{{ item.iconName }}</span>
           {{ item.label }}
         </a>
       }
     </div>
+
+    <!--
+      Mega-menu panel.
+      One panel driven by whichever tab is open, rather than a panel per tab:
+      only one can be visible at a time, so N panels would be N copies of the
+      same markup differing only in data.
+    -->
+    @if (openMenu(); as menu) {
+      <div class="mega-panel" (mouseenter)="cancelClose()">
+        <div class="container mega-inner">
+          @for (col of megaColumns(); track col.index) {
+            <div class="mega-col">
+              <p class="mega-col-title">{{ col.title }}</p>
+              <ul>
+                @for (link of col.items; track link.id) {
+                  <li>
+                    <a [routerLink]="link.url" (click)="closeMega()">{{ link.label }}</a>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+    }
   </nav>
 </header>
 

@@ -391,3 +391,66 @@ app-search-bar {
     overflow-x: visible;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Mega menu
+   --------------------------------------------------------------------------- */
+
+.category-nav {
+  position: relative;
+}
+
+.category-nav-inner a.open {
+  color: var(--brand-primary);
+}
+
+.mega-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: var(--surface-overlay);
+  border-top: var(--border-hairline);
+  box-shadow: var(--shadow-menu);
+  /* Above the header, below drawers and modals. Previously this whole area
+     used bare integers that had no relationship to each other. */
+  z-index: var(--z-mega-menu);
+
+  /* Pointer affordance only. On touch the tab is a plain link to the
+     category, which is the better behaviour there anyway. */
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+.mega-inner {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
+  padding: var(--space-6) var(--container-pad);
+}
+
+.mega-col-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mega-col ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mega-col a {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    color: var(--brand-primary);
+  }
+}
