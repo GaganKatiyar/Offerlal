@@ -15,9 +15,6 @@ interface RegisterInput {
   email: string;
   phone: string;
   password: string;
-  /** Collected by the form; the account itself does not store them. */
-  city?: string;
-  state?: string;
 }
 
 @Injectable({ providedIn: 'root' })

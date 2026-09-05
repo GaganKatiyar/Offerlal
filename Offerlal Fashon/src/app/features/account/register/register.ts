@@ -14,12 +14,9 @@ export class Register {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  protected firstName = signal('');
-  protected lastName = signal('');
+  protected name = signal('');
   protected email = signal('');
   protected phone = signal('');
-  protected city = signal('');
-  protected state = signal('');
   protected password = signal('');
   protected loading = signal(false);
   protected error = signal('');
@@ -30,7 +27,7 @@ export class Register {
     // The form had no password field at all; the account was created from
     // whatever was typed and any password signed you in afterwards. Checking
     // the length here saves a round trip on the most common rejection.
-    if (!this.firstName() || !this.email() || !this.phone() || !this.password()) {
+    if (!this.name().trim() || !this.email() || !this.phone() || !this.password()) {
       this.error.set('Please fill in all required fields.');
       return;
     }
@@ -44,13 +41,13 @@ export class Register {
 
     this.auth
       .register({
-        firstName: this.firstName(),
-        lastName: this.lastName(),
+        // The API stores first and last separately, so the single field is
+        // split on the last space: everything before it is the given name(s).
+        // A one-word name keeps an empty surname rather than duplicating it.
+        ...splitName(this.name()),
         email: this.email(),
         phone: this.phone(),
         password: this.password(),
-        city: this.city(),
-        state: this.state(),
       })
       .subscribe({
         next: () => {
@@ -70,4 +67,11 @@ export class Register {
         },
       });
   }
+}
+
+/** Splits a single typed name into the first/last pair the API expects. */
+function splitName(full: string): { firstName: string; lastName: string } {
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return { firstName: parts[0] ?? '', lastName: '' };
+  return { firstName: parts.slice(0, -1).join(' '), lastName: parts[parts.length - 1] };
 }

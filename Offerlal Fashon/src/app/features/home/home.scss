@@ -382,12 +382,26 @@
   @include mq(md) {
     width: 112px;
   }
+
+  @include mq(lg) {
+    width: 165px;
+  }
 }
 
 .circle-media {
+  /*
+    Was hardcoded to 165px at every breakpoint, nearly double the 92px tile
+    that holds it. The image overflowed its own label container and each tile
+    overlapped the next, which on a 412px phone left barely two and a half
+    circles visible with the first and last both clipped at the screen edge -
+    exactly what a mobile screenshot of this section showed.
+
+    Sized to match .circle-tile's width at each step instead, so the circle
+    fits the space its own label reserves.
+  */
   display: block;
-  width: 165px;
-  height: 165px;
+  width: 92px;
+  height: 92px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background: var(--surface-alt);
@@ -395,6 +409,11 @@
   transition: border-color var(--dur-fast) var(--ease-standard);
 
   @include mq(md) {
+    width: 112px;
+    height: 112px;
+  }
+
+  @include mq(lg) {
     width: 165px;
     height: 165px;
   }
