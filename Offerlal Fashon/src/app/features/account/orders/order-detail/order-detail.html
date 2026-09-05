@@ -41,17 +41,25 @@
 
         @if (o.trackingNumber) {
           <h3>Tracking</h3>
-          <p>{{ o.carrier }} &middot; {{ o.trackingNumber }}</p>
+          <!--
+            No carrier is recorded on an order - nothing writes one, and there
+            is no shipping integration yet. The number alone is accurate; a
+            blank name beside it was not.
+          -->
+          <p>{{ o.trackingNumber }}</p>
         }
 
-        <h3>Status History</h3>
+        <!--
+          The server records the current status and when the order was placed,
+          not a history of transitions. A fabricated timeline read as fact, so
+          this states what is actually known.
+        -->
+        <h3>Status</h3>
         <div class="status-history">
-          @for (h of o.statusHistory; track h.timestamp) {
-            <div class="history-row">
-              <span class="history-status">{{ h.status }}</span>
-              <span class="history-date">{{ h.timestamp | date: 'medium' }}</span>
-            </div>
-          }
+          <div class="history-row">
+            <span class="history-status">{{ o.status }}</span>
+            <span class="history-date">Placed {{ o.placedAt | date: 'medium' }}</span>
+          </div>
         </div>
       </div>
     </div>

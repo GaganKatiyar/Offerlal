@@ -28,6 +28,16 @@
       <input type="text" [value]="state()" (input)="state.set($any($event.target).value)" />
     </label>
 
+    <label>
+      Password
+      <input
+        type="password"
+        autocomplete="new-password"
+        [value]="password()"
+        (input)="password.set($any($event.target).value)"
+      />
+    </label>
+
     @if (error()) {
       <p class="error">{{ error() }}</p>
     }

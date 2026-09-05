@@ -4,8 +4,19 @@
 
     <div class="mode-tabs">
       <button type="button" [class.active]="mode() === 'email'" (click)="mode.set('email')">Email &amp; Password</button>
-      <button type="button" [class.active]="mode() === 'otp'" (click)="mode.set('otp')">OTP Login</button>
+      <button type="button" [class.active]="mode() === 'otp'" (click)="mode.set('otp')" title="Not available yet">
+        OTP Login
+      </button>
     </div>
+
+    @if (mode() === 'otp') {
+      <!--
+        There is no OTP endpoint yet. This used to sign someone in on a matching
+        phone number with the code ignored entirely, so saying so up front beats
+        letting them type one and be refused.
+      -->
+      <p class="notice">OTP sign-in isn't available yet. Please use your email and password.</p>
+    }
 
     @if (mode() === 'email') {
       <label>
@@ -14,7 +25,14 @@
       </label>
       <label>
         Password
-        <input type="password" placeholder="Enter your password" />
+        <input
+          type="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          [value]="password()"
+          (input)="password.set($any($event.target).value)"
+          (keyup.enter)="loginWithEmail()"
+        />
       </label>
       @if (error()) {
         <p class="error">{{ error() }}</p>

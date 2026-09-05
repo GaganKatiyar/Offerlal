@@ -1,10 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
-import { OrderService } from '../../../../core/services/order.service';
-import { Order } from '../../../../core/models';
+import { AccountApiService, AccountOrderSummary } from '../../../../core/services/account-api.service';
 import { InrCurrencyPipe } from '../../../../shared/pipes/inr-currency.pipe';
 
+/**
+ * Order history, from the server.
+ *
+ * It read DemoDataStoreService, which resets on reload and is per-browser, so
+ * the history shown here had nothing to do with what the customer had actually
+ * bought — and differed from what the same account showed in the app.
+ */
 @Component({
   selector: 'app-order-list',
   standalone: true,
@@ -15,12 +21,28 @@ import { InrCurrencyPipe } from '../../../../shared/pipes/inr-currency.pipe';
 })
 export class OrderList implements OnInit {
   protected auth = inject(AuthService);
-  private orderService = inject(OrderService);
-  protected orders = signal<Order[]>([]);
+  private api = inject(AccountApiService);
+
+  protected orders = signal<AccountOrderSummary[]>([]);
+  protected loading = signal(true);
+  protected failed = signal(false);
 
   ngOnInit(): void {
-    const user = this.auth.currentUser();
-    if (!user) return;
-    this.orderService.getByCustomer(user.id).subscribe((o) => this.orders.set(o));
+    this.load();
+  }
+
+  protected load(): void {
+    this.loading.set(true);
+    this.failed.set(false);
+    this.api.orders().subscribe({
+      next: (rows) => {
+        this.orders.set(rows);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.failed.set(true);
+        this.loading.set(false);
+      },
+    });
   }
 }

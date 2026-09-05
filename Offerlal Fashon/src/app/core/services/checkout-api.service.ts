@@ -45,8 +45,13 @@ export interface PlaceOrderRequest {
   lines: QuoteLineRequest[];
   couponCode?: string | null;
   expressDelivery: boolean;
-  customerId: string;
-  /** Guest contact, used server-side to find or create the customer record. */
+  /**
+   * Guest contact, used server-side to find or create the customer record.
+   *
+   * There is deliberately no customerId here. The server takes it from the
+   * bearer token and ignores anything the client sends, because accepting one
+   * from the body let an order be filed against someone else's account.
+   */
   email?: string;
   paymentMethod: string;
   shippingName: string;

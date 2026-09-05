@@ -44,6 +44,16 @@ export class AuthTokenService {
   readonly isAuthenticated = computed(() => this.accessToken() !== null);
   readonly roles = computed(() => this.identity()?.roles ?? []);
 
+  /**
+   * Whether the stored identity is a CUSTOMER rather than a staff member.
+   *
+   * Both share one set of storage keys, so signing into the back office and the
+   * storefront in the same browser replaces the other. Checking the role, not
+   * merely that a token exists, keeps an admin session from making the account
+   * pages look signed in as a customer and then 403 on every request.
+   */
+  readonly isCustomer = computed(() => this.roles().some((r) => r === 'Customer'));
+
   readonly isAdmin = computed(() =>
     this.roles().some((r) => r === 'Admin' || r === 'Catalog' || r === 'Orders' || r === 'Content'),
   );

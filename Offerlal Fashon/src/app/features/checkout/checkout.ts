@@ -133,13 +133,21 @@ export class Checkout {
     this.placingOrder.set(true);
     const address = this.buildAddress();
 
-    const proceed = (customerId: string) => {
+    /**
+     * Places the order.
+     *
+     * No customer id is sent. The server takes it from the bearer token when
+     * there is one and ignores anything in the body, because trusting a
+     * client-supplied id let anyone file an order against another person's
+     * account. Signed in, the token identifies the customer; as a guest, the
+     * server finds or creates one from the email below.
+     */
+    const proceed = () => {
       this.checkoutApi
         .placeOrder({
           lines: toQuoteLines(this.cart.items()),
           couponCode: this.appliedCode(),
           expressDelivery: this.deliveryMethod() === 'express',
-          customerId,
           email: this.email(),
           paymentMethod: this.paymentMethod(),
           shippingName: this.fullName(),
@@ -169,20 +177,12 @@ export class Checkout {
         });
     };
 
-    if (this.auth.currentUser()) {
-      proceed(this.auth.currentUser()!.id);
-    } else {
-      const [firstName, ...rest] = this.fullName().trim().split(' ');
-      this.auth
-        .register({
-          firstName: firstName || this.fullName(),
-          lastName: rest.join(' ') || '-',
-          email: this.email(),
-          phone: this.mobile(),
-          city: this.city(),
-          state: this.state(),
-        })
-        .subscribe((customer) => proceed(customer.id));
-    }
+    // Guests are no longer silently registered here.
+    //
+    // That created an account with no password the customer never chose and
+    // could not sign into afterwards, which was harmless only while any
+    // password was accepted. Guest checkout is a first-class path on the
+    // server: it resolves the customer from the email on the order.
+    proceed();
   }
 }
