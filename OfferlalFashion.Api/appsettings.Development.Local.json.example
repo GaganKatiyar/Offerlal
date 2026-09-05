@@ -1,0 +1,13 @@
+{
+  "_comment": "Copy this file to appsettings.Development.Local.json (gitignored) and fill in real values. Without it, verification and password-reset emails are logged to the console instead of sent — see Email/LoggingEmailSender.cs.",
+
+  "Email": {
+    "SmtpHost": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "Username": "your-gmail-address@gmail.com",
+    "_appPasswordHelp": "NOT your normal Gmail password. Turn on 2-Step Verification at myaccount.google.com/security, then generate a 16-character App Password at myaccount.google.com/apppasswords and paste it below with no spaces.",
+    "AppPassword": "xxxxxxxxxxxxxxxx",
+    "FromAddress": "your-gmail-address@gmail.com",
+    "FromName": "Offerlal Fashion"
+  }
+}

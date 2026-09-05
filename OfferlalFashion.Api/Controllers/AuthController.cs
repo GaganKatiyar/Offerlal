@@ -14,6 +14,7 @@ namespace OfferlalFashion.Api.Controllers;
 public class AuthController(
     OfferlalFashionDbContext db,
     TokenService tokens,
+    VerificationService verification,
     IPasswordHasher<AdminUser> adminHasher,
     IPasswordHasher<Customer> customerHasher,
     ILogger<AuthController> log) : ControllerBase
@@ -134,6 +135,19 @@ public class AuthController(
         db.Customers.Add(customer);
         await db.SaveChangesAsync(ct);
 
+        // Best-effort. A flaky mail server must not turn a successful account
+        // creation into a failed request — the customer already exists in the
+        // database at this point, and the account works with or without a
+        // verified email (see Customer.EmailVerifiedAt).
+        try
+        {
+            await verification.SendEmailVerificationAsync(customer, ct);
+        }
+        catch (Exception ex)
+        {
+            log.LogWarning(ex, "Could not send verification email to {CustomerId}", customer.Id);
+        }
+
         var issued = await tokens.IssueAsync(
             customer.Id, TokenService.SubjectTypeCustomer, customer.FirstName, [Roles.Customer], ClientIp(), ct);
 
@@ -145,6 +159,105 @@ public class AuthController(
             DisplayName = customer.FirstName,
             Roles = [Roles.Customer],
         });
+    }
+
+    /// <summary>Re-sends the registration code — for a lost or expired email.</summary>
+    [HttpPost("resend-verification")]
+    [Authorize(Roles = Roles.Customer)]
+    public async Task<IActionResult> ResendVerification(CancellationToken ct = default)
+    {
+        var customerId = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+        var customer = await db.Customers.FindAsync([customerId], ct);
+        if (customer is null) return Unauthorized();
+
+        if (customer.EmailVerifiedAt is not null)
+        {
+            return Ok(new { message = "This email is already verified." });
+        }
+
+        await verification.SendEmailVerificationAsync(customer, ct);
+        return Ok(new { message = "Verification code sent." });
+    }
+
+    /// <summary>Redeems the 6-digit code sent at registration or by resend-verification.</summary>
+    [HttpPost("verify-email")]
+    [Authorize(Roles = Roles.Customer)]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request, CancellationToken ct = default)
+    {
+        var customerId = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+        if (customerId is null) return Unauthorized();
+
+        var ok = await verification.TryRedeemAsync(customerId, VerificationPurpose.EmailVerification, request.Code, ct);
+        if (!ok) return BadRequest(new { message = "That code is incorrect or has expired." });
+
+        var customer = await db.Customers.FindAsync([customerId], ct);
+        if (customer is not null)
+        {
+            customer.EmailVerifiedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+
+        return Ok(new { message = "Email verified." });
+    }
+
+    /// <summary>
+    /// Starts a password reset. Always returns the same generic message,
+    /// whether or not the address is registered — the alternative turns this
+    /// endpoint into a way to test which emails have an Offerlal account.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var customer = await db.Customers.FirstOrDefaultAsync(c => c.Email == email, ct);
+
+        if (customer is not null)
+        {
+            await verification.SendPasswordResetAsync(customer, ct);
+        }
+        else
+        {
+            // Same delay an unregistered address would incur if a real email
+            // send happened, so the response time does not itself leak whether
+            // the account exists.
+            await FakeWorkAsync();
+        }
+
+        return Ok(new { message = "If that email has an account, a reset code has been sent." });
+    }
+
+    /// <summary>
+    /// Completes a password reset. Also revokes every existing refresh token
+    /// for the customer — a reset is frequently done because a password was
+    /// compromised, and leaving old sessions alive would defeat the point.
+    /// </summary>
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var customer = await db.Customers.FirstOrDefaultAsync(c => c.Email == email, ct);
+
+        // Deliberately generic on failure too: "no such account" and "wrong
+        // code" are indistinguishable from the outside, for the same reason
+        // login does not say which half was wrong.
+        if (customer is null)
+        {
+            return BadRequest(new { message = "That code is incorrect or has expired." });
+        }
+
+        var ok = await verification.TryRedeemAsync(customer.Id, VerificationPurpose.PasswordReset, request.Code, ct);
+        if (!ok) return BadRequest(new { message = "That code is incorrect or has expired." });
+
+        if (request.NewPassword.Length < 8)
+        {
+            return BadRequest(new { message = "Password must be at least 8 characters." });
+        }
+
+        customer.PasswordHash = customerHasher.HashPassword(customer, request.NewPassword);
+        await tokens.RevokeAllAsync(customer.Id, TokenService.SubjectTypeCustomer, ct);
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new { message = "Password updated. Please sign in again." });
     }
 
     [HttpPost("refresh")]
@@ -256,6 +369,23 @@ public class AuthController(
     /// not reveal whether a username exists.
     /// </summary>
     private static Task FakeWorkAsync() => Task.Delay(Random.Shared.Next(80, 160));
+}
+
+public sealed record VerifyEmailRequest
+{
+    public string Code { get; init; } = "";
+}
+
+public sealed record ForgotPasswordRequest
+{
+    public string Email { get; init; } = "";
+}
+
+public sealed record ResetPasswordRequest
+{
+    public string Email { get; init; } = "";
+    public string Code { get; init; } = "";
+    public string NewPassword { get; init; } = "";
 }
 
 public sealed record LoginRequest

@@ -2,6 +2,10 @@
   <div class="auth-card">
     <h1>Welcome Back</h1>
 
+    @if (justReset()) {
+      <p class="notice">Your password has been updated. Please sign in with your new password.</p>
+    }
+
     <div class="mode-tabs">
       <button type="button" [class.active]="mode() === 'email'" (click)="mode.set('email')">Email &amp; Password</button>
       <button type="button" [class.active]="mode() === 'otp'" (click)="mode.set('otp')" title="Not available yet">
@@ -40,7 +44,7 @@
       <button type="button" class="btn btn-primary full" [disabled]="loading()" (click)="loginWithEmail()">
         {{ loading() ? 'Signing In...' : 'Sign In' }}
       </button>
-      <a class="forgot-link">Forgot Password?</a>
+      <a class="forgot-link" routerLink="/forgot-password">Forgot Password?</a>
     } @else {
       @if (!otpSent()) {
         <label>

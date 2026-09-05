@@ -43,6 +43,7 @@ export const routes: Routes = [
       { path: 'faq', loadComponent: () => import('./features/static/faq/faq').then((m) => m.Faq), title: 'FAQs | Offerlal Fashion' },
       { path: 'login', loadComponent: () => import('./features/account/login/login').then((m) => m.Login), title: 'Login | Offerlal Fashion' },
       { path: 'register', loadComponent: () => import('./features/account/register/register').then((m) => m.Register), title: 'Create Account | Offerlal Fashion' },
+      { path: 'forgot-password', loadComponent: () => import('./features/account/forgot-password/forgot-password').then((m) => m.ForgotPassword), title: 'Reset Password | Offerlal Fashion' },
       {
         path: 'account',
         canActivate: [authGuard],

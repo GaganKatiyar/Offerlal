@@ -770,6 +770,9 @@ namespace OfferlalFashion.Api.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -823,6 +826,51 @@ namespace OfferlalFashion.Api.Migrations
                     b.HasIndex(new[] { "Segment" }, "IX_Customers_Segment");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.CustomerVerificationToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .IsFixedLength();
+
+                    b.Property<DateTime?>("UsedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CustomerId", "Purpose" }, "IX_CustomerVerificationTokens_Customer");
+
+                    b.ToTable("CustomerVerificationTokens");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.CustomizationOption", b =>
@@ -2523,6 +2571,18 @@ namespace OfferlalFashion.Api.Migrations
                         .HasConstraintName("FK_Categories_ThumbnailAsset");
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.CustomerVerificationToken", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_CustomerVerificationTokens_Customer");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.CustomizationOption", b =>

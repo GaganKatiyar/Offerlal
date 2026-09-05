@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -13,6 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class Login {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   protected mode = signal<'email' | 'otp'>('email');
   protected email = signal('');
@@ -22,6 +23,13 @@ export class Login {
   protected otpSent = signal(false);
   protected error = signal('');
   protected loading = signal(false);
+  /** Set after a successful password reset, so the destination page confirms
+      what happened rather than looking like a plain sign-in screen. */
+  protected justReset = signal(false);
+
+  constructor() {
+    this.justReset.set(this.route.snapshot.queryParamMap.get('reset') === '1');
+  }
 
   /**
    * Signs in with what was actually typed.

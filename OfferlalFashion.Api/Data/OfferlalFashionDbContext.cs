@@ -49,6 +49,8 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public virtual DbSet<CustomerVerificationToken> CustomerVerificationTokens { get; set; }
+
     public virtual DbSet<StockLedgerEntry> StockLedger { get; set; }
 
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
@@ -712,6 +714,28 @@ public partial class OfferlalFashionDbContext : DbContext
             // in a form we store.
             entity.HasIndex(e => e.TokenHash, "UQ_RefreshTokens_Hash").IsUnique();
             entity.HasIndex(e => new { e.SubjectType, e.SubjectId }, "IX_RefreshTokens_Subject");
+        });
+
+        modelBuilder.Entity<CustomerVerificationToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CustomerId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Purpose).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.TokenHash).HasMaxLength(64).IsUnicode(false).IsFixedLength();
+            entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // Not unique on TokenHash alone: a 6-digit code is 1-in-a-million,
+            // and two different customers colliding on the same code must not
+            // throw. Redemption is always scoped to CustomerId + Purpose + hash
+            // together, which IS what has to be unique in practice, and the
+            // "supersede the previous unused code" step in VerificationService
+            // keeps at most one live row per (customer, purpose) regardless.
+            entity.HasIndex(e => new { e.CustomerId, e.Purpose }, "IX_CustomerVerificationTokens_Customer");
+
+            entity.HasOne(d => d.Customer).WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("FK_CustomerVerificationTokens_Customer")
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<NavMenu>(entity =>

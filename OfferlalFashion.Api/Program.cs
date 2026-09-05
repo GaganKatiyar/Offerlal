@@ -10,6 +10,7 @@ using OfferlalFashion.Api.Catalog;
 using OfferlalFashion.Api.Commerce;
 using OfferlalFashion.Api.Content;
 using OfferlalFashion.Api.Data;
+using OfferlalFashion.Api.Email;
 using OfferlalFashion.Api.Infrastructure;
 using OfferlalFashion.Api.Media;
 using Serilog;
@@ -82,6 +83,28 @@ try
 
     builder.Services.AddSingleton(jwt);
     builder.Services.AddScoped<TokenService>();
+
+    // ── Email ────────────────────────────────────────────────────────────────
+    var emailOptions = builder.Configuration.GetSection("Email").Get<EmailOptions>() ?? new EmailOptions();
+    builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(emailOptions));
+
+    if (emailOptions.IsConfigured)
+    {
+        builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+    }
+    else
+    {
+        // Same shape as the JWT signing-key fallback above: development
+        // continues to work with no external dependency, and the gap is
+        // impossible to miss because it is logged on every send, not just once
+        // at startup.
+        builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+        Log.Warning(
+            "No Email:Username/Email:AppPassword configured. Verification and " +
+            "password-reset emails will be LOGGED, not sent. See appsettings.Development.Local.json.example.");
+    }
+
+    builder.Services.AddScoped<VerificationService>();
     builder.Services.AddScoped<AdminBootstrapper>();
     builder.Services.AddScoped<IPasswordHasher<OfferlalFashion.Api.Models.AdminUser>,
         PasswordHasher<OfferlalFashion.Api.Models.AdminUser>>();
