@@ -152,3 +152,31 @@
     text-decoration: underline;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Overlay mode
+
+   Inside the full-screen search the panel is the page, so it stops being a
+   floating dropdown: it flows under the field and takes the remaining height
+   rather than capping at 60vh of someone else's layout.
+   --------------------------------------------------------------------------- */
+.search-wrap.is-overlay {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  .suggestions-panel {
+    position: static;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding-inline: 0;
+    max-height: none;
+    background: transparent;
+  }
+
+  .search-box {
+    /* The overlay supplies the surrounding chrome and the back button. */
+    margin: 0;
+  }
+}

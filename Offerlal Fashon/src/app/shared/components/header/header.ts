@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
+import { SearchOverlayService } from '../../../core/services/search-overlay.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SettingsService } from '../../../core/services/settings.service';
@@ -34,6 +35,7 @@ export class Header {
     { initialValue: [] as NavItem[] },
   );
   protected cart = inject(CartService);
+  protected searchOverlay = inject(SearchOverlayService);
   protected wishlist = inject(WishlistService);
   protected auth = inject(AuthService);
   protected settings = inject(SettingsService);

@@ -7,6 +7,7 @@ import { ToastContainer } from '../../shared/components/toast/toast-container';
 import { CartDrawer } from '../../features/cart/cart-drawer/cart-drawer';
 import { QuickViewModal } from '../../shared/components/quick-view-modal/quick-view-modal';
 import { BottomNav } from '../../shared/components/bottom-nav/bottom-nav';
+import { SearchOverlay } from '../../shared/components/search-overlay/search-overlay';
 
 @Component({
   selector: 'app-storefront-shell',
@@ -20,6 +21,7 @@ import { BottomNav } from '../../shared/components/bottom-nav/bottom-nav';
     CartDrawer,
     QuickViewModal,
     BottomNav,
+    SearchOverlay,
   ],
   templateUrl: './storefront-shell.html',
   styleUrl: './storefront-shell.scss',

@@ -58,10 +58,17 @@
 }
 
 /* Search is owned by app-search-bar; only its placement in the header row
-   is a header concern. */
+   is a header concern.
+
+   Hidden on phones, where the trigger icon opens the full-screen overlay
+   instead. It used to wrap onto a third row here and sit on every page. */
 app-search-bar {
-  order: 3;
-  flex: 1 1 100%;
+  display: none;
+}
+
+/* The phone-only icon that opens the overlay. */
+.search-trigger {
+  display: flex;
 }
 
 /* Action icons */
@@ -389,10 +396,16 @@ app-search-bar {
   }
 
   app-search-bar {
+    display: block;
     order: 0;
     flex: 1 1 auto;
     max-width: 480px;
     margin: 0 var(--space-6);
+  }
+
+  /* Desktop has the field itself, so the trigger is redundant. */
+  .search-trigger {
+    display: none;
   }
 
   .category-nav {

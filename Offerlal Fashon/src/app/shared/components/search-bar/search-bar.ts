@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  afterNextRender,
   inject,
   input,
   signal,
@@ -41,7 +42,14 @@ const MAX_SUGGESTIONS = 6;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchBar {
-  /** Rendered inside a mobile overlay, which owns its own chrome. */
+  /**
+   * Rendered inside the full-screen mobile overlay.
+   *
+   * Changes three behaviours rather than just appearance: suggestions flow
+   * inline instead of hanging in a floating panel (there is nothing to float
+   * over), they stay open because the overlay IS the search context, and the
+   * field takes focus on open so the keyboard appears without a second tap.
+   */
   overlay = input(false);
 
   private products = inject(ProductService);
@@ -53,6 +61,16 @@ export class SearchBar {
   protected searchQuery = signal('');
 
   private readonly term$ = new Subject<string>();
+
+  constructor() {
+    afterNextRender(() => {
+      if (!this.overlay()) return;
+      // Open with the suggestions already showing (trending terms), so the
+      // overlay is useful before a single character is typed.
+      this.suggestionsOpen.set(true);
+      this.host.nativeElement.querySelector('input')?.focus();
+    });
+  }
 
   protected searchResults = toSignal(
     this.term$.pipe(
@@ -72,6 +90,9 @@ export class SearchBar {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
+    // In the overlay the panel is the screen, so a click-away would close the
+    // suggestions the moment the shopper touched anything.
+    if (this.overlay()) return;
     if (this.suggestionsOpen() && !this.host.nativeElement.contains(event.target as Node)) {
       this.suggestionsOpen.set(false);
     }
@@ -79,6 +100,8 @@ export class SearchBar {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    // The overlay handles Escape itself, by closing entirely.
+    if (this.overlay()) return;
     this.suggestionsOpen.set(false);
   }
 

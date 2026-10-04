@@ -28,7 +28,9 @@
       <span class="tab__label">Categories</span>
     </a>
 
-    <a class="tab" routerLink="/search" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+    <!-- Opens the overlay rather than routing: searching is a mode you enter
+         and leave, not a page you navigate to and have to come back from. -->
+    <button type="button" class="tab" (click)="searchOverlay.open()">
       <span class="tab__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <circle cx="11" cy="11" r="6.5" />
@@ -36,7 +38,7 @@
         </svg>
       </span>
       <span class="tab__label">Search</span>
-    </a>
+    </button>
 
     <a class="tab" routerLink="/account/wishlist" routerLinkActive="is-active" ariaCurrentWhenActive="page">
       <span class="tab__icon" aria-hidden="true">

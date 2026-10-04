@@ -18,9 +18,27 @@
 
     <a routerLink="/" class="logo">Offerlal <span>Fashion</span></a>
 
-    <app-search-bar />
+    <!--
+      Inline on desktop; on phones it collapses to the icon in the actions row
+      and the full-screen overlay takes over. The inline field used to wrap onto
+      a third header row, costing about a sixth of the viewport on every page
+      while being too small to show a useful suggestion list.
+    -->
+    <app-search-bar class="header-search" />
 
     <div class="header-actions">
+      <button
+        type="button"
+        class="action-item search-trigger"
+        (click)="searchOverlay.open()"
+        aria-label="Search"
+      >
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span class="action-label">Search</span>
+      </button>
       <a routerLink="/account" class="action-item">
         <svg
           width="19"

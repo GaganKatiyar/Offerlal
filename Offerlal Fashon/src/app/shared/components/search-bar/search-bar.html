@@ -1,4 +1,4 @@
-<div class="search-wrap">
+<div class="search-wrap" [class.is-overlay]="overlay()">
   <div class="search-box">
     <svg
       class="search-icon"
@@ -25,7 +25,9 @@
       (input)="onSearchInput($any($event.target).value)"
       (keyup.enter)="submitSearch()"
     />
-    <button type="button" class="search-submit-btn" (click)="submitSearch()">Search</button>
+    @if (!overlay()) {
+      <button type="button" class="search-submit-btn" (click)="submitSearch()">Search</button>
+    }
   </div>
 
   @if (suggestionsOpen()) {

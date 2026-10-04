@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { LayoutChromeService } from '../../../core/services/layout-chrome.service';
+import { SearchOverlayService } from '../../../core/services/search-overlay.service';
 
 /**
  * Persistent bottom navigation for phones.
@@ -29,6 +30,7 @@ import { LayoutChromeService } from '../../../core/services/layout-chrome.servic
 export class BottomNav {
   protected cart = inject(CartService);
   protected wishlist = inject(WishlistService);
+  protected searchOverlay = inject(SearchOverlayService);
   private chrome = inject(LayoutChromeService);
 
   /**
