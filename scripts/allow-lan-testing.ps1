@@ -8,7 +8,8 @@
     0.0.0.0. Nothing logs a refusal - the request simply never arrives, which
     looks exactly like a bug in the app.
 
-    Two ports:
+    Three ports:
+      4300  the web storefront (open it in the phone's browser)
       5210  the API the installed app calls
       9100  the little static server that hands the APK to the phone
 
@@ -42,6 +43,7 @@ if (-not $isAdmin) {
 }
 
 $rules = @(
+    @{ Name = 'Offerlal web storefront (dev LAN)'; Port = 4300 },
     @{ Name = 'Offerlal API (dev LAN)'; Port = 5210 },
     @{ Name = 'Offerlal APK download (dev LAN)'; Port = 9100 }
 )

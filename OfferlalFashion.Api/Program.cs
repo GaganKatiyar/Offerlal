@@ -25,6 +25,17 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    // ── Local secrets ────────────────────────────────────────────────────────
+    // appsettings.Development.Local.json is gitignored and holds real SMTP and
+    // gateway credentials. It is NOT one of the filenames the host loads by
+    // default, so without this line the file is silently ignored — which is
+    // exactly what happened: the .example file and the startup warning below
+    // both named it while nothing read it, so filling it in changed nothing.
+    //
+    // Added last so it overrides the committed appsettings files.
+    builder.Configuration.AddJsonFile(
+        "appsettings.Development.Local.json", optional: true, reloadOnChange: true);
+
     // ── Logging ──────────────────────────────────────────────────────────────
     builder.Host.UseSerilog((context, services, config) => config
         .ReadFrom.Configuration(context.Configuration)
