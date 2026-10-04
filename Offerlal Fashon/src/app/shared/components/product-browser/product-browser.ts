@@ -6,6 +6,7 @@ import { CatalogApiService } from '../../../core/services/catalog-api.service';
 import { PlpQueryService } from '../../../core/services/plp-query.service';
 import { DensityService } from '../../../core/services/density.service';
 import { ProductCard } from '../product-card/product-card';
+import { ProductCardSkeleton, StateBlock } from '../../ui/state';
 import { Drawer } from '../../ui/drawer/drawer';
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
@@ -46,7 +47,7 @@ export interface AppliedFilter {
 @Component({
   selector: 'app-product-browser',
   standalone: true,
-  imports: [NgTemplateOutlet, ProductCard, Drawer],
+  imports: [NgTemplateOutlet, ProductCard, Drawer, ProductCardSkeleton, StateBlock],
   templateUrl: './product-browser.html',
   styleUrl: './product-browser.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,8 +90,40 @@ export class ProductBrowser {
   });
 
   protected loading = computed(() => this.resource.isLoading());
+
+
+  /**
+   * Re-runs the failed request.
+   *
+   * The error state previously told the shopper to "try again" while offering
+   * nothing to try again with, so the only way out of a failed listing was a
+   * full page reload.
+   */
+  protected retry(): void {
+    this.resource.reload();
+  }
+
+  /** First load: nothing on screen yet, so show placeholders rather than a gap. */
+  protected showSkeletons = computed(() => this.loading() && this.items().length === 0);
   protected error = computed(() => this.resource.error());
-  protected result = computed(() => this.resource.value());
+
+  /**
+   * The resource's value, or undefined when it has none.
+   *
+   * `resource.value()` THROWS once the resource is in an error state — it is a
+   * throwing accessor, not a nullable one. Reading it unguarded inside the
+   * linkedSignal below meant that the first failed request threw during change
+   * detection, which stopped the view updating at all: the error state could
+   * never render because rendering it was what crashed. The screen simply froze
+   * on whatever it had last drawn, reporting `loading` forever.
+   *
+   * hasValue() is the guard the API provides for exactly this.
+   */
+  private readonly safeValue = computed(() =>
+    this.resource.hasValue() ? this.resource.value() : undefined,
+  );
+
+  protected result = computed(() => this.safeValue());
 
   /**
    * Hybrid paging: pages accumulate as the shopper loads more, but the page
@@ -116,7 +149,7 @@ export class ProductBrowser {
     // the next emission fails, and page 2 replaces page 1 instead of appending
     // to it. Carrying the key through the loading state is what keeps
     // "Load more" working.
-    source: () => ({ result: this.resource.value(), key: filterKey(this.request()) }),
+    source: () => ({ result: this.safeValue(), key: filterKey(this.request()) }),
 
     computation: (source, previous) => {
       const previousItems = previous?.value ?? [];

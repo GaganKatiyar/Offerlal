@@ -63,7 +63,22 @@
         </div>
       </div>
     </div>
+  } @else if (loading()) {
+    <app-state-block kind="loading" title="Loading your order…" />
+  } @else if (failed()) {
+    <app-state-block
+      kind="error"
+      title="We couldn't load this order"
+      message="Your order is safe — this is just a problem reaching us."
+      (retry)="load()"
+    />
   } @else {
-    <p>Order not found.</p>
+    <app-state-block
+      kind="not-found"
+      title="Order not found"
+      message="We couldn't find that order on your account."
+    >
+      <a routerLink="/account/orders" class="btn btn-outline">View all orders</a>
+    </app-state-block>
   }
 </div>

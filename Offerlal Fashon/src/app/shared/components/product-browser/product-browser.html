@@ -61,15 +61,25 @@
     }
 
     @if (error()) {
-      <div class="empty-state">
-        <p>We couldn't load these products just now.</p>
-        <p class="empty-detail">Please check your connection and try again.</p>
+      <app-state-block
+        kind="error"
+        title="We couldn't load these products"
+        message="Check your connection and try again."
+        (retry)="retry()"
+      />
+    } @else if (showSkeletons()) {
+      <!--
+        Placeholders shaped like the cards, so the grid does not jump when the
+        real results land. Previously this branch rendered an empty grid and the
+        page simply looked like a shop with nothing in it.
+      -->
+      <div class="product-grid o-grid o-grid--products">
+        <app-product-card-skeleton [count]="8" />
       </div>
-    } @else if (items().length === 0 && !loading()) {
-      <div class="empty-state">
-        <p>No products match your filters.</p>
+    } @else if (items().length === 0) {
+      <app-state-block kind="empty" title="No products match your filters">
         <button type="button" class="btn btn-outline" (click)="clearFilters()">Clear Filters</button>
-      </div>
+      </app-state-block>
     } @else {
       <div class="product-grid o-grid o-grid--products" [class.is-loading]="loading()">
         @for (p of items(); track p.id) {
