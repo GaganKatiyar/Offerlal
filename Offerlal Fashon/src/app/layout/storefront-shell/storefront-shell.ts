@@ -6,11 +6,21 @@ import { WhatsappFloatButton } from '../../shared/components/whatsapp-float-butt
 import { ToastContainer } from '../../shared/components/toast/toast-container';
 import { CartDrawer } from '../../features/cart/cart-drawer/cart-drawer';
 import { QuickViewModal } from '../../shared/components/quick-view-modal/quick-view-modal';
+import { BottomNav } from '../../shared/components/bottom-nav/bottom-nav';
 
 @Component({
   selector: 'app-storefront-shell',
   standalone: true,
-  imports: [RouterOutlet, Header, Footer, WhatsappFloatButton, ToastContainer, CartDrawer, QuickViewModal],
+  imports: [
+    RouterOutlet,
+    Header,
+    Footer,
+    WhatsappFloatButton,
+    ToastContainer,
+    CartDrawer,
+    QuickViewModal,
+    BottomNav,
+  ],
   templateUrl: './storefront-shell.html',
   styleUrl: './storefront-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

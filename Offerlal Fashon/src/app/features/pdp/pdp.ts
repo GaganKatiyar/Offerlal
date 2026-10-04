@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   OnInit,
   computed,
   inject,
@@ -25,6 +26,7 @@ import { Modal } from '../../shared/ui/modal/modal';
 import { ProductCard } from '../../shared/components/product-card/product-card';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { LayoutChromeService } from '../../core/services/layout-chrome.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { SizeChart } from '../../core/models/catalog-search.model';
 
@@ -61,6 +63,15 @@ export class Pdp implements OnInit {
   protected auth = inject(AuthService);
   private meta = inject(Meta);
   private title = inject(Title);
+
+  constructor() {
+    // This page has its own sticky Add-to-Bag bar at the bottom of the screen.
+    // Claim the bottom edge so the global navigation steps aside rather than
+    // stacking beneath the primary CTA — two 56px bars take a fifth of a small
+    // phone. Released on destroy, so the claim cannot outlive the page.
+    const release = inject(LayoutChromeService).claimBottomEdge();
+    inject(DestroyRef).onDestroy(release);
+  }
 
   protected product = signal<Product | undefined>(undefined);
   protected reviews = signal<Review[]>([]);

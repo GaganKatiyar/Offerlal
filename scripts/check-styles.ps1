@@ -48,7 +48,6 @@ $baselinePath = Join-Path $PSScriptRoot 'style-baseline.json'
 $allowlist = @(
     'src/styles/_mq.scss',
     'src/styles/_layout.scss',
-    'src/styles/tokens/_breakpoints.scss',
     'src/styles.scss'
 )
 

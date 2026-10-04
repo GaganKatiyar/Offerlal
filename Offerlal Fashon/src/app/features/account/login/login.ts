@@ -15,12 +15,8 @@ export class Login {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  protected mode = signal<'email' | 'otp'>('email');
   protected email = signal('');
   protected password = signal('');
-  protected phone = signal('');
-  protected otp = signal('');
-  protected otpSent = signal(false);
   protected error = signal('');
   protected loading = signal(false);
   /** Set after a successful password reset, so the destination page confirms
@@ -51,26 +47,6 @@ export class Login {
     this.loading.set(true);
 
     this.auth.login(this.email(), this.password()).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.router.navigate(['/account']);
-      },
-      error: (err: unknown) => {
-        this.loading.set(false);
-        this.error.set(describeAuthError(err));
-      },
-    });
-  }
-
-  protected sendOtp(): void {
-    if (!this.phone()) return;
-    this.otpSent.set(true);
-  }
-
-  protected verifyOtp(): void {
-    this.error.set('');
-    this.loading.set(true);
-    this.auth.loginWithOtp(this.phone(), this.otp()).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/account']);

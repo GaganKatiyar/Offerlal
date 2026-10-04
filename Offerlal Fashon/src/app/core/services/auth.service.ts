@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, map, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { Customer } from '../models';
 import { DemoDataStoreService } from './demo-data-store.service';
 import { AccountApiService } from './account-api.service';
@@ -106,20 +106,6 @@ export class AuthService {
       tap(() => this.rememberEmail(email.trim())),
       map(() => this.currentUser() as Customer),
     );
-  }
-
-  /**
-   * Phone OTP sign-in.
-   *
-   * There is no OTP endpoint yet, and what was here signed someone in on a
-   * matching phone number with the code ignored entirely -- worse than not
-   * offering it. It now refuses, so the UI sends people to email sign-in rather
-   * than appearing to work.
-   */
-  loginWithOtp(_phone: string, _otp: string): Observable<Customer> {
-    return throwError(
-      () => new Error('Please sign in with your email and password -- OTP is not available yet.'),
-    ).pipe(delay(200));
   }
 
   register(input: RegisterInput): Observable<Customer> {

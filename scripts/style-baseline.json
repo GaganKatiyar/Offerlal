@@ -15,6 +15,5 @@
     "src/app/features/static/contact/contact.scss":  1,
     "src/app/shared/components/footer/footer.scss":  1,
     "src/app/shared/components/quick-view-modal/quick-view-modal.scss":  1,
-    "src/app/shared/components/theme-switcher/theme-switcher.scss":  1,
-    "src/app/shared/components/whatsapp-float-button/whatsapp-float-button.scss":  1
+    "src/app/shared/components/theme-switcher/theme-switcher.scss":  1
 }

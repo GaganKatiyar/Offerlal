@@ -1,0 +1,74 @@
+:host {
+  display: contents;
+}
+
+.sk {
+  display: block;
+  background: var(--skeleton-base);
+  border-radius: var(--skeleton-radius);
+
+  /*
+    A sweep rather than a pulse. A pulsing opacity on a page full of
+    placeholders reads as flicker; a single directional highlight reads as
+    progress. --skeleton-dur is zeroed under prefers-reduced-motion, which
+    leaves a plain static block — still a correct placeholder, just still.
+  */
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skeleton-highlight) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: sk-sweep var(--skeleton-dur) var(--ease-standard) infinite;
+}
+
+/* A duration of 0ms still "runs" an animation in some engines, parking it on
+   the first frame. Switching it off outright is unambiguous. */
+@media (prefers-reduced-motion: reduce) {
+  .sk {
+    animation: none;
+    background-image: none;
+  }
+}
+
+.sk--text {
+  height: 1em;
+  margin-block: 0.25em;
+}
+
+/* Last line short, the way a real paragraph ends — a stack of equal-length
+   bars reads as a table, not prose. */
+.sk--last {
+  width: 60%;
+}
+
+.sk--line {
+  height: 1px;
+}
+
+.sk--rect {
+  height: 100%;
+}
+
+.sk--card {
+  /* Matches the product card's media box, so a grid of these does not resize
+     when the real cards land. */
+  aspect-ratio: 3 / 4;
+  width: 100%;
+}
+
+.sk--circle {
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+}
+
+@keyframes sk-sweep {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}

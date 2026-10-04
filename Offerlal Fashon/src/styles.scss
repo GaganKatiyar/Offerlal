@@ -30,6 +30,14 @@
   --color-error: #{c.$color-error};
   --color-border: #{c.$color-border};
 
+  --color-deal: #{c.$color-deal};
+  --color-deal-dark: #{c.$color-deal-dark};
+  --color-deal-tint: #{c.$color-deal-tint};
+  --color-urgency: #{c.$color-urgency};
+  --color-urgency-tint: #{c.$color-urgency-tint};
+  --color-flash: #{c.$color-flash};
+  --color-flash-tint: #{c.$color-flash-tint};
+
   --status-good: #{c.$status-good};
   --status-warning: #{c.$status-warning};
   --status-serious: #{c.$status-serious};
@@ -141,6 +149,7 @@
   --radius-sm: 2px;
   --radius-md: 4px;
   --radius-lg: 8px;
+  --radius-xl: 12px; // marketplace cards and promo bands sit softer than chrome
   --radius-full: 999px;
   --shadow-sm: 0 1px 2px rgba(42, 37, 33, 0.06);
   --shadow-md: 0 4px 16px rgba(42, 37, 33, 0.08);
@@ -151,6 +160,17 @@
   --control-h-md: 40px;
   --control-h-lg: 48px;
   --control-h-touch: 44px; // minimum tap target on coarse pointers
+
+  // Icon sizing. Previously every component hardcoded a width/height pair, so
+  // the same icon was 18px in one place and 20px in another.
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+
+  // Disabled affordance. `.btn:disabled` hardcoded 0.5; one value instead.
+  --opacity-disabled: 0.45;
 
   // -------------------------------------------------------------------------
   // Z-index scale.
@@ -164,6 +184,11 @@
   --z-raised: 1;
   --z-sticky-filter: 20;
   --z-float-cta: 90;
+  // Above the WhatsApp float (which must not cover a nav tab) and below the
+  // header, so a scrolled-up header still wins. The PDP sticky bar sits higher
+  // still at --z-sticky-cta, but the two are never shown together — see
+  // LayoutChromeService.
+  --z-bottom-nav: 95;
   --z-header: 100;
   --z-mega-menu: 110;
   --z-sticky-cta: 120;
@@ -204,8 +229,58 @@
   // never reach for a raw hex.
   --price-current: var(--text-primary);
   --price-strike: var(--text-muted);
-  --price-discount: var(--color-error); // existing rust — urgency without competing with wine
+  --price-discount: var(--color-deal); // marketplace register: savings read green, not rust
   --rating-good: var(--status-good);
+
+  // Offer / urgency group. Three jobs that must stay visually distinct:
+  // a saving (green), scarcity (red), and a time-boxed event (orange). Mixing
+  // them is why "50% OFF" and "Only 2 left" start competing for the same glance.
+  --discount-text: var(--color-deal);
+  --discount-surface: var(--color-deal-tint);
+  --savings-text: var(--color-deal-dark); // small text needs the darker step
+  --urgency-text: var(--color-urgency);
+  --urgency-surface: var(--color-urgency-tint);
+  --offer-band-bg: var(--color-flash);
+  --offer-band-text: var(--color-white);
+  --deal-timer-bg: var(--color-flash-tint);
+
+  // Badge / pill group. badge.scss hardcoded every one of these.
+  --badge-fs: var(--fs-2xs);
+  --badge-pad-x: var(--space-1-5);
+  --badge-pad-y: 2px;
+  --badge-radius: var(--radius-sm);
+  --badge-weight: var(--fw-bold);
+  --badge-tracking: var(--ls-wide);
+
+  --badge-deal-bg: var(--color-deal);
+  --badge-deal-fg: var(--color-white);
+  --badge-sale-bg: var(--color-deal-tint);
+  --badge-sale-fg: var(--color-deal-dark);
+  --badge-trending-bg: var(--color-flash-tint);
+  --badge-trending-fg: var(--color-flash);
+  --badge-limited-bg: var(--color-urgency-tint);
+  --badge-limited-fg: var(--color-urgency);
+  --badge-bestseller-bg: var(--brand-accent);
+  --badge-bestseller-fg: var(--color-white);
+  --badge-new-bg: var(--brand-primary);
+  --badge-new-fg: var(--color-white);
+  --badge-low-stock-bg: var(--color-urgency-tint);
+  --badge-low-stock-fg: var(--color-urgency);
+  --badge-out-of-stock-bg: var(--surface-alt);
+  --badge-out-of-stock-fg: var(--text-muted);
+  --badge-neutral-bg: var(--surface-alt);
+  --badge-neutral-fg: var(--text-secondary);
+
+  // Skeletons. A shared shimmer so twenty screens do not each invent one.
+  --skeleton-base: var(--surface-alt);
+  --skeleton-highlight: rgba(255, 255, 255, 0.65);
+  --skeleton-radius: var(--radius-md);
+  --skeleton-dur: 1400ms;
+
+  // Focus ring, so :focus-visible is not the only place that knows it.
+  --focus-ring-width: 2px;
+  --focus-ring-color: var(--brand-primary);
+  --focus-ring-offset: 2px;
 
   // Layout offsets. --sticky-offset is what every sticky element and every
   // in-page anchor measures against, instead of guessing at the header height.
@@ -213,6 +288,14 @@
   --header-h: 56px;
   --announcement-h: 36px;
   --sticky-offset: calc(var(--header-h) + var(--announcement-h));
+
+  // Bottom chrome. --safe-bottom is the home-indicator inset on notched
+  // phones; it resolves to 0px everywhere else, so it is always safe to add.
+  // Anything fixed to the bottom measures against --bottom-nav-total, and
+  // nothing should re-add --safe-bottom on top of it.
+  --bottom-nav-h: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --bottom-nav-total: calc(var(--bottom-nav-h) + var(--safe-bottom));
 
   // DEPRECATED aliases for the offsets above.
   --header-height: var(--header-h);
@@ -438,6 +521,7 @@ body {
     --dur-fast: 0ms;
     --dur-base: 0ms;
     --dur-slow: 0ms;
+    --skeleton-dur: 0ms;
   }
 
   body {
@@ -482,6 +566,6 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }

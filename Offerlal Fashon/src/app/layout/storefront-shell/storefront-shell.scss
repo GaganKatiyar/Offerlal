@@ -1,8 +1,24 @@
+@use '../../../styles/mq' as *;
+
 :host {
   display: block;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 main {
   min-height: 60vh;
+
+  /*
+    Clear the fixed bottom navigation so the last row of a grid, and the footer,
+    are not permanently hidden under it. Removed from lg up, where the bar is
+    display:none and this padding would be dead space.
+
+    100dvh rather than vh anywhere below: mobile Safari's vh counts the URL bar
+    that is not actually there, which puts a fixed bottom bar off-screen.
+  */
+  padding-bottom: var(--bottom-nav-total);
+
+  @include mq(lg) {
+    padding-bottom: 0;
+  }
 }

@@ -1,0 +1,76 @@
+@if (!hidden()) {
+  <nav class="bottom-nav" aria-label="Primary">
+    <a
+      class="tab"
+      routerLink="/"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+    >
+      <span class="tab__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 10.5 12 3l9 7.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M5.5 9.5V20h13V9.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span class="tab__label">Home</span>
+    </a>
+
+    <a class="tab" routerLink="/collections" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+      <span class="tab__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+          <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+          <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+          <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+        </svg>
+      </span>
+      <span class="tab__label">Categories</span>
+    </a>
+
+    <a class="tab" routerLink="/search" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+      <span class="tab__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="m16 16 4.5 4.5" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="tab__label">Search</span>
+    </a>
+
+    <a class="tab" routerLink="/account/wishlist" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+      <span class="tab__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path
+            d="M12 20s-7.5-4.6-7.5-9.4A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20Z"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="tab__label">Wishlist</span>
+      @if (badge(wishlist.count()); as n) {
+        <span class="tab__badge" aria-hidden="true">{{ n }}</span>
+        <span class="visually-hidden">{{ wishlist.count() }} saved</span>
+      }
+    </a>
+
+    <!--
+      A button, not a link: it opens the cart drawer rather than navigating.
+      Using an anchor here would promise a page change that never happens and
+      would break open-in-new-tab.
+    -->
+    <button type="button" class="tab" (click)="cart.openDrawer()">
+      <span class="tab__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 7h16l-1.4 12.2a1.5 1.5 0 0 1-1.5 1.3H6.9a1.5 1.5 0 0 1-1.5-1.3Z" stroke-linejoin="round" />
+          <path d="M8.75 7V5.6a3.25 3.25 0 0 1 6.5 0V7" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="tab__label">Bag</span>
+      @if (badge(cart.count()); as n) {
+        <span class="tab__badge" aria-hidden="true">{{ n }}</span>
+        <span class="visually-hidden">{{ cart.count() }} items in your bag</span>
+      }
+    </button>
+  </nav>
+}
