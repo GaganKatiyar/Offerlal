@@ -12,8 +12,30 @@
   } @else {
     <div class="checkout-layout">
       <div class="checkout-form">
+        <!--
+          Progress, and a way back. Completed steps are links so a customer can
+          correct an address without losing the rest; later steps are not,
+          because the data they need does not exist yet.
+        -->
+        <ol class="stepper" aria-label="Checkout progress">
+          @for (s of steps; track s.id; let i = $index) {
+            <li class="stepper__item" [class.is-current]="step() === s.id" [class.is-done]="stepIndex() > i">
+              @if (stepIndex() > i) {
+                <button type="button" class="stepper__link" (click)="goToStep(s.id)">
+                  <span class="stepper__num">{{ i + 1 }}</span>{{ s.label }}
+                </button>
+              } @else {
+                <span class="stepper__link" [attr.aria-current]="step() === s.id ? 'step' : null">
+                  <span class="stepper__num">{{ i + 1 }}</span>{{ s.label }}
+                </span>
+              }
+            </li>
+          }
+        </ol>
+
+        @if (step() === 'address') {
         <section class="form-section">
-          <h3>1. Contact Information</h3>
+          <h3>Contact Information</h3>
           <div class="field-row">
             <label>
               Mobile Number *
@@ -27,7 +49,7 @@
         </section>
 
         <section class="form-section">
-          <h3>2. Delivery Address</h3>
+          <h3>Delivery Address</h3>
           <div class="field-row">
             <label>
               Full Name *
@@ -60,10 +82,18 @@
               <input type="text" [value]="pincode()" (input)="pincode.set($any($event.target).value)" />
             </label>
           </div>
+
         </section>
 
+        <div class="step-actions">
+          <a routerLink="/cart" class="btn btn-outline">Back to Bag</a>
+          <button type="button" class="btn btn-primary" (click)="next()">Continue to Review</button>
+        </div>
+        }
+
+        @if (step() === 'review') {
         <section class="form-section">
-          <h3>3. Delivery Method</h3>
+          <h3>Delivery Method</h3>
           <label class="radio-row">
             <input type="radio" name="delivery" [checked]="deliveryMethod() === 'standard'" (change)="deliveryMethod.set('standard')" />
             <span>Standard Delivery <em>5&ndash;9 business days</em></span>
@@ -72,31 +102,41 @@
             <input type="radio" name="delivery" [checked]="deliveryMethod() === 'express'" (change)="deliveryMethod.set('express')" />
             <span>Express Delivery <em>3&ndash;5 business days &middot; +₹250</em></span>
           </label>
+
         </section>
 
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" (click)="back()">Back</button>
+          <button type="button" class="btn btn-primary" [disabled]="!canPlaceOrder()" (click)="next()">
+            Continue to Payment
+          </button>
+        </div>
+        }
+
+        @if (step() === 'payment') {
         <section class="form-section">
-          <h3>4. Payment</h3>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'UPI'" (change)="paymentMethod.set('UPI')" />
-            <span>UPI</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'Card'" (change)="paymentMethod.set('Card')" />
-            <span>Credit / Debit Card</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'NetBanking'" (change)="paymentMethod.set('NetBanking')" />
-            <span>Net Banking</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'Wallet'" (change)="paymentMethod.set('Wallet')" />
-            <span>Wallets</span>
-          </label>
+          <h3>Payment</h3>
+          <!--
+            Cash on delivery only, until a gateway is connected.
+
+            UPI, Card, Net Banking and Wallets were all selectable here and none
+            of them took any money: choosing one set a string on the order and
+            the payment status stayed Pending exactly as with COD. A customer
+            who picks UPI and sees their order confirmed reasonably believes
+            they have paid. Offering a method that cannot charge is worse than
+            not offering it, so these return with Razorpay and not before.
+          -->
           <label class="radio-row">
             <input type="radio" name="payment" [checked]="paymentMethod() === 'COD'" (change)="paymentMethod.set('COD')" />
-            <span>Cash on Delivery</span>
+            <span>Cash on Delivery <em>Pay when your order arrives</em></span>
           </label>
+          <p class="payment-note">Online payment is coming soon.</p>
         </section>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" (click)="back()">Back</button>
+        </div>
+        }
 
         @if (formError()) {
           <p class="form-error">{{ formError() }}</p>

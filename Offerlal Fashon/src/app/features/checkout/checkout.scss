@@ -267,3 +267,101 @@ input[type='email'] {
   color: var(--text-muted);
   font-weight: var(--fw-regular);
 }
+
+/* ---------------------------------------------------------------------------
+   Stepper
+   --------------------------------------------------------------------------- */
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.stepper__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+
+  /* Connector between steps, drawn after every item but the last. */
+  &:not(:last-child)::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    min-width: var(--space-3);
+    background: var(--border-subtle);
+  }
+}
+
+.stepper__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+button.stepper__link {
+  cursor: pointer;
+}
+
+.stepper__num {
+  display: grid;
+  place-items: center;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-strong);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper__item.is-current .stepper__link {
+  color: var(--text-primary);
+  font-weight: var(--fw-semibold);
+}
+
+.stepper__item.is-current .stepper__num {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+}
+
+/* Done steps are navigable, so they read as actionable rather than spent. */
+.stepper__item.is-done .stepper__link {
+  color: var(--brand-primary);
+}
+
+.stepper__item.is-done .stepper__num {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+
+  .btn {
+    min-height: var(--control-h-touch);
+  }
+}
+
+.payment-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}

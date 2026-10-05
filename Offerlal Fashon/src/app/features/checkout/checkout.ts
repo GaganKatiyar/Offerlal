@@ -1,15 +1,26 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, effect, computed, inject, signal } from '@angular/core';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { CartService } from '../../core/services/cart.service';
 import { CheckoutApiService, toQuoteLines } from '../../core/services/checkout-api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { AccountApiService } from '../../core/services/account-api.service';
 import { DemoDataStoreService } from '../../core/services/demo-data-store.service';
 import { Address, PaymentMethod } from '../../core/models';
 import { ImageWithFallback } from '../../shared/components/image-with-fallback/image-with-fallback';
 import { StateBlock } from '../../shared/ui/state';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
+
+/** The three stages of checkout, in order. */
+export type CheckoutStep = 'address' | 'review' | 'payment';
+const STEPS: CheckoutStep[] = ['address', 'review', 'payment'];
+
+/** An unknown or missing :step in the URL starts at the beginning. */
+function normaliseStep(value: string | null): CheckoutStep {
+  return STEPS.includes(value as CheckoutStep) ? (value as CheckoutStep) : 'address';
+}
 
 @Component({
   selector: 'app-checkout',
@@ -22,9 +33,11 @@ import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 export class Checkout {
   protected cart = inject(CartService);
   protected auth = inject(AuthService);
+  private account = inject(AccountApiService);
   private checkoutApi = inject(CheckoutApiService);
   private store = inject(DemoDataStoreService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   protected mobile = signal(this.auth.currentUser()?.phone ?? '');
   protected email = signal(this.auth.currentUser()?.email ?? '');
@@ -37,7 +50,7 @@ export class Checkout {
   protected pincode = signal('');
 
   protected deliveryMethod = signal<'standard' | 'express'>('standard');
-  protected paymentMethod = signal<PaymentMethod>('UPI');
+  protected paymentMethod = signal<PaymentMethod>('COD');
 
   protected couponCode = signal('');
   protected appliedCode = signal<string | null>(null);
@@ -105,6 +118,89 @@ export class Checkout {
    * and pressing Place Order immediately cannot submit against the previous
    * total.
    */
+  /**
+   * Which step is on screen, taken from the URL.
+   *
+   * Checkout was one long form with four numbered headings. On a phone that is
+   * a great deal of scrolling before anything confirms progress, and the back
+   * button could only leave checkout entirely rather than step back within it.
+   *
+   * The URL is the source of truth rather than a signal the component owns, so
+   * the browser's own back and forward work, and a step can be linked to.
+   */
+  protected step = toSignal(
+    this.route.paramMap.pipe(map((p) => normaliseStep(p.get('step')))),
+    { initialValue: 'address' as CheckoutStep },
+  );
+
+  protected stepIndex = computed(() => STEPS.indexOf(this.step()));
+
+  /** Labels for the progress list. */
+  protected steps: { id: CheckoutStep; label: string }[] = [
+    { id: 'address', label: 'Address' },
+    { id: 'review', label: 'Review' },
+    { id: 'payment', label: 'Payment' },
+  ];
+
+  /**
+   * Whether the address step has everything the courier needs.
+   *
+   * Also what gates the later steps: a pincode is what decides where a parcel
+   * goes, so reaching payment without one is not a state worth supporting.
+   */
+  protected addressComplete = computed(
+    () =>
+      !!this.mobile().trim() &&
+      !!this.email().trim() &&
+      !!this.fullName().trim() &&
+      !!this.line1().trim() &&
+      !!this.city().trim() &&
+      !!this.state().trim() &&
+      !!this.pincode().trim(),
+  );
+
+  /**
+   * Sends a deep link to a step that cannot be used back to the one that can.
+   *
+   * The form lives in memory, so opening /checkout/payment directly arrives
+   * with every field empty: the customer would see a payment screen whose only
+   * possible outcome is "please fill in all required fields". The order itself
+   * was never at risk — placeOrder() validates independently — but showing a
+   * dead end is its own problem.
+   */
+  private readonly guardStep = effect(() => {
+    if (this.step() !== 'address' && !this.addressComplete()) {
+      this.router.navigate(['/checkout', 'address'], { replaceUrl: true });
+    }
+  });
+
+  protected goToStep(step: CheckoutStep): void {
+    this.router.navigate(['/checkout', step]);
+  }
+
+  protected next(): void {
+    if (this.step() === 'address') {
+      if (!this.addressComplete()) {
+        this.formError.set('Please fill in all required fields.');
+        return;
+      }
+      this.formError.set('');
+      // Prices can move while a form is being filled in, so the total shown on
+      // the review step is fetched fresh rather than carried over.
+      this.quoteResource.reload();
+      this.goToStep('review');
+      return;
+    }
+    if (this.step() === 'review') {
+      this.goToStep('payment');
+    }
+  }
+
+  protected back(): void {
+    const i = this.stepIndex();
+    if (i > 0) this.goToStep(STEPS[i - 1]);
+  }
+
   protected canPlaceOrder = computed(
     () => this.grandTotal() !== null && !this.quoteFailed() && !this.quoteLoading(),
   );
@@ -150,6 +246,47 @@ export class Checkout {
       pincode: this.pincode(),
       isDefault: true,
     };
+  }
+
+  /**
+   * Keeps the delivery address for next time.
+   *
+   * It was previously thrown away: a returning customer retyped their full
+   * address on every order while an empty address book sat in their account.
+   *
+   * Signed-in only, because addresses are scoped to a customer by token and a
+   * guest has no account to attach one to. Fire-and-forget on purpose — the
+   * order is already placed, and failing to save a convenience must never
+   * surface as an error on a successful purchase.
+   */
+  private rememberAddress(): void {
+    if (!this.auth.isLoggedIn()) return;
+
+    const existing = this.account.addresses();
+    const pincode = this.pincode().trim();
+    const line1 = this.line1().trim();
+
+    // Do not accumulate a duplicate every time someone orders to the same place.
+    const alreadySaved = existing.some(
+      (a) => a.line1.trim().toLowerCase() === line1.toLowerCase() && a.pincode.trim() === pincode,
+    );
+    if (alreadySaved) return;
+
+    this.account
+      .addAddress({
+        label: 'Home',
+        fullName: this.fullName().trim(),
+        phone: this.mobile().trim(),
+        line1,
+        line2: this.landmark().trim() || null,
+        city: this.city().trim(),
+        state: this.state().trim(),
+        pincode,
+        // The first address a customer saves becomes their default anyway;
+        // this keeps a later one from silently displacing their chosen one.
+        isDefault: existing.length === 0,
+      })
+      .subscribe({ next: () => undefined, error: () => undefined });
   }
 
   protected placeOrder(): void {
@@ -200,6 +337,7 @@ export class Checkout {
           next: (order) => {
             this.placingOrder.set(false);
             this.cart.clear();
+            this.rememberAddress();
             this.router.navigate(['/checkout/confirmation', order.orderNumber]);
           },
           error: (err: unknown) => {

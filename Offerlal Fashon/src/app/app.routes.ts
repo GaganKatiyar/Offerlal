@@ -32,8 +32,12 @@ export const routes: Routes = [
       { path: 'occasion/:slug', loadComponent: () => import('./features/plp/plp').then((m) => m.Plp), data: { mode: 'occasion' }, title: 'Shop by Occasion | Offerlal Fashion' },
       { path: 'product/:slug', loadComponent: () => import('./features/pdp/pdp').then((m) => m.Pdp) },
       { path: 'cart', loadComponent: () => import('./features/cart/cart-page/cart-page').then((m) => m.CartPage), title: 'Your Bag | Offerlal Fashion' },
-      { path: 'checkout', loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout), title: 'Checkout | Offerlal Fashion' },
+      // Checkout is a three-step flow with the step in the URL, so the browser's
+      // own back button moves between steps instead of leaving checkout, and a
+      // step can be linked to. A bare /checkout starts at the beginning.
+      { path: 'checkout', redirectTo: 'checkout/address', pathMatch: 'full' },
       { path: 'checkout/confirmation/:orderNumber', loadComponent: () => import('./features/checkout/order-confirmation/order-confirmation').then((m) => m.OrderConfirmation), title: 'Order Confirmed | Offerlal Fashion' },
+      { path: 'checkout/:step', loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout), title: 'Checkout | Offerlal Fashion' },
       { path: 'search', loadComponent: () => import('./features/search/search').then((m) => m.Search), title: 'Search | Offerlal Fashion' },
       { path: 'track-order', loadComponent: () => import('./features/order-tracking/order-tracking').then((m) => m.OrderTracking), title: 'Track Your Order | Offerlal Fashion' },
       { path: 'track-order/:orderNumber', loadComponent: () => import('./features/order-tracking/order-tracking').then((m) => m.OrderTracking), title: 'Track Your Order | Offerlal Fashion' },
