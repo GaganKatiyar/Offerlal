@@ -1,3 +1,5 @@
+@use '../../../styles/mq' as *;
+
 .checkout-page {
   padding: var(--space-8) var(--space-6) var(--space-20);
 }
@@ -360,8 +362,56 @@ button.stepper__link {
   }
 }
 
-.payment-note {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
+/*
+ * What the payment attempt is doing.
+ *
+ * Neutral surface rather than a red error panel: the commonest state here is
+ * "you closed the window", which is a decision, not a fault. Only the states
+ * that leave something genuinely unresolved take the warning accent.
+ */
+.payment-status {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+
+  p {
+    margin: 0 0 var(--space-2);
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  &.is-warning {
+    border-left-color: var(--urgency-text, var(--color-warning));
+  }
+}
+
+.status-title {
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+
+  /* Full width on a phone: two half-width buttons next to each other at 360px
+     leave neither with room for its label. */
+  .btn {
+    flex: 1 1 100%;
+  }
+
+  @include mq(sm) {
+    .btn {
+      flex: 0 1 auto;
+    }
+  }
 }

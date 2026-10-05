@@ -117,20 +117,87 @@
         <section class="form-section">
           <h3>Payment</h3>
           <!--
-            Cash on delivery only, until a gateway is connected.
+            Two options, because two things can actually take money.
 
-            UPI, Card, Net Banking and Wallets were all selectable here and none
-            of them took any money: choosing one set a string on the order and
-            the payment status stayed Pending exactly as with COD. A customer
-            who picks UPI and sees their order confirmed reasonably believes
-            they have paid. Offering a method that cannot charge is worse than
-            not offering it, so these return with Razorpay and not before.
+            There were once four more - UPI, Card, Net Banking and Wallets -
+            and none of them charged anything: picking one set a string on the
+            order and left it Pending exactly as cash on delivery does. Those
+            four are now one 'Online' choice, because which of them the
+            customer uses is decided inside the gateway's own sheet and
+            reported back by the gateway, not chosen here.
           -->
+          <label class="radio-row">
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'Online'" (change)="paymentMethod.set('Online')" />
+            <span>Pay Online <em>UPI, cards, net banking or wallet</em></span>
+          </label>
           <label class="radio-row">
             <input type="radio" name="payment" [checked]="paymentMethod() === 'COD'" (change)="paymentMethod.set('COD')" />
             <span>Cash on Delivery <em>Pay when your order arrives</em></span>
           </label>
-          <p class="payment-note">Online payment is coming soon.</p>
+
+          @switch (paymentPhase()) {
+            @case ('cancelled') {
+              <!--
+                Not an error. They closed the window, which people do on
+                purpose, so this says what happened and offers both ways on.
+              -->
+              <div class="payment-status" role="status">
+                <p class="status-title">Payment not completed</p>
+                <p>
+                  Nothing has been charged. Your order
+                  <strong>{{ placedOrderNumber() }}</strong> is saved and still waiting to be paid.
+                </p>
+                <div class="status-actions">
+                  <button type="button" class="btn btn-primary" (click)="placeOrder()">Try payment again</button>
+                  <button type="button" class="btn btn-outline" (click)="keepAsCod()">Pay on delivery instead</button>
+                </div>
+              </div>
+            }
+            @case ('unavailable') {
+              <div class="payment-status is-warning" role="status">
+                <p class="status-title">We couldn't open the payment window</p>
+                <p>
+                  This is usually a blocked script or a dropped connection, not a
+                  problem with your order. Nothing has been charged.
+                </p>
+                <div class="status-actions">
+                  <button type="button" class="btn btn-primary" (click)="placeOrder()">Try again</button>
+                  @if (placedOrderNumber()) {
+                    <button type="button" class="btn btn-outline" (click)="keepAsCod()">Pay on delivery instead</button>
+                  }
+                </div>
+              </div>
+            }
+            @case ('confirming') {
+              <div class="payment-status" role="status" aria-live="polite">
+                <p class="status-title">Confirming your payment…</p>
+                <p>
+                  Please don't close this page. We confirm with the payment provider
+                  directly rather than taking the browser's word for it, which takes a
+                  few seconds.
+                </p>
+              </div>
+            }
+            @case ('unconfirmed') {
+              <!--
+                Deliberately does not say "paid". The confirmation is a signed
+                message from the provider to our server, and it has not arrived
+                yet - it may be slow, or in local development it cannot arrive
+                at all. Claiming success here would be a guess.
+              -->
+              <div class="payment-status is-warning" role="status">
+                <p class="status-title">We're still confirming your payment</p>
+                <p>
+                  Your order <strong>{{ placedOrderNumber() }}</strong> is placed. If money
+                  left your account it will show as paid shortly, and you'll get an email
+                  either way. Please don't pay twice.
+                </p>
+                <div class="status-actions">
+                  <button type="button" class="btn btn-primary" (click)="viewPlacedOrder()">View your order</button>
+                </div>
+              </div>
+            }
+          }
         </section>
 
         <div class="step-actions">
@@ -230,12 +297,18 @@
           [disabled]="placingOrder() || !canPlaceOrder()"
           (click)="placeOrder()"
         >
-          @if (placingOrder()) {
+          @if (paymentPhase() === 'confirming') {
+            Confirming payment…
+          } @else if (paymentPhase() === 'starting') {
+            Opening payment…
+          } @else if (placingOrder()) {
             Placing Order...
           } @else if (quoteLoading()) {
             Working out your total…
           } @else if (!canPlaceOrder()) {
             Total unavailable
+          } @else if (paymentMethod() === 'Online' && grandTotal() !== null) {
+            Pay {{ grandTotal() | inr }}
           } @else {
             Place Order
           }

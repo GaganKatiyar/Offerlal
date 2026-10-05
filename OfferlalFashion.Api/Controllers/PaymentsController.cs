@@ -106,6 +106,50 @@ public class PaymentsController(
     }
 
     /// <summary>
+    /// Where a payment attempt has got to, for the browser to poll after the
+    /// checkout sheet closes.
+    ///
+    /// Takes the gateway order id as well as the order number, and requires
+    /// both to name the same attempt. Order numbers are sequential and
+    /// therefore guessable, so on the order number alone this would answer
+    /// "has OF-2026-100041 been paid yet?" for anyone who asked. The gateway
+    /// id is 20-odd random characters issued to the one browser that started
+    /// the payment, which makes the pair unguessable.
+    ///
+    /// Returns our own stored status. It never asks Razorpay and never infers
+    /// anything from the caller: this reports what a verified webhook has
+    /// already established, which is the whole point of polling it.
+    /// </summary>
+    [HttpGet("razorpay/status")]
+    public async Task<ActionResult<object>> PaymentStatus(
+        [FromQuery] string orderNumber,
+        [FromQuery] string razorpayOrderId,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(razorpayOrderId))
+        {
+            return BadRequest(new { message = "Both orderNumber and razorpayOrderId are required." });
+        }
+
+        var tx = await db.PaymentTransactions
+            .Include(t => t.Order)
+            .FirstOrDefaultAsync(
+                t => t.ProviderOrderId == razorpayOrderId && t.Order.OrderNumber == orderNumber, ct);
+
+        // One 404 for "no such order", "no such payment" and "those two do not
+        // belong together". Distinguishing them would turn this into the
+        // enumeration oracle the paired ids exist to prevent.
+        if (tx is null) return NotFound();
+
+        return Ok(new
+        {
+            orderNumber = tx.Order.OrderNumber,
+            paymentStatus = tx.Order.PaymentStatus,
+            transactionStatus = tx.Status,
+        });
+    }
+
+    /// <summary>
     /// Razorpay's webhook. The only thing in this system that may mark an order paid.
     ///
     /// Reads the raw body rather than a bound model, because the signature is

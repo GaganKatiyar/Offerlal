@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, effect, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CartService } from '../../core/services/cart.service';
-import { CheckoutApiService, toQuoteLines } from '../../core/services/checkout-api.service';
+import { CheckoutApiService, PlacedOrder, toQuoteLines } from '../../core/services/checkout-api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AccountApiService } from '../../core/services/account-api.service';
+import { PaymentApiService } from '../../core/services/payment-api.service';
+import { RazorpayCheckoutService } from '../../core/services/razorpay-checkout.service';
 import { DemoDataStoreService } from '../../core/services/demo-data-store.service';
 import { Address, PaymentMethod } from '../../core/models';
 import { ImageWithFallback } from '../../shared/components/image-with-fallback/image-with-fallback';
@@ -22,6 +24,28 @@ function normaliseStep(value: string | null): CheckoutStep {
   return STEPS.includes(value as CheckoutStep) ? (value as CheckoutStep) : 'address';
 }
 
+/**
+ * Where an online payment has got to, from this browser's point of view.
+ *
+ * 'confirming' is the important one and the reason this is not a boolean. The
+ * customer has finished Razorpay's form, but an order becomes Paid only when a
+ * signed webhook reaches our server, which happens out of band and takes a
+ * moment. Showing success before that would be a guess; showing failure would
+ * be wrong. So there is a state for "we are asking".
+ */
+type PaymentPhase =
+  | 'idle'
+  | 'starting'
+  | 'confirming'
+  | 'unconfirmed'
+  | 'cancelled'
+  | 'unavailable'
+  | 'failed';
+
+/** How long to keep asking the server whether the webhook has landed. */
+const CONFIRM_POLL_INTERVAL_MS = 2000;
+const CONFIRM_POLL_ATTEMPTS = 20;
+
 @Component({
   selector: 'app-checkout',
   standalone: true,
@@ -35,6 +59,8 @@ export class Checkout {
   protected auth = inject(AuthService);
   private account = inject(AccountApiService);
   private checkoutApi = inject(CheckoutApiService);
+  private paymentApi = inject(PaymentApiService);
+  private razorpay = inject(RazorpayCheckoutService);
   private store = inject(DemoDataStoreService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -58,6 +84,20 @@ export class Checkout {
   protected couponMessage = signal('');
 
   protected placingOrder = signal(false);
+
+  /**
+   * The order number, once it exists.
+   *
+   * An online payment places the order FIRST and then collects the money, so
+   * between those two steps there is a real, unpaid order. Holding its number
+   * here is what stops a customer who abandons the payment sheet and presses
+   * the button again from filing a second order for the same bag: the retry
+   * resumes this one.
+   */
+  protected placedOrderNumber = signal<string | null>(null);
+  /** The server's own reply to place-order, carried to the confirmation page. */
+  private placedOrder = signal<PlacedOrder | null>(null);
+  protected paymentPhase = signal<PaymentPhase>('idle');
   protected formError = signal('');
 
   /**
@@ -306,6 +346,15 @@ export class Checkout {
       return;
     }
 
+    // A second press after an abandoned payment resumes the order that was
+    // already filed. Without this the customer gets two orders for one bag,
+    // and only finds out when both arrive.
+    const existingOrder = this.placedOrderNumber();
+    if (existingOrder && this.paymentMethod() === 'Online') {
+      void this.payOnline();
+      return;
+    }
+
     this.placingOrder.set(true);
     const address = this.buildAddress();
 
@@ -335,10 +384,27 @@ export class Checkout {
         })
         .subscribe({
           next: (order) => {
+            this.rememberAddress();
+
+            if (this.paymentMethod() === 'Online') {
+              // The order now exists and is unpaid. The bag is deliberately
+              // NOT cleared yet: if the payment is abandoned there is still a
+              // visible summary of what was being bought, and the order number
+              // above makes a retry resume this order rather than file another.
+              this.placedOrderNumber.set(order.orderNumber);
+              this.placedOrder.set(order);
+              void this.payOnline();
+              return;
+            }
+
             this.placingOrder.set(false);
             this.cart.clear();
-            this.rememberAddress();
-            this.router.navigate(['/checkout/confirmation', order.orderNumber]);
+            // Both, and before navigating: goToConfirmation() reads the number
+            // from here, so setting only the order object sent the customer
+            // nowhere at all.
+            this.placedOrderNumber.set(order.orderNumber);
+            this.placedOrder.set(order);
+            this.goToConfirmation();
           },
           error: (err: unknown) => {
             this.placingOrder.set(false);
@@ -361,5 +427,129 @@ export class Checkout {
     // password was accepted. Guest checkout is a first-class path on the
     // server: it resolves the customer from the email on the order.
     proceed();
+  }
+
+  /**
+   * Collects the money for an order that has already been placed.
+   *
+   * The sequence matters: order first, payment second. Taking the money before
+   * the order exists means a captured payment with nothing to attach it to if
+   * the next request fails, which is the one failure mode that costs a customer
+   * real money with nothing to show for it.
+   */
+  private async payOnline(): Promise<void> {
+    const orderNumber = this.placedOrderNumber();
+    if (!orderNumber) return;
+
+    this.formError.set('');
+    this.placingOrder.set(true);
+    this.paymentPhase.set('starting');
+
+    let handoff;
+    try {
+      handoff = await firstValueFrom(this.paymentApi.createRazorpayOrder(orderNumber));
+    } catch {
+      this.placingOrder.set(false);
+      this.paymentPhase.set('unavailable');
+      return;
+    }
+
+    const outcome = await this.razorpay.open(handoff, {
+      name: this.fullName(),
+      email: this.email(),
+      contact: this.mobile(),
+    });
+
+    if (outcome === 'unavailable') {
+      this.placingOrder.set(false);
+      this.paymentPhase.set('unavailable');
+      return;
+    }
+
+    if (outcome === 'dismissed') {
+      this.placingOrder.set(false);
+      this.paymentPhase.set('cancelled');
+      return;
+    }
+
+    // 'submitted' only means the form closed cleanly. Whether money moved is
+    // something only the server knows, and only once Razorpay's signed webhook
+    // has reached it.
+    this.paymentPhase.set('confirming');
+    const paid = await this.waitForConfirmation(orderNumber, handoff.razorpayOrderId);
+    this.placingOrder.set(false);
+
+    if (paid) {
+      this.cart.clear();
+      this.goToConfirmation('Paid');
+      return;
+    }
+
+    // Not confirmed within the window. This is NOT a failure — a webhook can
+    // be slow, and in local development it cannot arrive at all because
+    // Razorpay's servers have no route to localhost. The order is real either
+    // way, so the customer is sent to it rather than left on a dead spinner.
+    this.cart.clear();
+    this.paymentPhase.set('unconfirmed');
+  }
+
+  /**
+   * Asks the server, repeatedly, whether the webhook has landed.
+   *
+   * Polling rather than trusting the browser's own success callback. That
+   * callback runs in the customer's window and can be invoked by hand from the
+   * console, so treating it as proof of payment would let anyone mark their own
+   * order paid.
+   */
+  private async waitForConfirmation(orderNumber: string, razorpayOrderId: string): Promise<boolean> {
+    for (let attempt = 0; attempt < CONFIRM_POLL_ATTEMPTS; attempt++) {
+      try {
+        const status = await firstValueFrom(this.paymentApi.status(orderNumber, razorpayOrderId));
+        if (status.paymentStatus === 'Paid') return true;
+        if (status.transactionStatus === 'Failed') return false;
+      } catch {
+        // A hiccup mid-poll is not an answer. Keep asking until the window
+        // closes; the caller's 'unconfirmed' state covers running out of time.
+      }
+      await new Promise((resolve) => setTimeout(resolve, CONFIRM_POLL_INTERVAL_MS));
+    }
+    return false;
+  }
+
+  /** Falls back to cash on delivery on an order that is already placed. */
+  protected keepAsCod(): void {
+    this.paymentPhase.set('idle');
+    this.paymentMethod.set('COD');
+    if (this.placedOrderNumber()) {
+      this.cart.clear();
+      this.goToConfirmation();
+    }
+  }
+
+  /** Leaves checkout for an order whose payment we could not confirm in time. */
+  protected viewPlacedOrder(): void {
+    if (this.placedOrderNumber()) this.goToConfirmation();
+  }
+
+  /**
+   * Hands the order to the confirmation page rather than making it look one up.
+   *
+   * A guest has no way to read their own order back - the orders endpoint is
+   * scoped to a bearer token - so without this the page that thanks them for
+   * paying could show them nothing at all.
+   */
+  private goToConfirmation(paymentStatus?: string): void {
+    const orderNumber = this.placedOrderNumber();
+    if (!orderNumber) return;
+    const placed = this.placedOrder();
+    this.router.navigate(['/checkout/confirmation', orderNumber], {
+      state: {
+        placedOrder: {
+          orderNumber,
+          total: placed?.total ?? this.grandTotal(),
+          paymentStatus: paymentStatus ?? placed?.paymentStatus ?? 'Pending',
+        },
+      },
+    });
   }
 }

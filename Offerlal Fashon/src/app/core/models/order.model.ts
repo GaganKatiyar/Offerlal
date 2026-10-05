@@ -34,7 +34,15 @@ export interface OrderStatusEvent {
   note?: string;
 }
 
-export type PaymentMethod = 'UPI' | 'Card' | 'NetBanking' | 'Wallet' | 'COD';
+/**
+ * How an order is being paid for.
+ *
+ * 'Online' covers every method the gateway offers — UPI, cards, net banking,
+ * wallets — because which one the customer picked is chosen inside Razorpay's
+ * sheet and reported by Razorpay, not by us. The older per-method values are
+ * kept so historical orders still render.
+ */
+export type PaymentMethod = 'Online' | 'UPI' | 'Card' | 'NetBanking' | 'Wallet' | 'COD';
 export type PaymentStatus = 'Paid' | 'Pending' | 'Refunded';
 
 export interface Order {
