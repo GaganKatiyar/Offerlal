@@ -19,17 +19,46 @@
  * "60 / items" and "Sort / by" each on two lines, which reads as broken rather
  * than dense. The count moves to its own line and the controls share the next. */
 .toolbar {
+  /*
+    Sticky on phones.
+
+    The filter rail is desktop-only, so below lg this toolbar's Filters button
+    is the ONLY way to filter or sort. Letting it scroll away meant that on a
+    long grid the single most useful control on the page became reachable only
+    by scrolling all the way back to the top.
+
+    Pinned under the header rather than to the viewport, which is what
+    --sticky-offset exists to express; the desktop rail at the bottom of this
+    file already measures against the same value.
+  */
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: var(--z-sticky-filter);
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+
+  /* Opaque, and padded back out to the container edges, so product images
+     scrolling underneath do not show through or butt against the controls. */
+  background: var(--surface-page);
+  margin-inline: calc(var(--container-pad) * -1);
+  padding: var(--space-2) var(--container-pad) var(--space-3);
   margin-bottom: var(--space-4);
-  padding-bottom: var(--space-3);
   border-bottom: var(--border-hairline);
 
   @include mq(md) {
     flex-wrap: nowrap;
     justify-content: space-between;
+  }
+
+  /* Desktop has the sticky rail for this, and a second sticky strip there only
+     costs vertical space. */
+  @include mq(lg) {
+    position: static;
+    margin-inline: 0;
+    padding-inline: 0;
   }
 }
 

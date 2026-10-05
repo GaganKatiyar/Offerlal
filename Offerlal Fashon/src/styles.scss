@@ -323,7 +323,21 @@ html,
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+
+  /*
+    clip, not hidden.
+
+    `overflow-x: hidden` makes the body a scroll container, and a scroll
+    container silently disables `position: sticky` for everything inside it —
+    the rule still applies, the element simply never sticks. That is what was
+    happening to the product listing's filter toolbar and to the desktop filter
+    rail, both of which scrolled away despite being written as sticky.
+
+    `clip` prevents horizontal scrolling exactly as before without establishing
+    a scroll container, so sticky works again. Kept rather than removed because
+    it is a genuine safety net against a stray wide element.
+  */
+  overflow-x: clip;
 }
 
 body {
