@@ -1619,6 +1619,75 @@ namespace OfferlalFashion.Api.Migrations
                     b.ToTable("PageSectionItems");
                 });
 
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PaymentTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<long>("AmountMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CapturedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(3)");
+
+                    b.Property<string>("LastEventId")
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(80)");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("ProviderOrderId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(80)");
+
+                    b.Property<string>("ProviderPaymentId")
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(80)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "OrderId" }, "IX_PaymentTransactions_OrderId");
+
+                    b.HasIndex(new[] { "ProviderOrderId" }, "IX_PaymentTransactions_ProviderOrderId")
+                        .IsUnique();
+
+                    b.ToTable("PaymentTransactions");
+                });
+
             modelBuilder.Entity("OfferlalFashion.Api.Models.Product", b =>
                 {
                     b.Property<string>("Id")
@@ -2774,6 +2843,18 @@ namespace OfferlalFashion.Api.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("OfferlalFashion.Api.Models.PaymentTransaction", b =>
+                {
+                    b.HasOne("OfferlalFashion.Api.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PaymentTransactions_Order");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("OfferlalFashion.Api.Models.Product", b =>

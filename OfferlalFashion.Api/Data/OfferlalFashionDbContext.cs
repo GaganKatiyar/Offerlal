@@ -51,6 +51,8 @@ public partial class OfferlalFashionDbContext : DbContext
 
     public virtual DbSet<CustomerVerificationToken> CustomerVerificationTokens { get; set; }
 
+    public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+
     public virtual DbSet<StockLedgerEntry> StockLedger { get; set; }
 
     public virtual DbSet<AttributeGroup> AttributeGroups { get; set; }
@@ -735,6 +737,32 @@ public partial class OfferlalFashionDbContext : DbContext
             entity.HasOne(d => d.Customer).WithMany()
                 .HasForeignKey(d => d.CustomerId)
                 .HasConstraintName("FK_CustomerVerificationTokens_Customer")
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OrderId).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Provider).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.ProviderOrderId).HasMaxLength(80).IsUnicode(false);
+            entity.Property(e => e.ProviderPaymentId).HasMaxLength(80).IsUnicode(false);
+            entity.Property(e => e.Currency).HasMaxLength(3).IsUnicode(false);
+            entity.Property(e => e.Status).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.LastEventId).HasMaxLength(80).IsUnicode(false);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+
+            // The webhook arrives knowing the gateway's order id and nothing of
+            // ours, so this lookup is the hot path and must be a single seek.
+            // Unique because a gateway order id identifies exactly one attempt;
+            // if two rows ever shared one, a redelivered webhook would have no
+            // single row to make idempotent.
+            entity.HasIndex(e => e.ProviderOrderId, "IX_PaymentTransactions_ProviderOrderId").IsUnique();
+            entity.HasIndex(e => e.OrderId, "IX_PaymentTransactions_OrderId");
+
+            entity.HasOne(d => d.Order).WithMany()
+                .HasForeignKey(d => d.OrderId)
+                .HasConstraintName("FK_PaymentTransactions_Order")
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

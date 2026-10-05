@@ -13,6 +13,7 @@ using OfferlalFashion.Api.Data;
 using OfferlalFashion.Api.Email;
 using OfferlalFashion.Api.Infrastructure;
 using OfferlalFashion.Api.Media;
+using OfferlalFashion.Api.Payments;
 using Serilog;
 
 // Bootstrap logger — captures failures that happen before the host is built
@@ -113,6 +114,32 @@ try
         Log.Warning(
             "No Email:Username/Email:AppPassword configured. Verification and " +
             "password-reset emails will be LOGGED, not sent. See appsettings.Development.Local.json.example.");
+    }
+
+    // ── Payments ─────────────────────────────────────────────────────────────
+    var razorpayOptions = builder.Configuration.GetSection("Razorpay").Get<RazorpayOptions>()
+        ?? new RazorpayOptions();
+    builder.Services.AddSingleton(Microsoft.Extensions.Options.Options.Create(razorpayOptions));
+    builder.Services.AddHttpClient<RazorpayClient>();
+
+    if (!razorpayOptions.IsConfigured)
+    {
+        Log.Warning(
+            "Razorpay is not configured. Online payment will report itself unavailable " +
+            "rather than failing at the moment someone tries to pay. See " +
+            "appsettings.Development.Local.json.example.");
+    }
+    else if (!razorpayOptions.CanVerifyWebhooks)
+    {
+        // Worth its own line: this combination can CREATE payments but cannot
+        // confirm them, so orders would stay Pending forever with money taken.
+        Log.Error(
+            "Razorpay keys are present but Razorpay:WebhookSecret is not. Payments can be " +
+            "started and never confirmed; webhooks will be rejected.");
+    }
+    else if (razorpayOptions.IsTestMode)
+    {
+        Log.Information("Razorpay is in TEST mode. No real money will move.");
     }
 
     builder.Services.AddScoped<VerificationService>();
