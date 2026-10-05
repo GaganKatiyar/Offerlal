@@ -7,6 +7,7 @@ import { QuickViewService } from '../../../core/services/quick-view.service';
 import { ImageWithFallback } from '../image-with-fallback/image-with-fallback';
 import { PriceDisplay } from '../price-display/price-display';
 import { Badge } from '../badge/badge';
+import { InrCurrencyPipe } from '../../pipes/inr-currency.pipe';
 
 /**
  * How the card is being used. The card renders on home rails, the PLP, search,
@@ -18,10 +19,17 @@ export type ProductCardVariant = 'grid' | 'rail' | 'wishlist' | 'compact';
 /** Sizes offered only as made-to-measure rather than off-the-rack. */
 const CUSTOM_SIZE = 'Custom';
 
+/**
+ * Below this, a savings line is noise rather than persuasion. Chosen against
+ * this catalogue, where the cheapest item is about 1,650 and the dearest
+ * 1,65,000.
+ */
+const MIN_SAVINGS_TO_SHOW = 500;
+
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink, ImageWithFallback, PriceDisplay, Badge],
+  imports: [RouterLink, ImageWithFallback, PriceDisplay, Badge, InrCurrencyPipe],
   templateUrl: './product-card.html',
   styleUrl: './product-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,6 +130,37 @@ export class ProductCard {
   protected stockSizes = computed(() => (this.product()?.sizes ?? []).filter((s) => s !== CUSTOM_SIZE));
 
   protected isMadeToMeasure = computed(() => this.vm().hasCustomSizing);
+
+  /**
+   * The discount, derived rather than carried on the model.
+   *
+   * Deliberately NOT a field on ProductCardModel. Price and compareAtPrice are
+   * already here, so a stored percentage would be a second copy of the same
+   * fact and the two would eventually disagree — the card saying 20% OFF beside
+   * a price row computing 16%.
+   */
+  protected discountPercent = computed(() => {
+    const { price, compareAtPrice } = this.vm();
+    if (!compareAtPrice || compareAtPrice <= price) return null;
+    return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
+  });
+
+  /**
+   * Money kept, in rupees.
+   *
+   * compareAtPrice minus price, and nothing else. GST is INCLUDED in the
+   * displayed price here, so any saving computed from tax would be inventing a
+   * discount the customer is not getting.
+   *
+   * Hidden below a floor: "You save ₹40" under a ₹1,650 bag is noise, and at
+   * this catalogue's prices a saving worth announcing is a large one.
+   */
+  protected savings = computed(() => {
+    const { price, compareAtPrice } = this.vm();
+    if (!compareAtPrice || compareAtPrice <= price) return null;
+    const diff = compareAtPrice - price;
+    return diff >= MIN_SAVINGS_TO_SHOW ? diff : null;
+  });
 
   protected showSizeChips = computed(
     () => this.variant() === 'wishlist' && this.stockSizes().length > 0,

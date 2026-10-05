@@ -296,3 +296,12 @@
     display: none;
   }
 }
+
+/* Money kept, under the price row. Green, matching the discount badge and the
+   percentage in the price row, so the three read as one statement. */
+.savings {
+  margin: 0;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  color: var(--savings-text);
+}

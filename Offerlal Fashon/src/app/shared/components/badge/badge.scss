@@ -1,35 +1,64 @@
+/*
+  Every colour here used to be hardcoded. They are tokens now, so the whole
+  badge set can be retuned centrally — which is what the marketplace density
+  pass needed, since a discount badge is the loudest thing on a card.
+*/
 .badge {
   display: inline-block;
-  padding: 3px var(--space-2);
-  font-size: 10px;
-  letter-spacing: 0.05em;
+  padding: var(--badge-pad-y) var(--badge-pad-x);
+  font-size: var(--badge-fs);
+  letter-spacing: var(--badge-tracking);
   text-transform: uppercase;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
+  font-weight: var(--badge-weight);
+  border-radius: var(--badge-radius);
   line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The discount. Deliberately the heaviest badge on the card. */
+.badge-deal {
+  background: var(--badge-deal-bg);
+  color: var(--badge-deal-fg);
 }
 
 .badge-bestseller {
-  background: var(--color-charcoal);
-  color: var(--color-white);
+  background: var(--badge-bestseller-bg);
+  color: var(--badge-bestseller-fg);
 }
+
 .badge-new {
-  background: var(--brand-primary);
-  color: var(--color-white);
+  background: var(--badge-new-bg);
+  color: var(--badge-new-fg);
 }
+
 .badge-sale {
-  background: var(--color-error);
-  color: var(--color-white);
+  background: var(--badge-sale-bg);
+  color: var(--badge-sale-fg);
 }
+
+.badge-trending {
+  background: var(--badge-trending-bg);
+  color: var(--badge-trending-fg);
+}
+
+/* Scarcity, not price — red is reserved for this so it never competes with
+   the green savings figure. */
+.badge-limited {
+  background: var(--badge-limited-bg);
+  color: var(--badge-limited-fg);
+}
+
 .badge-low-stock {
-  background: var(--status-warning);
-  color: var(--color-charcoal);
+  background: var(--badge-low-stock-bg);
+  color: var(--badge-low-stock-fg);
 }
+
 .badge-out-of-stock {
-  background: var(--color-charcoal-mute);
-  color: var(--color-white);
+  background: var(--badge-out-of-stock-bg);
+  color: var(--badge-out-of-stock-fg);
 }
+
 .badge-neutral {
-  background: var(--surface-accent);
-  color: var(--text-primary);
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-fg);
 }

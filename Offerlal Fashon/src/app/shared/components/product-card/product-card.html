@@ -8,6 +8,15 @@
     />
 
     <div class="badges">
+      <!--
+        Discount first, deliberately. In a dense marketplace grid the saving is
+        what makes a shopper stop, and it outranks "New" or "Bestseller" for
+        that job. The percentage is derived from the same two numbers the price
+        row uses, so the badge and the price can never disagree.
+      -->
+      @if (discountPercent(); as pct) {
+        <app-badge variant="deal">{{ pct }}% OFF</app-badge>
+      }
       @if (vm().isNewArrival) {
         <app-badge variant="new">New</app-badge>
       }
@@ -73,11 +82,17 @@
     <p class="descriptor">{{ descriptor() }}</p>
     <h3 class="name">{{ vm().name }}</h3>
 
+    <!-- showDiscount off: the percentage is already a badge over the image. -->
     <app-price-display
       [price]="vm().price"
       [compareAtPrice]="vm().compareAtPrice"
       size="sm"
+      [showDiscount]="false"
     />
+
+    @if (savings(); as saved) {
+      <p class="savings" data-numeric>You save {{ saved | inr }}</p>
+    }
 
     @if (swatches().length > 1) {
       <div class="swatches" [attr.aria-label]="vm().swatches.length + ' colours available'">
