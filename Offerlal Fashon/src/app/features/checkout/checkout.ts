@@ -8,12 +8,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { DemoDataStoreService } from '../../core/services/demo-data-store.service';
 import { Address, PaymentMethod } from '../../core/models';
 import { ImageWithFallback } from '../../shared/components/image-with-fallback/image-with-fallback';
+import { StateBlock } from '../../shared/ui/state';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [RouterLink, ImageWithFallback, InrCurrencyPipe],
+  imports: [RouterLink, ImageWithFallback, InrCurrencyPipe, StateBlock],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,12 +70,44 @@ export class Checkout {
         : this.checkoutApi.quote(params.lines, params.coupon, params.express),
   });
 
-  protected quote = computed(() => this.quoteResource.value() ?? null);
+  /**
+   * hasValue() guards the read: `resource.value()` THROWS once the resource has
+   * errored, so reading it unguarded crashed change detection on the one screen
+   * where the customer is about to commit money.
+   */
+  protected quote = computed(() =>
+    this.quoteResource.hasValue() ? (this.quoteResource.value() ?? null) : null,
+  );
   protected quoteLoading = computed(() => this.quoteResource.isLoading());
+  protected quoteFailed = computed(() => !!this.quoteResource.error());
 
-  protected serverSubtotal = computed(() => this.quote()?.subtotal ?? this.cart.subtotal());
-  protected shippingFee = computed(() => this.quote()?.shippingFee ?? 0);
-  protected grandTotal = computed(() => this.quote()?.total ?? this.cart.subtotal());
+  protected retryQuote(): void {
+    this.quoteResource.reload();
+  }
+
+  /**
+   * Every figure here is the server's or is absent.
+   *
+   * These three used to fall back to the locally computed subtotal with
+   * shipping at zero, so a failed quote rendered a complete and cheaper price
+   * — and Place Order stayed enabled underneath it. The whole point of pricing
+   * on the server is that the client never decides what something costs; a
+   * fallback is that decision wearing a disguise.
+   */
+  protected serverSubtotal = computed(() => this.quote()?.subtotal ?? null);
+  protected shippingFee = computed(() => this.quote()?.shippingFee ?? null);
+  protected grandTotal = computed(() => this.quote()?.total ?? null);
+
+  /**
+   * An order may only be placed against a price the server has given us.
+   *
+   * Also blocked while a quote is in flight, so changing the delivery method
+   * and pressing Place Order immediately cannot submit against the previous
+   * total.
+   */
+  protected canPlaceOrder = computed(
+    () => this.grandTotal() !== null && !this.quoteFailed() && !this.quoteLoading(),
+  );
 
   /** Stock or availability problems, surfaced before the customer pays. */
   protected quoteProblems = computed(() => this.quote()?.problems ?? []);
@@ -127,6 +160,12 @@ export class Checkout {
     }
     if (this.cart.items().length === 0) {
       this.formError.set('Your bag is empty.');
+      return;
+    }
+    // Guarded here as well as on the button: a disabled attribute is a hint to
+    // the UI, not a rule, and this is the last point before money is committed.
+    if (!this.canPlaceOrder()) {
+      this.formError.set("We couldn't confirm your total. Please retry before placing the order.");
       return;
     }
 

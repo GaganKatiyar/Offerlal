@@ -9,12 +9,13 @@ import { DemoDataStoreService } from '../../../core/services/demo-data-store.ser
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ImageWithFallback } from '../../../shared/components/image-with-fallback/image-with-fallback';
 import { QuantityStepper } from '../../../shared/components/quantity-stepper/quantity-stepper';
+import { StateBlock } from '../../../shared/ui/state';
 import { InrCurrencyPipe } from '../../../shared/pipes/inr-currency.pipe';
 
 @Component({
   selector: 'app-cart-page',
   standalone: true,
-  imports: [RouterLink, ImageWithFallback, QuantityStepper, InrCurrencyPipe],
+  imports: [RouterLink, ImageWithFallback, QuantityStepper, InrCurrencyPipe, StateBlock],
   templateUrl: './cart-page.html',
   styleUrl: './cart-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,18 +46,58 @@ export class CartPage {
       params.lines.length === 0 ? of(null) : this.checkoutApi.quote(params.lines, params.coupon, false),
   });
 
-  protected quote = computed(() => this.quoteResource.value() ?? null);
+  /**
+   * The server's price, or null when there isn't one.
+   *
+   * hasValue() guards the read because `resource.value()` THROWS once the
+   * resource has errored. Reading it unguarded meant a failed quote raised
+   * ResourceValueError during change detection and froze the bag mid-render —
+   * the same crash the product listing had.
+   */
+  protected quote = computed(() =>
+    this.quoteResource.hasValue() ? (this.quoteResource.value() ?? null) : null,
+  );
+
+  protected quoteLoading = computed(() => this.quoteResource.isLoading());
+
+  /**
+   * True when the server could not price this bag.
+   *
+   * This has to be explicit. Previously a failed quote was indistinguishable
+   * from one in flight, and both fell back to a locally computed subtotal: the
+   * bag quietly showed 1,650 for an order that costs 1,800, with shipping
+   * displayed as Free, and let the customer carry on to checkout. A total the
+   * client invents is exactly what server-authoritative pricing exists to
+   * prevent.
+   */
+  protected quoteFailed = computed(() => !!this.quoteResource.error());
+
   protected discount = computed(() => this.quote()?.discount ?? 0);
   protected quoteProblems = computed(() => this.quote()?.problems ?? []);
+
+  protected retryQuote(): void {
+    this.quoteResource.reload();
+  }
 
   protected productFor(productId: string) {
     return this.store.products().find((p) => p.id === productId);
   }
 
-  /** Falls back to the local subtotal only while the first quote is in flight. */
-  protected shippingFee = computed(() => this.quote()?.shippingFee ?? 0);
+  /**
+   * Shipping and total come from the server or are not shown at all.
+   *
+   * Both used to fall back — shipping to 0 and the total to the local subtotal
+   * — with a comment claiming it only applied while the first quote was in
+   * flight. It did not: rxResource reports no value on error just as it does
+   * while loading, so a failed quote rendered as a complete, cheaper, wrong
+   * price. Null means the template shows a placeholder instead of a number.
+   */
+  protected shippingFee = computed(() => this.quote()?.shippingFee ?? null);
 
-  protected grandTotal = computed(() => this.quote()?.total ?? this.cart.subtotal());
+  protected grandTotal = computed(() => this.quote()?.total ?? null);
+
+  /** No server price, no checkout. */
+  protected canCheckout = computed(() => this.grandTotal() !== null && !this.quoteFailed());
 
   protected applyCoupon(): void {
     const code = this.couponCode().trim();

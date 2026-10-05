@@ -260,3 +260,10 @@ input[type='email'] {
     margin-top: var(--space-1);
   }
 }
+
+/* Placeholder where a server-priced figure belongs but is not known. Muted so
+   it cannot be mistaken for an amount. */
+.pending {
+  color: var(--text-muted);
+  font-weight: var(--fw-regular);
+}

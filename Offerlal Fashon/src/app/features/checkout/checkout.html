@@ -138,7 +138,14 @@
           @if (discount() > 0) {
             <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
           }
-          <div class="row"><span>Shipping</span><span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span></div>
+          <div class="row">
+            <span>Shipping</span>
+            @if (shippingFee() === null) {
+              <span class="pending">—</span>
+            } @else {
+              <span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span>
+            }
+          </div>
 
           <!--
             Availability problems, surfaced before payment rather than after.
@@ -156,11 +163,42 @@
         </div>
         <div class="grand-total-row">
           <span>Total</span>
-          <span>{{ grandTotal() | inr }}</span>
+          @if (grandTotal() === null) {
+            <span class="pending">{{ quoteLoading() ? 'Working it out…' : '—' }}</span>
+          } @else {
+            <span>{{ grandTotal() | inr }}</span>
+          }
         </div>
 
-        <button type="button" class="btn btn-primary full" [disabled]="placingOrder()" (click)="placeOrder()">
-          {{ placingOrder() ? 'Placing Order...' : 'Place Order' }}
+        @if (quoteFailed()) {
+          <!--
+            No total, no order. This used to show the local subtotal as though
+            it were the price and leave Place Order enabled beneath it.
+          -->
+          <app-state-block
+            kind="error"
+            title="We couldn't confirm your total"
+            message="Nothing has been charged and your bag is safe. Please retry before placing the order."
+            retryLabel="Retry"
+            (retry)="retryQuote()"
+          />
+        }
+
+        <button
+          type="button"
+          class="btn btn-primary full"
+          [disabled]="placingOrder() || !canPlaceOrder()"
+          (click)="placeOrder()"
+        >
+          @if (placingOrder()) {
+            Placing Order...
+          } @else if (quoteLoading()) {
+            Working out your total…
+          } @else if (!canPlaceOrder()) {
+            Total unavailable
+          } @else {
+            Place Order
+          }
         </button>
         <p class="secure-footnote">🔒 Your payment information is processed securely.</p>
       </aside>

@@ -53,21 +53,57 @@
           }
         </div>
 
-        <div class="summary-rows">
-          <div class="row"><span>Subtotal</span><span>{{ cart.subtotal() | inr }}</span></div>
-          @if (discount() > 0) {
-            <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
+        @if (quoteFailed()) {
+          <!--
+            No price rather than a wrong one. The bag used to fall back to its
+            own subtotal here, showing a total that was short by the shipping
+            fee while letting the customer carry on to checkout.
+          -->
+          <app-state-block
+            kind="error"
+            title="We couldn't price your bag"
+            message="Your items are safe. This is a problem reaching us, not a problem with your order."
+            retryLabel="Retry"
+            (retry)="retryQuote()"
+          />
+        } @else {
+          <div class="summary-rows">
+            <div class="row"><span>Subtotal</span><span>{{ cart.subtotal() | inr }}</span></div>
+            @if (discount() > 0) {
+              <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
+            }
+            <div class="row">
+              <span>Shipping</span>
+              @if (shippingFee() === null) {
+                <span class="pending">—</span>
+              } @else {
+                <span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span>
+              }
+            </div>
+            <div class="row"><span>Tax</span><span>Included</span></div>
+          </div>
+
+          <div class="grand-total-row">
+            <span>Grand Total</span>
+            @if (grandTotal() === null) {
+              <span class="pending">{{ quoteLoading() ? 'Working it out…' : '—' }}</span>
+            } @else {
+              <span>{{ grandTotal() | inr }}</span>
+            }
+          </div>
+
+          <!--
+            A link cannot be disabled, so when there is no server price this
+            becomes a button that does nothing but explain itself.
+          -->
+          @if (canCheckout()) {
+            <a routerLink="/checkout" class="btn btn-primary full">Proceed to Checkout</a>
+          } @else {
+            <button type="button" class="btn btn-primary full" disabled>
+              {{ quoteLoading() ? 'Working out your total…' : 'Total unavailable' }}
+            </button>
           }
-          <div class="row"><span>Shipping</span><span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span></div>
-          <div class="row"><span>Tax</span><span>Included</span></div>
-        </div>
-
-        <div class="grand-total-row">
-          <span>Grand Total</span>
-          <span>{{ grandTotal() | inr }}</span>
-        </div>
-
-        <a routerLink="/checkout" class="btn btn-primary full">Proceed to Checkout</a>
+        }
       </aside>
     </div>
   }
