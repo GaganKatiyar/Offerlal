@@ -9,7 +9,7 @@
         }
       </div>
     } @else {
-      <div class="product-grid">
+      <div class="product-grid o-grid o-grid--products-full">
         @for (p of results(); track p.id) {
           <app-product-card [product]="p" />
         }

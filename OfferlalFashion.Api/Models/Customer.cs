@@ -31,6 +31,14 @@ public partial class Customer
 
     public string? AvatarUrl { get; set; }
 
+    /// <summary>
+    /// When the customer's email was confirmed via the code sent at
+    /// registration. Null means unverified — the account is still usable
+    /// (orders and browsing are not gated on this), so this is informational
+    /// for now, surfaced as a banner rather than a block.
+    /// </summary>
+    public DateTime? EmailVerifiedAt { get; set; }
+
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
 
     public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();

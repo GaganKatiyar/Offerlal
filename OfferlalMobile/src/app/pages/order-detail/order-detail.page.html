@@ -30,7 +30,12 @@
 
       @if (o.trackingNumber) {
         <div class="tracking-info">
-          <span>{{ o.carrier }} · {{ o.trackingNumber }}</span>
+          <!--
+            No carrier on the order record: nothing writes one, and there is no
+            shipping integration yet. Showing the tracking number alone is
+            accurate; a blank carrier name beside it was not.
+          -->
+          <span>Tracking: {{ o.trackingNumber }}</span>
         </div>
       }
 

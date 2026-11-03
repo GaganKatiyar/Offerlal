@@ -35,7 +35,7 @@
           <p class="name">{{ line.product.name }}</p>
           <p class="meta">Size: {{ line.size }} · Qty: {{ line.quantity }}</p>
         </div>
-        <span class="price">₹{{ (line.product.price * line.quantity).toLocaleString('en-IN') }}</span>
+        <span class="price">Qty {{ line.quantity }}</span>
       </div>
     }
   </section>
@@ -53,14 +53,47 @@
 
   <section class="block summary-block">
     <h3>Order Summary</h3>
-    <div class="row"><span>Subtotal</span><span>₹{{ cart.subtotal().toLocaleString('en-IN') }}</span></div>
-    <div class="row"><span>Shipping</span><span>{{ shippingFee === 0 ? 'Free' : '₹' + shippingFee }}</span></div>
-    <div class="row total"><span>Grand Total</span><span>₹{{ (cart.subtotal() + shippingFee).toLocaleString('en-IN') }}</span></div>
+    <!--
+      Every figure here comes from the server's quote. Nothing on this screen is
+      calculated locally, so what is shown is what will be charged.
+    -->
+    @if (cart.quote(); as q) {
+      <div class="row"><span>Subtotal</span><span>₹{{ q.subtotal.toLocaleString('en-IN') }}</span></div>
+      @if (q.discount > 0) {
+        <div class="row"><span>Discount</span><span>-₹{{ q.discount.toLocaleString('en-IN') }}</span></div>
+      }
+      <div class="row">
+        <span>Shipping</span>
+        <span>{{ q.shippingFee === 0 ? 'Free' : '₹' + q.shippingFee.toLocaleString('en-IN') }}</span>
+      </div>
+      <div class="row total"><span>Grand Total</span><span>₹{{ q.total.toLocaleString('en-IN') }}</span></div>
+      <p class="tax-note">Inclusive of all taxes.</p>
+    } @else if (cart.quoting()) {
+      <p class="muted">Working out your total…</p>
+    } @else {
+      <p class="muted">
+        Could not get your total.
+        <button type="button" class="link-btn" (click)="refresh()">Retry</button>
+      </p>
+    }
   </section>
+
+  @if (error()) {
+    <section class="block error-block">
+      <p>{{ error() }}</p>
+      @if (problems().length) {
+        <ul>
+          @for (p of problems(); track p) {
+            <li>{{ p }}</li>
+          }
+        </ul>
+      }
+    </section>
+  }
 </ion-content>
 
 <div class="place-order-bar">
-  <button type="button" class="place-order-btn" [disabled]="placing() || !selectedAddressId()" (click)="placeOrder()">
+  <button type="button" class="place-order-btn" [disabled]="placing() || !selectedAddressId() || !cart.quote()" (click)="placeOrder()">
     {{ placing() ? 'Placing Order...' : 'Place Order' }}
   </button>
 </div>

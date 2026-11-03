@@ -1,67 +1,93 @@
 <div class="announcement-bar">
-  Free Shipping on Orders Above ₹2,999 &nbsp;|&nbsp; Easy Exchange &nbsp;|&nbsp; Secure Payments
+  <!-- Announcement copy is a store setting, editable without a deploy. -->
+  {{ settings.announcementText() || 'Free Shipping on Orders Above ₹2,999  |  Easy Exchange  |  Secure Payments' }}
 </div>
 
 <header class="site-header">
   <div class="container header-row">
-    <button type="button" class="hamburger" [class.open]="mobileMenuOpen()" (click)="toggleMobileMenu()" aria-label="Menu" [attr.aria-expanded]="mobileMenuOpen()">
+    <button
+      type="button"
+      class="hamburger"
+      [class.open]="mobileMenuOpen()"
+      (click)="toggleMobileMenu()"
+      aria-label="Menu"
+      [attr.aria-expanded]="mobileMenuOpen()"
+    >
       <span></span><span></span><span></span>
     </button>
 
     <a routerLink="/" class="logo">Offerlal <span>Fashion</span></a>
 
-    <div class="search-wrap">
-      <div class="search-box">
-        <svg class="search-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input
-          type="text"
-          placeholder="Search for lehengas, sarees, gowns..."
-          [value]="searchQuery()"
-          (focus)="onSearchFocus()"
-          (input)="onSearchInput($any($event.target).value)"
-          (keyup.enter)="submitSearch()"
-        />
-        <button type="button" class="search-submit-btn" (click)="submitSearch()">Search</button>
-      </div>
-
-      @if (suggestionsOpen()) {
-        <div class="suggestions-panel">
-          @if (searchResults().length) {
-            @for (p of searchResults(); track p.id) {
-              <button type="button" class="suggestion-row" (click)="goToProduct(p.slug)">
-                <span class="result-name">{{ p.name }}</span>
-                <span class="result-price">₹{{ p.price.toLocaleString('en-IN') }}</span>
-              </button>
-            }
-          } @else if (searchQuery().length >= 2) {
-            <p class="no-results">No products found for "{{ searchQuery() }}"</p>
-          } @else {
-            <div class="search-suggestions">
-              <span class="suggestion-label">Trending:</span>
-              <a routerLink="/search" [queryParams]="{ q: 'bridal lehenga' }" (click)="suggestionsOpen.set(false)">red bridal lehenga</a>
-              <a routerLink="/search" [queryParams]="{ q: 'lehenga under' }" (click)="suggestionsOpen.set(false)">lehenga under ₹5000</a>
-              <a routerLink="/search" [queryParams]="{ q: 'saree' }" (click)="suggestionsOpen.set(false)">banarasi saree</a>
-            </div>
-          }
-        </div>
-      }
-    </div>
+    <!--
+      Inline on desktop; on phones it collapses to the icon in the actions row
+      and the full-screen overlay takes over. The inline field used to wrap onto
+      a third header row, costing about a sixth of the viewport on every page
+      while being too small to show a useful suggestion list.
+    -->
+    <app-search-bar class="header-search" />
 
     <div class="header-actions">
+      <button
+        type="button"
+        class="action-item search-trigger"
+        (click)="searchOverlay.open()"
+        aria-label="Search"
+      >
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span class="action-label">Search</span>
+      </button>
       <a routerLink="/account" class="action-item">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-        <span class="action-label">{{ auth.currentUser() ? 'Hi, ' + auth.currentUser()!.firstName : 'Login' }}</span>
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+        </svg>
+        <span class="action-label">{{
+          auth.currentUser() ? 'Hi, ' + auth.currentUser()!.firstName : 'Login'
+        }}</span>
       </a>
 
       <a routerLink="/account/wishlist" class="action-item icon-only" aria-label="Wishlist">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 3 4.5 7 4.5c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.5 4 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5z"/></svg>
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12 21s-7-4.35-9.5-8.5C.5 8.5 3 4.5 7 4.5c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.5 4 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5z"
+          />
+        </svg>
         @if (wishlist.count() > 0) {
           <span class="count-badge">{{ wishlist.count() }}</span>
         }
       </a>
 
       <button type="button" class="action-item" (click)="cart.openDrawer()">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L4 2H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M6 6h15l-1.5 9h-12z" />
+          <path d="M6 6L4 2H2" />
+          <circle cx="9" cy="20" r="1.4" />
+          <circle cx="18" cy="20" r="1.4" />
+        </svg>
         <span class="action-label">Bag</span>
         @if (cart.count() > 0) {
           <span class="count-badge">{{ cart.count() }}</span>
@@ -70,15 +96,49 @@
     </div>
   </div>
 
-  <nav class="category-nav">
+  <nav class="category-nav" (mouseleave)="closeMega()">
     <div class="container category-nav-inner">
-      @for (item of navLinks; track item.link) {
-        <a [routerLink]="item.link" routerLinkActive="active">
-          <span class="nav-icon">{{ item.icon }}</span>
+      @for (item of navLinks(); track item.id) {
+        <a
+          [routerLink]="item.url"
+          routerLinkActive="active"
+          [class.highlighted]="item.isHighlighted"
+          [class.open]="openMenuId() === item.id"
+          [attr.aria-expanded]="item.children.length ? openMenuId() === item.id : null"
+          [attr.aria-haspopup]="item.children.length ? 'true' : null"
+          (mouseenter)="openMega(item)"
+          (focus)="openMega(item)"
+        >
+          <span class="nav-icon">{{ item.iconName }}</span>
           {{ item.label }}
         </a>
       }
     </div>
+
+    <!--
+      Mega-menu panel.
+      One panel driven by whichever tab is open, rather than a panel per tab:
+      only one can be visible at a time, so N panels would be N copies of the
+      same markup differing only in data.
+    -->
+    @if (openMenu(); as menu) {
+      <div class="mega-panel" (mouseenter)="cancelClose()">
+        <div class="container mega-inner">
+          @for (col of megaColumns(); track col.index) {
+            <div class="mega-col">
+              <p class="mega-col-title">{{ col.title }}</p>
+              <ul>
+                @for (link of col.items; track link.id) {
+                  <li>
+                    <a [routerLink]="link.url" (click)="closeMega()">{{ link.label }}</a>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+    }
   </nav>
 </header>
 
@@ -86,13 +146,30 @@
 <nav class="mobile-nav" [class.open]="mobileMenuOpen()" [attr.inert]="mobileMenuOpen() ? null : ''">
   <div class="mobile-nav-header">
     <a routerLink="/" class="logo" (click)="closeMobileMenu()">Offerlal <span>Fashion</span></a>
-    <button type="button" class="mobile-nav-close" (click)="closeMobileMenu()" aria-label="Close menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <button
+      type="button"
+      class="mobile-nav-close"
+      (click)="closeMobileMenu()"
+      aria-label="Close menu"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
     </button>
   </div>
 
   <a routerLink="/account" class="mobile-nav-profile" (click)="closeMobileMenu()">
-    <span class="profile-avatar">{{ auth.currentUser() ? auth.currentUser()!.firstName.charAt(0) : '👤' }}</span>
+    <span class="profile-avatar">{{
+      auth.currentUser() ? auth.currentUser()!.firstName.charAt(0) : '👤'
+    }}</span>
     <span class="profile-copy">
       @if (auth.currentUser()) {
         <strong>Hi, {{ auth.currentUser()!.firstName }}</strong>
@@ -102,25 +179,44 @@
         <small>Access orders &amp; wishlist</small>
       }
     </span>
-    <svg class="profile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <svg
+      class="profile-chevron"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
   </a>
 
   <div class="mobile-nav-body">
     <div class="mobile-nav-section">
       <span class="mobile-nav-section-title">Shop</span>
-      @for (item of navLinks; track item.link) {
-        <a [routerLink]="item.link" routerLinkActive="active" (click)="closeMobileMenu()">
-          <span class="nav-icon">{{ item.icon }}</span>{{ item.label }}
+      @for (item of navLinks(); track item.id) {
+        <a [routerLink]="item.url" routerLinkActive="active" [class.highlighted]="item.isHighlighted" (click)="closeMobileMenu()">
+          <span class="nav-icon">{{ item.iconName }}</span
+          >{{ item.label }}
         </a>
       }
     </div>
 
     <div class="mobile-nav-section">
       <span class="mobile-nav-section-title">Help &amp; Account</span>
-      <a routerLink="/account/orders" (click)="closeMobileMenu()"><span class="nav-icon">📦</span>My Orders</a>
-      <a routerLink="/bridal-concierge" (click)="closeMobileMenu()"><span class="nav-icon">💬</span>Bridal Concierge</a>
-      <a routerLink="/track-order" (click)="closeMobileMenu()"><span class="nav-icon">🚚</span>Track Order</a>
-      <a routerLink="/contact" (click)="closeMobileMenu()"><span class="nav-icon">📞</span>Contact Us</a>
+      <a routerLink="/account/orders" (click)="closeMobileMenu()"
+        ><span class="nav-icon">📦</span>My Orders</a
+      >
+      <a routerLink="/bridal-concierge" (click)="closeMobileMenu()"
+        ><span class="nav-icon">💬</span>Bridal Concierge</a
+      >
+      <a routerLink="/track-order" (click)="closeMobileMenu()"
+        ><span class="nav-icon">🚚</span>Track Order</a
+      >
+      <a routerLink="/contact" (click)="closeMobileMenu()"
+        ><span class="nav-icon">📞</span>Contact Us</a
+      >
       <a routerLink="/faq" (click)="closeMobileMenu()"><span class="nav-icon">❓</span>FAQs</a>
     </div>
   </div>

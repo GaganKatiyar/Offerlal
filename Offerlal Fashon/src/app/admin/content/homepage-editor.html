@@ -1,0 +1,221 @@
+<div class="admin-page">
+  <header class="editor-head">
+    <div>
+      <h1>Homepage</h1>
+      <p class="editor-sub">Section order, copy and visibility. Changes go live without a deploy.</p>
+    </div>
+    <div class="editor-actions">
+      <button type="button" class="btn btn-outline" (click)="reload()" [disabled]="saving()">Reload</button>
+      <button type="button" class="btn btn-primary" (click)="save()" [disabled]="!dirty() || saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+      <button type="button" class="btn btn-outline" (click)="publish()" [disabled]="saving()">Publish</button>
+    </div>
+  </header>
+
+  @if (message()) {
+    <p class="banner ok">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="banner err">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    <div class="editor-layout">
+      <!-- Left: the section list -->
+      <aside class="section-list">
+        @for (s of sections(); track s.id; let i = $index) {
+          <div class="section-row" [class.selected]="s.id === selectedId()" [class.inactive]="!s.isActive">
+            <div class="reorder">
+              <button type="button" (click)="move(s.id, -1)" [disabled]="i === 0" aria-label="Move up">▲</button>
+              <button type="button" (click)="move(s.id, 1)" [disabled]="i === sections().length - 1" aria-label="Move down">▼</button>
+            </div>
+
+            <button type="button" class="section-summary" (click)="select(s.id)">
+              <span class="section-name">{{ s.heading || typeName()(s.type) }}</span>
+              <span class="section-meta">
+                <span class="type-badge">{{ typeName()(s.type) }}</span>
+                @if (s.itemCount) {
+                  <span class="count">{{ s.itemCount }} item{{ s.itemCount === 1 ? '' : 's' }}</span>
+                }
+                @if (scheduleLabel(s); as sched) {
+                  <span class="sched">{{ sched }}</span>
+                }
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="vis-toggle"
+              [class.on]="s.isActive"
+              (click)="toggleActive(s)"
+              [attr.aria-pressed]="s.isActive"
+              [attr.title]="s.isActive ? 'Visible — click to hide' : 'Hidden — click to show'"
+            >
+              {{ s.isActive ? 'Visible' : 'Hidden' }}
+            </button>
+          </div>
+        }
+      </aside>
+
+      <!-- Right: the selected section's fields -->
+      <section class="section-form">
+        @if (selected(); as s) {
+          <h2>{{ typeName()(s.type) }}</h2>
+
+          <label>
+            <span>Eyebrow</span>
+            <input type="text" [(ngModel)]="s.eyebrow" (ngModelChange)="touch()" placeholder="e.g. Curated For You" />
+          </label>
+
+          <label>
+            <span>Heading</span>
+            <input type="text" [(ngModel)]="s.heading" (ngModelChange)="touch()" placeholder="e.g. Shop by Occasion" />
+          </label>
+
+          <label>
+            <span>Subheading</span>
+            <textarea rows="2" [(ngModel)]="s.subheading" (ngModelChange)="touch()"></textarea>
+          </label>
+
+          <div class="field-row">
+            <label>
+              <span>CTA label</span>
+              <input type="text" [(ngModel)]="s.ctaLabel" (ngModelChange)="touch()" placeholder="View All" />
+            </label>
+            <label>
+              <span>CTA link</span>
+              <input type="text" [(ngModel)]="s.ctaUrl" (ngModelChange)="touch()" placeholder="/new-arrivals" />
+            </label>
+          </div>
+
+          @if (s.type === 'product-rail' && page()) {
+            <label>
+              <span>Product rule</span>
+              <select [(ngModel)]="s.productRuleId" (ngModelChange)="touch()">
+                <option [ngValue]="null">None — pinned products only</option>
+                @for (r of page()!.productRules; track r.id) {
+                  <option [ngValue]="r.id">{{ r.name }} (up to {{ r.maxItems }})</option>
+                }
+              </select>
+              <small class="hint">Pinned products come first; the rule fills the rest.</small>
+            </label>
+          }
+
+          <div class="field-row">
+            <label>
+              <span>Starts (UTC)</span>
+              <input type="datetime-local" [(ngModel)]="s.startsAtUtc" (ngModelChange)="touch()" />
+            </label>
+            <label>
+              <span>Ends (UTC)</span>
+              <input type="datetime-local" [(ngModel)]="s.endsAtUtc" (ngModelChange)="touch()" />
+            </label>
+          </div>
+          <small class="hint">Leave both empty for always on. Scheduling is checked when the page is served.</small>
+
+          <!--
+            Section items: hero slides, trust badges, tiles, pinned products.
+            Which fields show is decided by the SECTION type, because a trust
+            badge and a hero slide have almost nothing in common.
+          -->
+          <div class="items-block">
+            <div class="items-head">
+              <h3>Items <span class="count">{{ items().length }}</span></h3>
+              <button type="button" class="btn btn-outline btn-sm" (click)="addItem()" [disabled]="saving()">
+                + Add item
+              </button>
+            </div>
+
+            @for (item of items(); track item.id) {
+              <div class="item-card" [class.inactive]="!item.isActive">
+                @if (itemShape().image) {
+                  <button type="button" class="item-thumb" (click)="openPicker(item)" title="Change image">
+                    @if (item.mediaUrl) {
+                      <img [src]="item.mediaUrl" [alt]="item.mediaAlt || ''" />
+                    } @else {
+                      <span class="no-image">Pick image</span>
+                    }
+                  </button>
+                }
+
+                <div class="item-fields">
+                  <input
+                    type="text"
+                    [(ngModel)]="item.title"
+                    (blur)="saveItem(item)"
+                    placeholder="Title"
+                    class="item-title"
+                  />
+
+                  @if (itemShape().caption) {
+                    <input type="text" [(ngModel)]="item.caption" (blur)="saveItem(item)" placeholder="Caption" />
+                  }
+
+                  <div class="item-row">
+                    @if (itemShape().badge) {
+                      <input type="text" [(ngModel)]="item.badgeText" (blur)="saveItem(item)" placeholder="Badge" />
+                    }
+                    @if (itemShape().link) {
+                      <input type="text" [(ngModel)]="item.linkUrl" (blur)="saveItem(item)" placeholder="Link e.g. /sale" />
+                      <input type="text" [(ngModel)]="item.subtitle" (blur)="saveItem(item)" placeholder="Button label" />
+                    }
+                  </div>
+
+                  @if (itemShape().product && item.productName) {
+                    <p class="hint">Pinned: {{ item.productName }}</p>
+                  }
+                </div>
+
+                <div class="item-actions">
+                  <button
+                    type="button"
+                    class="vis-toggle"
+                    [class.on]="item.isActive"
+                    (click)="item.isActive = !item.isActive; saveItem(item)"
+                  >
+                    {{ item.isActive ? 'Visible' : 'Hidden' }}
+                  </button>
+                  <button type="button" class="del" (click)="deleteItem(item)" aria-label="Delete item">&times;</button>
+                </div>
+              </div>
+            } @empty {
+              <p class="hint">This section has no items yet.</p>
+            }
+          </div>
+        } @else {
+          <p class="muted">Select a section to edit it.</p>
+        }
+      </section>
+    </div>
+
+    @if (revisions().length) {
+      <section class="revisions">
+        <h2>Revision history</h2>
+        <ul>
+          @for (r of revisions(); track r.id) {
+            <li>
+              <span class="rev-id">#{{ r.id }}</span>
+              <span class="rev-date">{{ r.publishedAtUtc | date: 'medium' }}</span>
+              @if (r.isCurrent) {
+                <span class="rev-current">live</span>
+              }
+              @if (r.note) {
+                <span class="rev-note">{{ r.note }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>
+
+<app-media-picker
+  [open]="pickerOpen()"
+  folder="banners"
+  (picked)="onPicked($event)"
+  (closed)="pickerOpen.set(false)"
+/>

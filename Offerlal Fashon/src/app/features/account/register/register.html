@@ -3,29 +3,42 @@
     <h1>Create Your Account</h1>
     <p class="demo-hint">Save addresses, track orders and store your measurements.</p>
 
+    <!--
+      One name field, not two. Splitting it assumes a given-name/family-name
+      shape that plenty of Indian names do not have, and nothing downstream
+      needs the halves separately - the account shows a display name and orders
+      carry the recipient name from the address.
+
+      City and state are gone too: they were collected here and never stored on
+      the account. The address a parcel goes to is captured at checkout, where
+      it has to be right.
+    -->
     <label>
-      First Name *
-      <input type="text" [value]="firstName()" (input)="firstName.set($any($event.target).value)" />
-    </label>
-    <label>
-      Last Name
-      <input type="text" [value]="lastName()" (input)="lastName.set($any($event.target).value)" />
+      Name *
+      <input
+        type="text"
+        autocomplete="name"
+        [value]="name()"
+        (input)="name.set($any($event.target).value)"
+      />
     </label>
     <label>
       Email *
-      <input type="email" [value]="email()" (input)="email.set($any($event.target).value)" />
+      <input type="email" autocomplete="email" [value]="email()" (input)="email.set($any($event.target).value)" />
     </label>
     <label>
       Mobile Number *
-      <input type="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
+      <input type="tel" autocomplete="tel" [value]="phone()" (input)="phone.set($any($event.target).value)" />
     </label>
+
     <label>
-      City
-      <input type="text" [value]="city()" (input)="city.set($any($event.target).value)" />
-    </label>
-    <label>
-      State
-      <input type="text" [value]="state()" (input)="state.set($any($event.target).value)" />
+      Password
+      <input
+        type="password"
+        autocomplete="new-password"
+        [value]="password()"
+        (input)="password.set($any($event.target).value)"
+      />
     </label>
 
     @if (error()) {

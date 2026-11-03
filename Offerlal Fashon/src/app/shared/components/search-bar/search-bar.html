@@ -1,0 +1,62 @@
+<div class="search-wrap" [class.is-overlay]="overlay()">
+  <div class="search-box">
+    <svg
+      class="search-icon"
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+    <input
+      type="search"
+      role="combobox"
+      aria-label="Search products"
+      [attr.aria-expanded]="suggestionsOpen()"
+      aria-controls="search-suggestions-panel"
+      autocomplete="off"
+      placeholder="Search for lehengas, sarees, gowns…"
+      [value]="searchQuery()"
+      (focus)="onSearchFocus()"
+      (input)="onSearchInput($any($event.target).value)"
+      (keyup.enter)="submitSearch()"
+    />
+    @if (!overlay()) {
+      <button type="button" class="search-submit-btn" (click)="submitSearch()">Search</button>
+    }
+  </div>
+
+  @if (suggestionsOpen()) {
+    <div class="suggestions-panel" id="search-suggestions-panel" role="listbox">
+      @if (searchResults().length) {
+        @for (p of searchResults(); track p.id) {
+          <button
+            type="button"
+            class="suggestion-row"
+            role="option"
+            [attr.aria-selected]="false"
+            (click)="goToProduct(p.slug)"
+          >
+            <span class="result-name">{{ p.name }}</span>
+            <span class="result-price" data-numeric>₹{{ p.price.toLocaleString('en-IN') }}</span>
+          </button>
+        }
+      } @else if (searchQuery().trim().length >= 2) {
+        <p class="no-results">No products found for "{{ searchQuery() }}"</p>
+      } @else {
+        <div class="search-suggestions">
+          <span class="suggestion-label">Trending:</span>
+          @for (t of trending; track t.label) {
+            <a routerLink="/search" [queryParams]="{ q: t.query }" (click)="closeSuggestions()">{{
+              t.label
+            }}</a>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -4,6 +4,19 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
+  // Admin is matched before the storefront. The shell below has path '', which
+  // matches every URL as a prefix, so once the catch-all lives inside it any
+  // /admin URL would be swallowed as "not found" before these were considered.
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./admin/login/admin-login').then((m) => m.AdminLogin),
+    title: 'Admin Login | Offerlal Fashion',
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
   {
     path: '',
     component: StorefrontShell,
@@ -19,8 +32,12 @@ export const routes: Routes = [
       { path: 'occasion/:slug', loadComponent: () => import('./features/plp/plp').then((m) => m.Plp), data: { mode: 'occasion' }, title: 'Shop by Occasion | Offerlal Fashion' },
       { path: 'product/:slug', loadComponent: () => import('./features/pdp/pdp').then((m) => m.Pdp) },
       { path: 'cart', loadComponent: () => import('./features/cart/cart-page/cart-page').then((m) => m.CartPage), title: 'Your Bag | Offerlal Fashion' },
-      { path: 'checkout', loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout), title: 'Checkout | Offerlal Fashion' },
+      // Checkout is a three-step flow with the step in the URL, so the browser's
+      // own back button moves between steps instead of leaving checkout, and a
+      // step can be linked to. A bare /checkout starts at the beginning.
+      { path: 'checkout', redirectTo: 'checkout/address', pathMatch: 'full' },
       { path: 'checkout/confirmation/:orderNumber', loadComponent: () => import('./features/checkout/order-confirmation/order-confirmation').then((m) => m.OrderConfirmation), title: 'Order Confirmed | Offerlal Fashion' },
+      { path: 'checkout/:step', loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout), title: 'Checkout | Offerlal Fashion' },
       { path: 'search', loadComponent: () => import('./features/search/search').then((m) => m.Search), title: 'Search | Offerlal Fashion' },
       { path: 'track-order', loadComponent: () => import('./features/order-tracking/order-tracking').then((m) => m.OrderTracking), title: 'Track Your Order | Offerlal Fashion' },
       { path: 'track-order/:orderNumber', loadComponent: () => import('./features/order-tracking/order-tracking').then((m) => m.OrderTracking), title: 'Track Your Order | Offerlal Fashion' },
@@ -30,6 +47,7 @@ export const routes: Routes = [
       { path: 'faq', loadComponent: () => import('./features/static/faq/faq').then((m) => m.Faq), title: 'FAQs | Offerlal Fashion' },
       { path: 'login', loadComponent: () => import('./features/account/login/login').then((m) => m.Login), title: 'Login | Offerlal Fashion' },
       { path: 'register', loadComponent: () => import('./features/account/register/register').then((m) => m.Register), title: 'Create Account | Offerlal Fashion' },
+      { path: 'forgot-password', loadComponent: () => import('./features/account/forgot-password/forgot-password').then((m) => m.ForgotPassword), title: 'Reset Password | Offerlal Fashion' },
       {
         path: 'account',
         canActivate: [authGuard],
@@ -42,17 +60,15 @@ export const routes: Routes = [
           { path: 'size-profile', loadComponent: () => import('./features/account/size-profile/size-profile').then((m) => m.SizeProfilePage), title: 'Size Profile | Offerlal Fashion' },
         ],
       },
+
+      // Inside the shell, not beside it. Rendered as a sibling the 404 had no
+      // header and no footer, so the one page a lost visitor is guaranteed to
+      // reach was the one page with no way to leave.
+      {
+        path: '**',
+        loadComponent: () => import('./features/static/not-found/not-found').then((m) => m.NotFound),
+        title: 'Page Not Found | Offerlal Fashion',
+      },
     ],
   },
-  {
-    path: 'admin/login',
-    loadComponent: () => import('./admin/login/admin-login').then((m) => m.AdminLogin),
-    title: 'Admin Login | Offerlal Fashion',
-  },
-  {
-    path: 'admin',
-    canActivate: [adminGuard],
-    loadChildren: () => import('./admin/admin.routes').then((m) => m.ADMIN_ROUTES),
-  },
-  { path: '**', loadComponent: () => import('./features/static/not-found/not-found').then((m) => m.NotFound) },
 ];

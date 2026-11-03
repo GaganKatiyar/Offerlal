@@ -13,9 +13,15 @@
     <div class="account-main">
       <h1>Saved Addresses</h1>
 
-      @if (auth.currentUser()?.addresses?.length) {
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
+
+      @if (loading()) {
+        <p class="empty-note">Loading…</p>
+      } @else if (addresses().length) {
         <div class="address-cards">
-          @for (a of auth.currentUser()!.addresses; track a.id) {
+          @for (a of addresses(); track a.id) {
             <div class="address-card" [class.is-default]="a.isDefault">
               <div class="address-label-row">
                 <span class="address-label">{{ a.label }}</span>

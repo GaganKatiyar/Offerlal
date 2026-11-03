@@ -1,0 +1,45 @@
+@use 'sass:map';
+
+// One parametric mixin, one import line per component.
+//
+// The previous _breakpoints.scss exported five separate mixins and was used
+// exactly zero times: a *set* of mixins was never worth the import, so every
+// component hand-wrote raw media queries and drifted to off-scale one-offs at
+// 480/640/700/900px. A single mixin is worth one `@use`.
+//
+// Usage:  @use '../../styles/mq' as *;   →   @include mq(lg) { … }
+
+$bps: (
+  xs: 400px,
+  // small phone; rare
+  sm: 600px,
+  // large phone / phablet
+  md: 768px,
+  // tablet
+  lg: 1024px,
+  // desktop — PLP filter rail appears here
+  xl: 1280px,
+  // widescreen
+  2xl: 1440px, // container ceiling
+);
+
+@mixin mq($bp) {
+  @if not map.has-key($bps, $bp) {
+    @error 'Unknown breakpoint `#{$bp}`. Valid: #{map.keys($bps)}.';
+  }
+  @media (min-width: map.get($bps, $bp)) {
+    @content;
+  }
+}
+
+// Max-width queries are an escape hatch, not the default. Mobile-first `mq()`
+// should cover almost everything; this exists for the rare genuinely
+// mobile-only rule that cannot be expressed as a min-width override.
+@mixin mq-below($bp) {
+  @if not map.has-key($bps, $bp) {
+    @error 'Unknown breakpoint `#{$bp}`. Valid: #{map.keys($bps)}.';
+  }
+  @media (max-width: (map.get($bps, $bp) - 0.02px)) {
+    @content;
+  }
+}

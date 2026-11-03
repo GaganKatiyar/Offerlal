@@ -1,0 +1,52 @@
+@use '../../../../styles/mq' as *;
+
+:host {
+  display: block;
+}
+
+.promo {
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+}
+
+.promo-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  padding-block: var(--space-3);
+  text-align: center;
+}
+
+.promo-text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-wide);
+
+  strong {
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+  }
+}
+
+.promo-sub {
+  opacity: 0.9;
+  margin-left: var(--space-2);
+}
+
+.promo-cta {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--color-white);
+    color: var(--brand-primary);
+  }
+}

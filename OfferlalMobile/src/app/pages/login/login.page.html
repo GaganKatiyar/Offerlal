@@ -32,11 +32,9 @@
       <p class="error">{{ error() }}</p>
     }
 
-    <button type="button" class="btn-primary" (click)="submit()">Sign In</button>
-
-    <p class="demo-note">
-      Prototype demo — try <button type="button" class="link-btn" (click)="fillDemo()">{{ demoEmail }}</button> with any password.
-    </p>
+    <button type="button" class="btn-primary" (click)="submit()" [disabled]="busy()">
+      {{ busy() ? 'Signing in…' : 'Sign In' }}
+    </button>
 
     <p class="switch">New here? <a routerLink="/register">Create an account</a></p>
   </div>

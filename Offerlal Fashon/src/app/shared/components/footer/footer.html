@@ -5,33 +5,20 @@
       <p>Premium designer lehengas and occasion wear, crafted for every celebration — at a price that feels right.</p>
     </div>
 
-    <div class="link-col">
-      <h4>Online Shopping</h4>
-      <a routerLink="/category/bridal-lehengas">Bridal Lehengas</a>
-      <a routerLink="/category/party-wear-lehengas">Party Wear</a>
-      <a routerLink="/category/sarees">Sarees</a>
-      <a routerLink="/category/anarkali-gowns">Anarkali &amp; Gowns</a>
-      <a routerLink="/category/bridal-jewellery">Bridal Jewellery</a>
-      <a routerLink="/new-arrivals">New Arrivals</a>
-      <a routerLink="/sale">Sale</a>
-    </div>
-
-    <div class="link-col">
-      <h4>Customer Policies</h4>
-      <a routerLink="/contact">Contact Us</a>
-      <a routerLink="/faq">FAQs</a>
-      <a routerLink="/track-order">Track Orders</a>
-      <a routerLink="/faq">Size &amp; Fit Guide</a>
-      <a routerLink="/faq">Exchange &amp; Returns</a>
-      <a routerLink="/faq">Privacy Policy</a>
-      <a routerLink="/faq">Terms of Use</a>
-    </div>
-
-    <div class="link-col">
-      <h4>Company</h4>
-      <a routerLink="/about">About Us</a>
-      <a routerLink="/bridal-concierge">Bridal Concierge</a>
-    </div>
+    <!--
+      Footer link columns come from the CMS (the "footer" nav menu), so a
+      category rename updates them instead of leaving a dead link. These were
+      three hardcoded columns of anchors - one of which already pointed at a
+      slug that did not exist.
+    -->
+    @for (col of linkColumns(); track col.id) {
+      <div class="link-col">
+        <h4>{{ col.label }}</h4>
+        @for (link of col.children; track link.id) {
+          <a [routerLink]="link.url">{{ link.label }}</a>
+        }
+      </div>
+    }
 
     <div class="link-col keep-in-touch-col">
       <h4>Keep In Touch</h4>

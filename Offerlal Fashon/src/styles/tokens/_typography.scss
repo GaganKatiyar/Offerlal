@@ -1,3 +1,23 @@
-$font-display: Roboto, sans-serif;
-$font-body: Roboto, sans-serif;
-$font-accent: Roboto, sans-serif;
+// Two families, deliberately scoped.
+//
+// Inter carries the UI: high x-height so 11-13px stays legible at Myntra
+// density, real tabular numerals so price columns align, and a proper rupee
+// glyph. One variable file covers 400-700.
+//
+// Jost carries display only. It is geometric and fashion-forward but has a low
+// x-height and wide letterforms, so it reads badly below ~18px. Restricting it
+// to headings and eyebrows IS the display/body contrast — the app previously
+// had none, because all three stacks were Roboto.
+//
+// The stacks stay lists rather than single families so a Devanagari fallback
+// can be appended by unicode-range if Hindi ever ships.
+
+$font-display: 'Jost', 'Inter Variable', Inter, system-ui, sans-serif;
+$font-body:
+  'Inter Variable',
+  Inter,
+  system-ui,
+  -apple-system,
+  'Segoe UI',
+  sans-serif;
+$font-accent: 'Jost', 'Inter Variable', Inter, system-ui, sans-serif;

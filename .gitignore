@@ -17,15 +17,20 @@ testem.log
 
 # ─────────────────────────────────────────────────────────────
 # .NET  (OfferlalFashion.Api)
+#
+# Scoped to the API project, not bare (e.g. "[Dd]ebug/" unscoped also
+# matched OfferlalMobile/android/app/src/debug/ — a real Android source
+# set, not build output - which silently swallowed its AndroidManifest.xml
+# and network_security_config.xml as "ignored" rather than "untracked".
 # ─────────────────────────────────────────────────────────────
-[Bb]in/
-[Oo]bj/
-[Dd]ebug/
-[Rr]elease/
-x64/
-x86/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
+OfferlalFashion.Api/**/[Bb]in/
+OfferlalFashion.Api/**/[Oo]bj/
+OfferlalFashion.Api/**/[Dd]ebug/
+OfferlalFashion.Api/**/[Rr]elease/
+OfferlalFashion.Api/**/x64/
+OfferlalFashion.Api/**/x86/
+OfferlalFashion.Api/**/[Aa][Rr][Mm]/
+OfferlalFashion.Api/**/[Aa][Rr][Mm]64/
 *.user
 *.suo
 *.userosscache
@@ -94,3 +99,7 @@ OfferlalMobile/ios/
 
 # Local build tooling (portable JDK / Android SDK, not for version control)
 tools/
+
+# Uploaded media lives on disk, not in the repo — content-addressed and
+# reproducible from the media library.
+OfferlalFashion.Api/wwwroot/media/

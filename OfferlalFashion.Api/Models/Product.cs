@@ -17,6 +17,16 @@ public partial class Product
 
     public int BrandId { get; set; }
 
+    /// <summary>Which attribute template this product uses. Drives the admin form and the PDP sections.</summary>
+    public int? AttributeSetId { get; set; }
+
+    /// <summary>
+    /// Display-only prose attributes as JSON, e.g. fabric-description,
+    /// work-description, blouse-details. Rendered on the PDP, never queried —
+    /// anything filterable lives in ProductAttributeOptions instead.
+    /// </summary>
+    public string DisplayAttributesJson { get; set; } = "{}";
+
     /// <summary>
     /// Legacy free-text sub-category. Superseded by real child categories —
     /// kept temporarily so nothing breaks mid-migration, dropped in the
@@ -83,6 +93,12 @@ public partial class Product
     public virtual Category Category { get; set; } = null!;
 
     public virtual Brand Brand { get; set; } = null!;
+
+    public virtual AttributeSet? AttributeSet { get; set; }
+
+    public virtual ICollection<ProductAttributeOption> AttributeOptions { get; set; } = new List<ProductAttributeOption>();
+
+    public virtual ICollection<ProductAttributeNumber> AttributeNumbers { get; set; } = new List<ProductAttributeNumber>();
 
     public virtual ICollection<CustomizationOption> CustomizationOptions { get; set; } = new List<CustomizationOption>();
 

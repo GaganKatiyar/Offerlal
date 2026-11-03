@@ -1,0 +1,25 @@
+<div class="sh-inner">
+  <div class="sh-text">
+    <!--
+      The eyebrow only renders in the editorial treatment. In commerce density a
+      gold 12px line above every one of ten headings is decoration, not
+      information, and it is the single biggest reason the page reads as a
+      lookbook rather than a shop.
+    -->
+    @if (density() === 'editorial' && eyebrow()) {
+      <span class="eyebrow">{{ eyebrow() }}</span>
+    }
+
+    @if (heading()) {
+      <h2>{{ heading() }}</h2>
+    }
+
+    @if (subheading()) {
+      <p class="sh-sub">{{ subheading() }}</p>
+    }
+  </div>
+
+  @if (ctaLabel() && ctaUrl()) {
+    <a class="sh-cta" [href]="ctaUrl()">{{ ctaLabel() }}</a>
+  }
+</div>

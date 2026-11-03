@@ -1,49 +1,150 @@
-import { Injectable, signal } from '@angular/core';
-import { MOCK_ORDERS, MobileAddress, MobileOrder } from '../data/mock-data';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { CartLine } from './cart.service';
 
+export interface OrderSummary {
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  total: number;
+  placedAt: string;
+  expectedDeliveryDate: string;
+  trackingNumber?: string | null;
+  itemCount: number;
+  thumbnailUrl?: string | null;
+}
+
+export interface OrderAddress {
+  fullName: string;
+  phone: string;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
+export interface OrderDetail extends OrderSummary {
+  paymentMethod: string;
+  subtotal: number;
+  discount: number;
+  couponCode?: string | null;
+  shippingFee: number;
+  tax: number;
+  shipFullName: string;
+  shipPhone: string;
+  shipLine1: string;
+  shipLine2?: string | null;
+  shipCity: string;
+  shipState: string;
+  shipPincode: string;
+  /** The Ship* columns above, gathered for display. */
+  shippingAddress: OrderAddress;
+  items: {
+    productId: string;
+    name: string;
+    imageUrl: string;
+    sku: string;
+    size: string;
+    color: string;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    customizations?: string | null;
+  }[];
+}
+
+export interface PlacedOrder {
+  orderNumber: string;
+  total: number;
+  paymentStatus: string;
+}
+
+export interface ShippingDetails {
+  name: string;
+  phone: string;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  email?: string | null;
+}
+
+/**
+ * Orders, from the server.
+ *
+ * What this replaces was a working illustration of why the money path belongs
+ * on the server. place() computed the subtotal from local prices, applied a
+ * hardcoded "free over 2,999" rule that is now an editable store setting, and
+ * numbered the order `orders().length + 1` — which collides the moment two
+ * people check out at once. None of it ever reached a database, so an order
+ * existed only on the phone that placed it.
+ *
+ * Now the app sends what the customer chose and the server decides the price,
+ * the number and the stock.
+ */
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-  private readonly _orders = signal<MobileOrder[]>([...MOCK_ORDERS]);
-  readonly orders = this._orders.asReadonly();
+  private http = inject(HttpClient);
+  private base = environment.apiBaseUrl;
 
-  getByOrderNumber(orderNumber: string): MobileOrder | undefined {
-    return this._orders().find((o) => o.orderNumber === orderNumber);
+  /** The signed-in customer's orders. Requires a token; the interceptor adds it. */
+  list(): Observable<OrderSummary[]> {
+    return this.http.get<OrderSummary[]>(`${this.base}/orders`);
   }
 
-  place(lines: CartLine[], address: MobileAddress, paymentMethod: string): MobileOrder {
-    const subtotal = lines.reduce((sum, l) => sum + l.product.price * l.quantity, 0);
-    const shippingFee = subtotal >= 2999 ? 0 : 150;
-    const total = subtotal + shippingFee;
-    const seq = this._orders().length + 1;
-    const now = new Date();
-    const expected = new Date(now);
-    expected.setDate(expected.getDate() + 9);
+  get(orderNumber: string): Observable<OrderDetail> {
+    return this.http
+      .get<OrderDetail>(`${this.base}/orders/${orderNumber}`)
+      .pipe(map((o) => ({ ...o, shippingAddress: toAddress(o) })));
+  }
 
-    const order: MobileOrder = {
-      id: `order-${Date.now()}`,
-      orderNumber: `OF-2026-${100000 + seq}`,
-      items: lines.map((l) => ({
+  /**
+   * Places the order.
+   *
+   * Sends line identity and quantity only. No prices, no totals: the server
+   * recomputes them, so nothing the app sends can change what is charged.
+   */
+  place(
+    lines: CartLine[],
+    shipping: ShippingDetails,
+    paymentMethod: string,
+    couponCode?: string | null,
+    expressDelivery = false,
+  ): Observable<PlacedOrder> {
+    return this.http.post<PlacedOrder>(`${this.base}/checkout/place-order`, {
+      lines: lines.map((l) => ({
         productId: l.product.id,
-        name: l.product.name,
-        imageUrl: l.product.imageUrl,
+        variantId: l.variantId,
         size: l.size,
-        color: l.product.colors[0]?.name ?? '',
         quantity: l.quantity,
-        unitPrice: l.product.price,
       })),
-      subtotal,
-      shippingFee,
-      total,
-      status: 'Placed',
-      statusHistory: [{ status: 'Placed', timestamp: now.toISOString() }],
-      shippingAddress: address,
+      couponCode: couponCode ?? null,
+      expressDelivery,
       paymentMethod,
-      placedAt: now.toISOString(),
-      expectedDeliveryDate: expected.toISOString(),
-    };
-
-    this._orders.update((list) => [order, ...list]);
-    return order;
+      email: shipping.email ?? null,
+      shippingName: shipping.name,
+      shippingPhone: shipping.phone,
+      shippingLine1: shipping.line1,
+      shippingLine2: shipping.line2 ?? null,
+      shippingCity: shipping.city,
+      shippingState: shipping.state,
+      shippingPincode: shipping.pincode,
+    });
   }
+}
+
+function toAddress(o: OrderDetail): OrderAddress {
+  return {
+    fullName: o.shipFullName,
+    phone: o.shipPhone,
+    line1: o.shipLine1,
+    line2: o.shipLine2,
+    city: o.shipCity,
+    state: o.shipState,
+    pincode: o.shipPincode,
+  };
 }

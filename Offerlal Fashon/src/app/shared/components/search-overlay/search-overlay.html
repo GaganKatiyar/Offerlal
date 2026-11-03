@@ -1,0 +1,18 @@
+@if (search.isOpen()) {
+  <div class="search-overlay" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="search-overlay__bar">
+      <button type="button" class="search-overlay__back" (click)="close()" aria-label="Close search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+
+      <!--
+        The same typeahead the header and the search page use, in its overlay
+        mode: suggestions flow down the screen rather than hanging in a floating
+        panel, because here there is nothing to float over.
+      -->
+      <app-search-bar class="search-overlay__field" [overlay]="true" />
+    </div>
+  </div>
+}

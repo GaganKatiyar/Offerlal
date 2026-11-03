@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
@@ -10,7 +10,8 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { heart, heartOutline, star, checkmarkCircle } from 'ionicons/icons';
-import { PRODUCTS, MobileProduct } from '../../data/mock-data';
+import { MobileProduct } from '../../data/mock-data';
+import { CatalogApiService } from '../../services/catalog-api.service';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { CartService } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
@@ -28,11 +29,9 @@ export class ProductDetailPage {
   protected selectedSize = signal<string | null>(null);
   protected added = signal(false);
 
-  protected related = computed(() => {
-    const p = this.product();
-    if (!p) return [];
-    return PRODUCTS.filter((x) => x.id !== p.id && x.categoryId === p.categoryId).slice(0, 4);
-  });
+  protected related = signal<MobileProduct[]>([]);
+  protected loading = signal(true);
+  protected failed = signal(false);
 
   protected inWishlist = computed(() => {
     const p = this.product();
@@ -45,6 +44,8 @@ export class ProductDetailPage {
     return Math.round(((p.compareAtPrice - p.price) / p.compareAtPrice) * 100);
   });
 
+  private catalog = inject(CatalogApiService);
+
   constructor(
     route: ActivatedRoute,
     private router: Router,
@@ -52,8 +53,40 @@ export class ProductDetailPage {
     protected wishlist: WishlistService,
   ) {
     addIcons({ heart, heartOutline, star, checkmarkCircle });
-    const slug = route.snapshot.paramMap.get('slug');
-    this.product.set(PRODUCTS.find((p) => p.slug === slug));
+
+    // paramMap, not snapshot: tapping a related product navigates to this same
+    // route, and Angular reuses the component rather than rebuilding it. With
+    // the snapshot the page kept showing the product you came from.
+    route.paramMap.subscribe((params) => {
+      const slug = params.get('slug');
+      if (slug) this.load(slug);
+    });
+  }
+
+  private load(slug: string): void {
+    this.loading.set(true);
+    this.failed.set(false);
+    this.selectedSize.set(null);
+    this.activeImage.set(0);
+
+    this.catalog.productBySlug(slug).subscribe({
+      next: (p) => {
+        this.product.set(p);
+        this.loading.set(false);
+        this.loadRelated(p);
+      },
+      error: () => {
+        this.failed.set(true);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadRelated(p: MobileProduct): void {
+    this.catalog.products({ categoryId: p.categoryId, pageSize: 5 }).subscribe({
+      next: (page) => this.related.set(page.items.filter((x) => x.id !== p.id).slice(0, 4)),
+      error: () => this.related.set([]),
+    });
   }
 
   selectSize(size: string): void {

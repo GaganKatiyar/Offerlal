@@ -1,3 +1,15 @@
+/* A shopping surface, not an editorial one.
+ *
+ * Dense product grids and image galleries read muddy on the warm ivory ground,
+ * which is why --surface-shop exists. Scoped to :host rather than a global
+ * token change: ivory IS the brand on About, the concierge and the homepage's
+ * editorial block.
+ */
+:host {
+  display: block;
+  background: var(--surface-shop);
+}
+
 :host {
   display: block;
 }

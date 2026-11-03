@@ -37,7 +37,19 @@
   <div class="checkout-bar">
     <div class="total">
       <span>Subtotal</span>
-      <strong>₹{{ cart.subtotal().toLocaleString('en-IN') }}</strong>
+      <!--
+        The server's figure. It used to be summed here from local prices, which
+        is the same mistake the website was corrected for: a total the client
+        works out is one the client can be made to work out wrongly. While the
+        quote is in flight there is no number, rather than a stale one.
+      -->
+      @if (cart.quote(); as q) {
+        <strong>₹{{ q.subtotal.toLocaleString('en-IN') }}</strong>
+      } @else if (cart.quoting()) {
+        <strong class="pending">…</strong>
+      } @else {
+        <strong class="pending">--</strong>
+      }
     </div>
     <button type="button" class="checkout-btn" (click)="goToCheckout()">Proceed to Checkout</button>
   </div>

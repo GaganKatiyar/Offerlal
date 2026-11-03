@@ -12,6 +12,22 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="load($any($event))">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (failed()) {
+    <!--
+      The catalogue comes from the network now, so "couldn't load" is a state
+      this screen can actually be in. Saying so beats an empty page that looks
+      like an empty shop.
+    -->
+    <div class="load-error">
+      <p>Couldn't reach the shop. Check your connection.</p>
+      <button type="button" (click)="load()">Try again</button>
+    </div>
+  }
+
   <section class="hero">
     <img src="https://images.pexels.com/photos/12411105/pexels-photo-12411105.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Bridal Edit" />
     <div class="hero-copy">
@@ -24,7 +40,7 @@
   <section class="cat-strip">
     <h2>Shop by Category</h2>
     <div class="cat-scroll">
-      @for (cat of categories; track cat.id) {
+      @for (cat of categories(); track cat.id) {
         <button type="button" class="cat-chip" (click)="openCategory(cat.id)">
           <img [src]="cat.imageUrl" [alt]="cat.name" />
           <span>{{ cat.name }}</span>
@@ -38,6 +54,12 @@
     <div class="grid">
       @for (p of newArrivals(); track p.id) {
         <app-product-card [product]="p" />
+      } @empty {
+        @if (loading()) {
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="card-skeleton"><ion-skeleton-text [animated]="true" /></div>
+          }
+        }
       }
     </div>
   </section>
@@ -47,6 +69,12 @@
     <div class="grid">
       @for (p of bestsellers(); track p.id) {
         <app-product-card [product]="p" />
+      } @empty {
+        @if (loading()) {
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="card-skeleton"><ion-skeleton-text [animated]="true" /></div>
+          }
+        }
       }
     </div>
   </section>

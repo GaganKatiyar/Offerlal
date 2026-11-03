@@ -13,6 +13,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  @if (error()) {
+    <p class="addr-error">{{ error() }}</p>
+  }
   <div class="address-list">
     @for (addr of addresses.addresses(); track addr.id) {
       <div class="address-card">

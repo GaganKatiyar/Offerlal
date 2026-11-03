@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { ProductService } from '../../core/services/product.service';
@@ -17,20 +25,27 @@ import { AccordionItem } from '../../shared/ui/accordion/accordion-item';
 import { Modal } from '../../shared/ui/modal/modal';
 import { ProductCard } from '../../shared/components/product-card/product-card';
 import { InrCurrencyPipe } from '../../shared/pipes/inr-currency.pipe';
+import { CatalogApiService } from '../../core/services/catalog-api.service';
+import { LayoutChromeService } from '../../core/services/layout-chrome.service';
+import { SettingsService } from '../../core/services/settings.service';
+import { SizeChart } from '../../core/models/catalog-search.model';
 
-const SIZE_CHART = [
-  { size: 'XS', bust: 32, waist: 26, hip: 35, shoulder: 13.5, length: 41 },
-  { size: 'S', bust: 34, waist: 28, hip: 37, shoulder: 14, length: 41.5 },
-  { size: 'M', bust: 36, waist: 30, hip: 39, shoulder: 14.5, length: 42 },
-  { size: 'L', bust: 38, waist: 32, hip: 41, shoulder: 15, length: 42.5 },
-  { size: 'XL', bust: 40, waist: 34, hip: 43, shoulder: 15.5, length: 43 },
-  { size: 'XXL', bust: 42, waist: 36, hip: 45, shoulder: 16, length: 43.5 },
-];
 
 @Component({
   selector: 'app-pdp',
   standalone: true,
-  imports: [RouterLink, ImageWithFallback, PriceDisplay, StarRating, Breadcrumb, QuantityStepper, AccordionItem, Modal, ProductCard, InrCurrencyPipe],
+  imports: [
+    RouterLink,
+    ImageWithFallback,
+    PriceDisplay,
+    StarRating,
+    Breadcrumb,
+    QuantityStepper,
+    AccordionItem,
+    Modal,
+    ProductCard,
+    InrCurrencyPipe,
+  ],
   templateUrl: './pdp.html',
   styleUrl: './pdp.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +54,8 @@ export class Pdp implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductService);
+  private catalogApi = inject(CatalogApiService);
+  protected settings = inject(SettingsService);
   private reviewService = inject(ReviewService);
   private cart = inject(CartService);
   private wishlist = inject(WishlistService);
@@ -47,10 +64,29 @@ export class Pdp implements OnInit {
   private meta = inject(Meta);
   private title = inject(Title);
 
+  constructor() {
+    // This page has its own sticky Add-to-Bag bar at the bottom of the screen.
+    // Claim the bottom edge so the global navigation steps aside rather than
+    // stacking beneath the primary CTA — two 56px bars take a fifth of a small
+    // phone. Released on destroy, so the claim cannot outlive the page.
+    const release = inject(LayoutChromeService).claimBottomEdge();
+    inject(DestroyRef).onDestroy(release);
+  }
+
   protected product = signal<Product | undefined>(undefined);
   protected reviews = signal<Review[]>([]);
   protected related = signal<Product[]>([]);
-  protected sizeChart = SIZE_CHART;
+  /**
+   * The size chart for this product, or null when its size scheme has none.
+   *
+   * Previously a SIZE_CHART constant in this file: one apparel chart of
+   * bust/waist/hip shown on every product, including chokers and shoes. It is
+   * now data keyed on the product's size scheme, so a category without a chart
+   * simply shows no size guide — no special-casing here.
+   */
+  protected sizeChart = signal<SizeChart | null>(null);
+
+  protected hasSizeChart = computed(() => (this.sizeChart()?.rows.length ?? 0) > 0);
 
   protected selectedVariant = signal<ProductVariant | undefined>(undefined);
   protected selectedImageIndex = signal(0);
@@ -60,6 +96,12 @@ export class Pdp implements OnInit {
   protected quantity = signal(1);
   protected selectedCustomizations = signal<string[]>([]);
   protected sizeChartOpen = signal(false);
+
+  /** Opens the lightbox at a specific image — zoom is now secondary to the grid. */
+  protected openZoom(index: number): void {
+    this.selectedImageIndex.set(index);
+    this.zoomOpen.set(true);
+  }
   protected notFound = signal(false);
 
   protected inWishlist = computed(() => {
@@ -70,7 +112,14 @@ export class Pdp implements OnInit {
   protected breadcrumbs = computed<Crumb[]>(() => {
     const p = this.product();
     if (!p) return [{ label: 'Home', link: '/' }];
-    return [{ label: 'Home', link: '/' }, { label: p.categoryId.replace('cat-', '').replace(/-/g, ' '), link: '/category/' + p.categoryId.replace('cat-', '') }, { label: p.name }];
+    return [
+      { label: 'Home', link: '/' },
+      {
+        label: p.categoryId.replace('cat-', '').replace(/-/g, ' '),
+        link: '/category/' + p.categoryId.replace('cat-', ''),
+      },
+      { label: p.name },
+    ];
   });
 
   protected currentImages = computed(() => this.selectedVariant()?.images ?? []);
@@ -95,7 +144,9 @@ export class Pdp implements OnInit {
   protected customizationTotal = computed(() => {
     const p = this.product();
     if (!p) return 0;
-    return p.customizationOptions.filter((o) => this.selectedCustomizations().includes(o.id)).reduce((sum, o) => sum + o.priceDelta, 0);
+    return p.customizationOptions
+      .filter((o) => this.selectedCustomizations().includes(o.id))
+      .reduce((sum, o) => sum + o.priceDelta, 0);
   });
 
   protected unitPrice = computed(() => (this.product()?.price ?? 0) + this.customizationTotal());
@@ -113,15 +164,33 @@ export class Pdp implements OnInit {
         this.selectedVariant.set(p.variants[0]);
         this.selectedImageIndex.set(0);
 
-        // Personalization: pre-select the customer's saved size when it applies to this product.
+        // Size preselection, in priority order:
+        //   1. ?size= from the link that got here (wishlist card size chips),
+        //      because an explicit choice this click beats a stored preference.
+        //   2. The customer's saved size profile, when it applies here.
+        const requestedSize = this.route.snapshot.queryParamMap.get('size');
+        const requestedApplies = !!requestedSize && p.sizes.includes(requestedSize);
+
         const savedSize = this.auth.currentUser()?.sizeProfile?.preferredSize;
         const savedSizeApplies = !!savedSize && p.sizes.includes(savedSize);
-        this.selectedSize.set(savedSizeApplies ? savedSize : undefined);
-        this.sizePreselectedFromProfile.set(savedSizeApplies);
+
+        if (requestedApplies) {
+          this.selectedSize.set(requestedSize!);
+          this.sizePreselectedFromProfile.set(false);
+        } else {
+          this.selectedSize.set(savedSizeApplies ? savedSize : undefined);
+          this.sizePreselectedFromProfile.set(savedSizeApplies);
+        }
 
         this.quantity.set(1);
         this.selectedCustomizations.set([]);
         this.setSeo(p);
+        this.sizeChart.set(null);
+        this.catalogApi.getSizeChart(p.id).subscribe({
+          next: (chart) => this.sizeChart.set(chart),
+          // A missing chart must never break the page; it just means no guide.
+          error: () => this.sizeChart.set(null),
+        });
         this.reviewService.getByProduct(p.id).subscribe((r) => this.reviews.set(r));
         this.productService.getRelated(p.id, 4).subscribe((r) => this.related.set(r));
       });
@@ -147,7 +216,9 @@ export class Pdp implements OnInit {
   }
 
   protected toggleCustomization(id: string): void {
-    this.selectedCustomizations.update((list) => (list.includes(id) ? list.filter((c) => c !== id) : [...list, id]));
+    this.selectedCustomizations.update((list) =>
+      list.includes(id) ? list.filter((c) => c !== id) : [...list, id],
+    );
   }
 
   private buildCustomizations(): CartItemCustomization[] {

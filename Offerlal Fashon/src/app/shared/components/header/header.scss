@@ -1,17 +1,33 @@
+@use '../../../../styles/mq' as *;
+
 :host {
   display: block;
   position: sticky;
   top: 0;
-  z-index: 70;
+  z-index: var(--z-header);
 }
 
+/* One line, always.
+ *
+ * The full announcement wrapped to two lines on a phone, costing ~40px of the
+ * first screen before anything shoppable appeared. Truncating is better than
+ * wrapping here: the copy is reassurance, not instruction, and the part that
+ * matters ("Free shipping over X") is at the front. */
 .announcement-bar {
   background: var(--color-charcoal);
   color: var(--color-cream);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   letter-spacing: 0.03em;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-1-5) var(--space-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include mq(md) {
+    font-size: 12px;
+    padding: var(--space-2) var(--space-4);
+  }
 }
 
 .site-header {
@@ -41,121 +57,18 @@
   }
 }
 
-/* Persistent search */
-.search-wrap {
-  position: relative;
-  order: 3;
-  flex: 1 1 100%;
+/* Search is owned by app-search-bar; only its placement in the header row
+   is a header concern.
+
+   Hidden on phones, where the trigger icon opens the full-screen overlay
+   instead. It used to wrap onto a third row here and sit on every page. */
+app-search-bar {
+  display: none;
 }
 
-.search-box {
+/* The phone-only icon that opens the overlay. */
+.search-trigger {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  border: 1.5px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  padding: 0 var(--space-2) 0 var(--space-4);
-  background: var(--surface-alt);
-  transition: border-color 0.15s ease;
-
-  &:focus-within {
-    border-color: var(--brand-primary);
-    background: var(--surface-card);
-  }
-}
-
-.search-icon {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.search-box input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: none;
-  padding: var(--space-3) 0;
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
-  color: var(--text-primary);
-  outline: none;
-
-  &::placeholder {
-    color: var(--text-muted);
-  }
-}
-
-.search-submit-btn {
-  padding: var(--space-2) var(--space-5);
-  background: var(--brand-primary);
-  color: var(--color-white);
-  border: none;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.suggestions-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: var(--surface-page);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-3);
-  z-index: 71;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.suggestion-row {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--space-2) var(--space-2);
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border-subtle);
-  cursor: pointer;
-  text-align: left;
-  font-size: var(--font-size-sm);
-
-  &:hover {
-    background: var(--surface-alt);
-  }
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.no-results {
-  margin: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
-}
-
-.search-suggestions {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  align-items: center;
-  font-size: var(--font-size-sm);
-  padding: var(--space-2);
-
-  .suggestion-label {
-    color: var(--text-muted);
-  }
-
-  a {
-    color: var(--brand-primary);
-    text-decoration: underline;
-  }
 }
 
 /* Action icons */
@@ -226,7 +139,10 @@
     display: block;
     border-radius: 1px;
     transform-origin: center;
-    transition: transform 0.25s ease, opacity 0.25s ease, width 0.25s ease;
+    transition:
+      transform 0.25s ease,
+      opacity 0.25s ease,
+      width 0.25s ease;
   }
 
   &.open {
@@ -307,11 +223,11 @@
 .mobile-scrim {
   position: fixed;
   inset: 0;
-  background: rgba(20, 16, 14, 0.5);
-  z-index: 60;
+  background: var(--scrim);
+  z-index: var(--z-scrim);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--dur-slow) var(--ease-standard);
 
   &.open {
     opacity: 1;
@@ -326,7 +242,7 @@
   bottom: 0;
   width: min(300px, 82vw);
   background: var(--surface-page);
-  z-index: 61;
+  z-index: var(--z-drawer);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
@@ -463,13 +379,13 @@
   padding: var(--space-2) var(--space-5) var(--space-1);
 }
 
-@media (min-width: 640px) {
+@include mq(sm) {
   .action-label {
     display: block;
   }
 }
 
-@media (min-width: 1024px) {
+@include mq(lg) {
   .hamburger {
     display: none;
   }
@@ -479,11 +395,17 @@
     padding: var(--space-4) var(--space-6);
   }
 
-  .search-wrap {
+  app-search-bar {
+    display: block;
     order: 0;
     flex: 1 1 auto;
     max-width: 480px;
     margin: 0 var(--space-6);
+  }
+
+  /* Desktop has the field itself, so the trigger is redundant. */
+  .search-trigger {
+    display: none;
   }
 
   .category-nav {
@@ -494,5 +416,103 @@
     padding: var(--space-2) var(--space-6);
     justify-content: center;
     overflow-x: visible;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mega menu
+   --------------------------------------------------------------------------- */
+
+.category-nav {
+  position: relative;
+}
+
+.category-nav-inner a.open {
+  color: var(--brand-primary);
+}
+
+.mega-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: var(--surface-overlay);
+  border-top: var(--border-hairline);
+  box-shadow: var(--shadow-menu);
+  /* Above the header, below drawers and modals. Previously this whole area
+     used bare integers that had no relationship to each other. */
+  z-index: var(--z-mega-menu);
+
+  /* Pointer affordance only. On touch the tab is a plain link to the
+     category, which is the better behaviour there anyway. */
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+.mega-inner {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
+  padding: var(--space-6) var(--container-pad);
+}
+
+.mega-col-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mega-col ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mega-col a {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    color: var(--brand-primary);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Touch target sizing
+
+   Measured on a Pixel 7: the hamburger was 22x22, the three header actions
+   35x27 and the drawer close 34x34 - all well under the 44px a finger needs,
+   and all isolated icon controls where a miss costs a wrong page rather than a
+   mistyped character.
+
+   Only on coarse pointers. A mouse is precise, and inflating these on desktop
+   would loosen exactly the density this header was rebuilt for.
+
+   The hamburger grows by padding with a matching negative margin, so its bars
+   stay 22px and the bar beside it does not move: the target grows, the design
+   does not.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .hamburger {
+    box-sizing: content-box;
+    padding: calc((var(--control-h-touch) - 22px) / 2);
+    margin: calc((var(--control-h-touch) - 22px) / -2);
+  }
+
+  .action-item {
+    min-width: var(--control-h-touch);
+    min-height: var(--control-h-touch);
+    justify-content: center;
+  }
+
+  .mobile-nav-close {
+    width: var(--control-h-touch);
+    height: var(--control-h-touch);
   }
 }

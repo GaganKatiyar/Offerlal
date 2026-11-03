@@ -9,5 +9,12 @@
 </div>
 
 <div class="container">
-  <app-product-browser [products]="allProducts()" [initialPriceMin]="queryPriceMin()" [initialPriceMax]="queryPriceMax()" />
+  @if (contextReady()) {
+    <app-product-browser
+      [categoryId]="currentCategory()?.id"
+      [occasionId]="currentOccasion()?.id"
+      [newArrivals]="mode === 'new-arrivals'"
+      [onSale]="mode === 'sale'"
+    />
+  }
 </div>

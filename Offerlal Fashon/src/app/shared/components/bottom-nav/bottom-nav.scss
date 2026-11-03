@@ -1,0 +1,106 @@
+@use '../../../../styles/mq' as *;
+
+:host {
+  display: contents;
+}
+
+.bottom-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-bottom-nav);
+
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: stretch;
+
+  height: var(--bottom-nav-total);
+  /* The home-indicator inset, so the tabs sit above it rather than under the
+     gesture bar. Resolves to 0px on devices without one. */
+  padding-bottom: var(--safe-bottom);
+
+  background: var(--surface-card);
+  border-top: var(--border-hairline);
+  /* Upward shadow — the standard drop shadows all point the wrong way for a
+     bar anchored to the bottom of the screen. */
+  box-shadow: var(--shadow-sticky-bottom);
+
+  /* Desktop already carries this navigation in the header. Written as a
+     min-width include because check-styles.ps1 rejects raw max-width queries
+     just as firmly as min-width ones. */
+  @include mq(lg) {
+    display: none;
+  }
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  /* The whole tab is the target, which on a 5-up grid is ~72px wide — well
+     past the 44px minimum even on the narrowest phone we support. */
+  min-height: var(--bottom-nav-h);
+  padding: var(--space-1) var(--space-0-5);
+
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-family: var(--font-body);
+  cursor: pointer;
+
+  transition: color var(--dur-fast) var(--ease-standard);
+
+  &.is-active {
+    color: var(--brand-primary);
+  }
+
+  /* Inset so the ring is not clipped by the bar's own edge. */
+  &:focus-visible {
+    outline-offset: calc(var(--focus-ring-offset) * -1);
+  }
+}
+
+.tab__icon {
+  display: grid;
+  place-items: center;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.tab__label {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  letter-spacing: var(--ls-normal);
+}
+
+.tab__badge {
+  position: absolute;
+  top: calc(var(--space-1) - 2px);
+  /* Offset from centre rather than pinned to the tab's edge, so the badge
+     hugs its icon instead of drifting on wider screens. */
+  left: 50%;
+  margin-left: var(--space-2);
+
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

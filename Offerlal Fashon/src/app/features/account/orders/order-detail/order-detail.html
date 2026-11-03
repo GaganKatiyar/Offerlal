@@ -41,21 +41,44 @@
 
         @if (o.trackingNumber) {
           <h3>Tracking</h3>
-          <p>{{ o.carrier }} &middot; {{ o.trackingNumber }}</p>
+          <!--
+            No carrier is recorded on an order - nothing writes one, and there
+            is no shipping integration yet. The number alone is accurate; a
+            blank name beside it was not.
+          -->
+          <p>{{ o.trackingNumber }}</p>
         }
 
-        <h3>Status History</h3>
+        <!--
+          The server records the current status and when the order was placed,
+          not a history of transitions. A fabricated timeline read as fact, so
+          this states what is actually known.
+        -->
+        <h3>Status</h3>
         <div class="status-history">
-          @for (h of o.statusHistory; track h.timestamp) {
-            <div class="history-row">
-              <span class="history-status">{{ h.status }}</span>
-              <span class="history-date">{{ h.timestamp | date: 'medium' }}</span>
-            </div>
-          }
+          <div class="history-row">
+            <span class="history-status">{{ o.status }}</span>
+            <span class="history-date">Placed {{ o.placedAt | date: 'medium' }}</span>
+          </div>
         </div>
       </div>
     </div>
+  } @else if (loading()) {
+    <app-state-block kind="loading" title="Loading your order…" />
+  } @else if (failed()) {
+    <app-state-block
+      kind="error"
+      title="We couldn't load this order"
+      message="Your order is safe — this is just a problem reaching us."
+      (retry)="load()"
+    />
   } @else {
-    <p>Order not found.</p>
+    <app-state-block
+      kind="not-found"
+      title="Order not found"
+      message="We couldn't find that order on your account."
+    >
+      <a routerLink="/account/orders" class="btn btn-outline">View all orders</a>
+    </app-state-block>
   }
 </div>

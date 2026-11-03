@@ -12,8 +12,13 @@ public class CategoriesController(OfferlalFashionDbContext db) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll(CancellationToken ct = default)
     {
+        // Hidden categories are excluded here, not just dimmed in admin. The
+        // category editor creates new rows hidden precisely so they can be
+        // written before they are merchandisable; without this filter that
+        // toggle does nothing and a half-built category appears in the menus.
         var categories = await db.Categories.AsNoTracking()
-            .OrderBy(c => c.DisplayOrder)
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.Level).ThenBy(c => c.DisplayOrder)
             .ToListAsync(ct);
 
         return Ok(categories.Select(c => c.ToDto()).ToList());
@@ -23,7 +28,7 @@ public class CategoriesController(OfferlalFashionDbContext db) : ControllerBase
     public async Task<ActionResult<CategoryDto>> GetById(string id, CancellationToken ct = default)
     {
         var category = await db.Categories.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == id, ct);
+            .FirstOrDefaultAsync(c => c.Id == id && c.IsActive, ct);
 
         return category is null ? NotFound() : Ok(category.ToDto());
     }
@@ -32,8 +37,10 @@ public class CategoriesController(OfferlalFashionDbContext db) : ControllerBase
     [HttpGet("by-slug/{slug}")]
     public async Task<ActionResult<CategoryDto>> GetBySlug(string slug, CancellationToken ct = default)
     {
+        // Hidden means hidden: a direct link to an unpublished category is a
+        // 404, the same as one that does not exist.
         var category = await db.Categories.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Slug == slug, ct);
+            .FirstOrDefaultAsync(c => c.Slug == slug && c.IsActive, ct);
 
         return category is null ? NotFound() : Ok(category.ToDto());
     }

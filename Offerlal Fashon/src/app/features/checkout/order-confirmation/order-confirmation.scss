@@ -59,3 +59,21 @@
   justify-content: center;
   flex-wrap: wrap;
 }
+
+.payment-line {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+
+  &.is-paid {
+    color: var(--savings-text, var(--color-deal));
+    font-weight: var(--fw-semibold);
+  }
+}
+
+.muted {
+  margin: var(--space-4) auto 0;
+  max-width: 44ch;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}

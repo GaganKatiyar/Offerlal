@@ -13,13 +13,20 @@
     <div class="account-main">
       <h1>My Orders</h1>
 
-      @if (orders().length === 0) {
+      @if (loading()) {
+        <p class="empty-note">Loading your orders…</p>
+      } @else if (failed()) {
+        <p class="empty-note">
+          Couldn't load your orders.
+          <button type="button" class="link-btn" (click)="load()">Try again</button>
+        </p>
+      } @else if (orders().length === 0) {
         <p class="empty-note">You haven't placed any orders yet. <a routerLink="/shop">Start shopping</a></p>
       } @else {
         <div class="order-rows">
-          @for (o of orders(); track o.id) {
+          @for (o of orders(); track o.orderNumber) {
             <a class="order-row" [routerLink]="[o.orderNumber]">
-              <span>{{ o.orderNumber }} &middot; {{ o.items.length }} item(s)</span>
+              <span>{{ o.orderNumber }} &middot; {{ o.itemCount }} item{{ o.itemCount === 1 ? '' : 's' }}</span>
               <span class="status">{{ o.status }}</span>
               <span>{{ o.total | inr }}</span>
             </a>

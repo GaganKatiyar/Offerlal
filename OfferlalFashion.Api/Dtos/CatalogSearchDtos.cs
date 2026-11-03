@@ -1,0 +1,156 @@
+using System.Text.Json.Serialization;
+
+namespace OfferlalFashion.Api.Dtos;
+
+/// <summary>
+/// Exactly what a product card renders — nothing more.
+///
+/// Distinct from ProductSummaryDto, which carries description, tags, SKU, brand
+/// and a full ProductImageDto. The PLP ships 24 of these per page and the
+/// difference compounds; anything a card does not draw belongs on the detail
+/// endpoint instead.
+/// </summary>
+public sealed record ProductCardDto
+{
+    public string Id { get; init; } = "";
+    public string Slug { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string CategoryId { get; init; } = "";
+
+    /// <summary>The bold descriptor line on the card ("Heavy Bridal", "Anarkali").</summary>
+    public string? SubCategory { get; init; }
+
+    public decimal Price { get; init; }
+    public decimal? CompareAtPrice { get; init; }
+    public string Currency { get; init; } = "INR";
+    public decimal Rating { get; init; }
+    public int ReviewCount { get; init; }
+    public string StockStatus { get; init; } = "";
+    public bool IsBestseller { get; init; }
+    public bool IsNewArrival { get; init; }
+
+    /// <summary>Fallback descriptor when SubCategory is absent.</summary>
+    public string Fabric { get; init; } = "";
+
+    /// <summary>Drives the "Made to measure" line and the custom-sizing filter.</summary>
+    public bool HasCustomSizing { get; init; }
+
+    public string? ThumbnailUrl { get; init; }
+
+    /// <summary>
+    /// Alt text from the media library, describing the PICTURE.
+    ///
+    /// Previously the card fell back to the product name, so a screen reader
+    /// read the title twice — once as the image and once as the heading — and
+    /// said nothing about what the photo actually showed.
+    /// </summary>
+    public string? ThumbnailAlt { get; init; }
+
+    /// <summary>
+    /// Raw CSV as stored on the asset. EF projects this directly; it is not
+    /// serialised, because the client wants a list.
+    /// </summary>
+    [JsonIgnore]
+    public string? ThumbnailWidthsCsv { get; init; }
+
+    /// <summary>
+    /// Derivative widths that exist for this image, so the client can build a
+    /// srcset. Empty for externally hosted images, whose host resizes for us.
+    /// </summary>
+    public IReadOnlyList<int> ThumbnailWidths =>
+        string.IsNullOrWhiteSpace(ThumbnailWidthsCsv)
+            ? []
+            : [.. ThumbnailWidthsCsv
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(v => int.TryParse(v, out var n) ? n : 0)
+                .Where(n => n > 0)];
+
+    public IReadOnlyList<SwatchDto> Swatches { get; init; } = [];
+}
+
+public sealed record SwatchDto
+{
+    public string Color { get; init; } = "";
+    public string ColorHex { get; init; } = "";
+}
+
+public sealed record FacetOptionDto
+{
+    /// <summary>Slug — this is what appears in the URL query string.</summary>
+    public string Value { get; init; } = "";
+    public string Label { get; init; } = "";
+    public int Count { get; init; }
+    public string? SwatchHex { get; init; }
+    public int DisplayOrder { get; init; }
+}
+
+public sealed record FacetDto
+{
+    public string Code { get; init; } = "";
+    public string Label { get; init; } = "";
+
+    /// <summary>swatch | multiselect — tells the rail how to render this facet.</summary>
+    public string InputType { get; init; } = "multiselect";
+
+    public IReadOnlyList<FacetOptionDto> Options { get; init; } = [];
+}
+
+public sealed record PriceBoundsDto
+{
+    public decimal Min { get; init; }
+    public decimal Max { get; init; }
+}
+
+/// <summary>
+/// One response carrying the page, the facet counts and the price bounds.
+///
+/// Deliberately a single round trip: the rail and the grid must agree, and
+/// fetching them separately guarantees they eventually will not.
+/// </summary>
+public sealed record ProductSearchResult
+{
+    public IReadOnlyList<ProductCardDto> Items { get; init; } = [];
+    public int Page { get; init; }
+    public int PageSize { get; init; }
+    public int TotalCount { get; init; }
+    public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
+    public bool HasPrevious => Page > 1;
+    public bool HasNext => Page < TotalPages;
+
+    public IReadOnlyList<FacetDto> Facets { get; init; } = [];
+    public PriceBoundsDto PriceBounds { get; init; } = new();
+}
+
+/// <summary>
+/// A size chart for one size scheme.
+///
+/// Rows and columns are both data: apparel has bust/waist/hip, footwear would
+/// have foot length, and the PDP renders whatever comes back without knowing
+/// which is which. An empty Rows list means this product has no chart, which is
+/// the correct answer for jewellery rather than a missing feature.
+/// </summary>
+public sealed record SizeChartDto
+{
+    public string AttributeCode { get; init; } = "";
+    public string Label { get; init; } = "";
+    public string Unit { get; init; } = "in";
+
+    /// <summary>Column headings in display order.</summary>
+    public IReadOnlyList<SizeChartColumnDto> Columns { get; init; } = [];
+
+    public IReadOnlyList<SizeChartRowDto> Rows { get; init; } = [];
+}
+
+public sealed record SizeChartColumnDto
+{
+    public string Code { get; init; } = "";
+    public string Label { get; init; } = "";
+}
+
+public sealed record SizeChartRowDto
+{
+    public string Size { get; init; } = "";
+
+    /// <summary>Measurement code -> value, aligned with Columns.</summary>
+    public IReadOnlyDictionary<string, decimal> Values { get; init; } = new Dictionary<string, decimal>();
+}

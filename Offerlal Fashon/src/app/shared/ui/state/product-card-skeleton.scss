@@ -1,0 +1,17 @@
+:host {
+  /* Contents, so the placeholders become direct children of whatever grid the
+     caller already has — a wrapper here would collapse the grid to one cell. */
+  display: contents;
+}
+
+.card-sk {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.card-sk__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}

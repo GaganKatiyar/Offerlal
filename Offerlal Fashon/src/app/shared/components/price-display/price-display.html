@@ -2,6 +2,8 @@
   <span class="price">{{ price() | inr }}</span>
   @if (compareAtPrice() && discountPercent()) {
     <span class="compare">{{ compareAtPrice() | inr }}</span>
-    <span class="discount">{{ discountPercent() }}% OFF</span>
+    @if (showDiscount()) {
+      <span class="discount">{{ discountPercent() }}% OFF</span>
+    }
   }
 </span>

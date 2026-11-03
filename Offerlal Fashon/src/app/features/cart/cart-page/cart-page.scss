@@ -198,3 +198,10 @@
     grid-template-columns: 1fr 380px;
   }
 }
+
+/* Shown where a server-priced figure would go but is not known yet. Muted so
+   it never reads as a real amount. */
+.pending {
+  color: var(--text-muted);
+  font-weight: var(--fw-regular);
+}

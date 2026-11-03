@@ -18,6 +18,26 @@ $color-success: #3f6b4a;
 $color-error: #b54b23; // kept distinct from the red brand primary (warmer/rustier, not pure red)
 $color-border: rgba(42, 37, 33, 0.1);
 
+// -----------------------------------------------------------------------------
+// Marketplace offer scale.
+//
+// The storefront's discount colour was $color-error — a rust chosen to signal
+// urgency without competing with the wine brand primary. That restraint is
+// right for an editorial boutique and wrong for the dense marketplace register
+// the owner asked for, where a discount is the loudest thing on a card.
+//
+// Green, not red, for the savings figure: red on a price reads as an error or a
+// loss, whereas Indian marketplace shoppers read green as money kept. Red stays
+// for genuine scarcity (stock, countdowns), so the two never compete.
+// -----------------------------------------------------------------------------
+$color-deal: #1f8a4c; // savings / "X% OFF" — contrast 4.6:1 on white
+$color-deal-dark: #146335; // hover + small text, where 4.6 is marginal
+$color-deal-tint: #e8f5ed;
+$color-urgency: #d03b3b; // "Only 2 left" — scarcity, never price
+$color-urgency-tint: #fdeaea;
+$color-flash: #f25c05; // time-boxed sale bands and countdowns
+$color-flash-tint: #fff0e6;
+
 // Reserved status scale (order status chips — always pair with icon + label)
 $status-good: #0ca30c;
 $status-warning: #fab219;

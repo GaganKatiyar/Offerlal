@@ -298,3 +298,26 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+// Shown when the server refuses an address, or a fetch fails. Both screens
+// share this stylesheet, so it is defined once here.
+.form-error {
+  padding: var(--space-2-5) var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgb(181 75 35 / 0.12);
+  color: var(--color-error);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--space-4);
+}
+
+// A retry inside a sentence: reads as a link, but is a button because it
+// performs an action rather than navigating.
+.link-btn {
+  border: none;
+  background: none;
+  padding: 0 var(--space-1);
+  color: var(--brand-primary);
+  text-decoration: underline;
+  font-size: inherit;
+  cursor: pointer;
+}

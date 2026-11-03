@@ -1,3 +1,5 @@
+@use '../../../../styles/mq' as *;
+
 :host {
   display: block;
   font-family: var(--font-body);
@@ -13,19 +15,65 @@
   display: none;
 }
 
+/* On a phone the three controls fought over 390px and both labels wrapped —
+ * "60 / items" and "Sort / by" each on two lines, which reads as broken rather
+ * than dense. The count moves to its own line and the controls share the next. */
 .toolbar {
+  /*
+    Sticky on phones.
+
+    The filter rail is desktop-only, so below lg this toolbar's Filters button
+    is the ONLY way to filter or sort. Letting it scroll away meant that on a
+    long grid the single most useful control on the page became reachable only
+    by scrolling all the way back to the top.
+
+    Pinned under the header rather than to the viewport, which is what
+    --sticky-offset exists to express; the desktop rail at the bottom of this
+    file already measures against the same value.
+  */
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: var(--z-sticky-filter);
+
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-2);
+
+  /* Opaque, and padded back out to the container edges, so product images
+     scrolling underneath do not show through or butt against the controls. */
+  background: var(--surface-page);
+  margin-inline: calc(var(--container-pad) * -1);
+  padding: var(--space-2) var(--container-pad) var(--space-3);
   margin-bottom: var(--space-4);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: var(--border-hairline);
+
+  @include mq(md) {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  /* Desktop has the sticky rail for this, and a second sticky strip there only
+     costs vertical space. */
+  @include mq(lg) {
+    position: static;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
 }
 
 .item-count {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+
+  /* Full width below md so it never competes with the controls for space. */
+  flex: 1 0 100%;
+
+  @include mq(md) {
+    flex: 0 0 auto;
+  }
 }
 
 .mobile-filter-btn {
@@ -43,17 +91,102 @@
   cursor: pointer;
 }
 
+// Density control. Hidden below lg: on a phone the grid is already at its
+// sensible column count and the control would just crowd the toolbar.
+.density-control {
+  display: none;
+  gap: var(--space-1);
+  margin-left: auto;
+  margin-right: var(--space-4);
+
+  @include mq(lg) {
+    display: flex;
+  }
+}
+
+.density-btn {
+  display: grid;
+  place-items: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  border: var(--border-hairline);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  &.active {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary-tint);
+  }
+}
+
+// Column glyphs drawn with a gradient rather than an icon font or inline SVG,
+// so the control carries no extra asset weight.
+.density-glyph {
+  width: 14px;
+  height: 14px;
+  background-repeat: no-repeat;
+  background-color: var(--text-secondary);
+
+  &[data-density-icon='single'] {
+    -webkit-mask: linear-gradient(#000 0 0) center / 12px 14px no-repeat;
+    mask: linear-gradient(#000 0 0) center / 12px 14px no-repeat;
+  }
+
+  &[data-density-icon='comfortable'] {
+    -webkit-mask:
+      linear-gradient(#000 0 0) left / 6px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 6px 14px no-repeat;
+    mask:
+      linear-gradient(#000 0 0) left / 6px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 6px 14px no-repeat;
+  }
+
+  &[data-density-icon='compact'] {
+    -webkit-mask:
+      linear-gradient(#000 0 0) left / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) center / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 4px 14px no-repeat;
+    mask:
+      linear-gradient(#000 0 0) left / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) center / 4px 14px no-repeat,
+      linear-gradient(#000 0 0) right / 4px 14px no-repeat;
+  }
+}
+
+.density-btn.active .density-glyph {
+  background-color: var(--brand-primary);
+}
+
 .sort-control {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   margin-left: auto;
+  min-width: 0;
 }
 
 .sort-label {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+
+  /* "Sort by" is redundant next to a dropdown that already reads
+     "Recommended"; on a phone it is two wrapped words of pure cost. */
+  display: none;
+
+  @include mq(md) {
+    display: inline;
+  }
 }
 
 .sort-select {
@@ -65,11 +198,8 @@
   background: var(--surface-page);
 }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-5) var(--space-4);
-}
+// Columns and gaps both come from .o-grid--products in styles/_layout.scss.
+// Nothing PLP-specific is left to declare here.
 
 .empty-state {
   text-align: center;
@@ -82,10 +212,11 @@
   margin-bottom: var(--space-6);
 
   h4 {
-    font-size: 13px;
-    font-weight: 700;
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--ls-wide);
     color: var(--text-primary);
     margin: 0 0 var(--space-3);
   }
@@ -193,7 +324,9 @@
 }
 
 .swatch-option.active .swatch-dot {
-  box-shadow: 0 0 0 2px var(--surface-page), 0 0 0 3.5px var(--brand-primary);
+  box-shadow:
+    0 0 0 2px var(--surface-page),
+    0 0 0 3.5px var(--brand-primary);
 }
 
 .swatch-label {
@@ -257,19 +390,184 @@
   margin-top: var(--space-6);
 }
 
-@media (min-width: 1024px) {
+@include mq(lg) {
   .browser-layout {
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: var(--filter-rail-w, 240px) 1fr;
   }
+
   .filters-sidebar {
     display: block;
-    border-right: 1px solid var(--border-subtle);
+    border-right: var(--border-hairline);
     padding-right: var(--space-5);
+
+    // The rail is taller than the viewport on a well-facetted category, so it
+    // scrolls independently beneath the sticky header rather than forcing the
+    // whole page down to reach the last filter.
+    position: sticky;
+    top: var(--sticky-offset);
+    max-height: calc(100dvh - var(--sticky-offset));
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
+
   .mobile-filter-btn {
     display: none;
   }
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr);
+}
+
+
+// ---------------------------------------------------------------------------
+// Collapsible facet heading
+//
+// The heading is a <button> so a facet group can be collapsed by keyboard, but
+// it must not LOOK like a button — it is a section heading that happens to be
+// interactive.
+// ---------------------------------------------------------------------------
+
+.filter-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+
+  h4 {
+    margin-bottom: var(--space-3);
+  }
+
+  &:hover h4 {
+    color: var(--brand-primary);
+  }
+}
+
+.chevron {
+  width: 8px;
+  height: 8px;
+  margin-bottom: var(--space-3);
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform var(--dur-base) var(--ease-standard);
+
+  &.collapsed {
+    transform: rotate(-45deg) translate(-2px, -2px);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Applied-filter chips
+// ---------------------------------------------------------------------------
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-2-5);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-full);
+  background: var(--brand-primary-tint);
+  color: var(--brand-primary);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--brand-primary);
+    color: var(--text-on-brand);
+  }
+}
+
+.chip-x {
+  font-size: var(--fs-md);
+  line-height: 1;
+}
+
+.clear-all-chip {
+  padding: var(--space-1) var(--space-2-5);
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--brand-primary);
+  }
+}
+
+.filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+}
+
+// ---------------------------------------------------------------------------
+// Paging
+// ---------------------------------------------------------------------------
+
+.load-more-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) 0 var(--space-4);
+}
+
+.load-more-count {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+// A refetch keeps the previous results visible and dims them, rather than
+// blanking the grid to a spinner and losing the shopper's scroll position.
+.product-grid.is-loading {
+  opacity: 0.55;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+
+.empty-detail {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Touch target sizing
+
+   The sort select and the mobile filter button measured 34px and 33px tall on
+   a Pixel 7. Both are wide enough to hit horizontally; it is the height that
+   falls short, so only the height is raised - the toolbar keeps its shape.
+
+   Coarse pointers only: on desktop this toolbar sits at the top of a dense
+   grid and a 44px control row would push the first product row down for no
+   benefit to a mouse.
+   --------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .sort-select,
+  .mobile-filter-btn {
+    min-height: var(--control-h-touch);
   }
 }

@@ -1,50 +1,111 @@
-import { Injectable, signal } from '@angular/core';
-import { CURRENT_USER } from '../data/mock-data';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject } from '@angular/core';
+import { Observable, map, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { AddressService } from './address.service';
+import { AuthTokenService } from './auth-token.service';
 
 export interface MobileUser {
-  firstName: string;
-  lastName: string;
+  displayName: string;
+  roles: string[];
   email: string;
-  phone: string;
 }
 
-const STORAGE_KEY = 'offerlal_mobile_session_v1';
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresAtUtc: string;
+  displayName: string;
+  roles: string[];
+}
 
+/**
+ * Real authentication against the API.
+ *
+ * What this replaces mattered: login() compared the typed email against a
+ * constant in mock-data.ts and accepted ANY password, and the page offered a
+ * "fill demo credentials" button. That was fine for a prototype with no
+ * backend and is a straightforward account-takeover once there are real
+ * accounts, so both are gone.
+ *
+ * Tokens live in AuthTokenService; this service owns the calls and the
+ * derived view of who is signed in.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly _user = signal<MobileUser | null>(this.readStoredSession());
-  readonly user = this._user.asReadonly();
-  readonly isLoggedIn = signal(this._user() !== null);
+  private http = inject(HttpClient);
+  private tokens = inject(AuthTokenService);
+  private addressBook = inject(AddressService);
+  private base = environment.apiBaseUrl;
 
-  private readStoredSession(): MobileUser | null {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
+  /** Derived from stored tokens, so a restart resumes the session. */
+  readonly user = computed<MobileUser | null>(() => {
+    const id = this.tokens.identity();
+    return id ? { displayName: id.displayName, roles: id.roles, email: id.email } : null;
+  });
+
+  readonly isLoggedIn = computed(() => this.tokens.identity() !== null);
+
+  login(email: string, password: string): Observable<MobileUser> {
+    return this.http
+      .post<AuthResponse>(`${this.base}/auth/login`, { username: email.trim(), password })
+      .pipe(
+        tap((res) => this.store(res, email.trim())),
+        map((res) => toUser(res, email.trim())),
+      );
+  }
+
+  register(
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone: string,
+    password: string,
+  ): Observable<MobileUser> {
+    return this.http
+      .post<AuthResponse>(`${this.base}/auth/register`, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+      })
+      .pipe(
+        tap((res) => this.store(res, email.trim())),
+        map((res) => toUser(res, email.trim())),
+      );
+  }
+
+  /**
+   * Signs out locally first, then tells the server.
+   *
+   * Local first on purpose: if the network call fails the user must still end
+   * up signed out on this device. A logout that only works online is not a
+   * logout.
+   */
+  logout(): void {
+    const refreshToken = this.tokens.refreshToken;
+    this.tokens.clear();
+    // Addresses are personal data held in memory. Signing out must not leave
+    // them visible to whoever signs in next on the same device.
+    this.addressBook.clear();
+    if (refreshToken) {
+      this.http.post(`${this.base}/auth/logout`, { refreshToken }).subscribe({
+        next: () => undefined,
+        error: () => undefined,
+      });
     }
   }
 
-  /** Demo login: matches by email only, any password accepted (no real backend yet). */
-  login(email: string, _password: string): boolean {
-    if (email.trim().toLowerCase() !== CURRENT_USER.email.toLowerCase()) return false;
-    this.setSession(CURRENT_USER);
-    return true;
+  private store(res: AuthResponse, email: string): void {
+    this.tokens.save(res.accessToken, res.refreshToken, {
+      displayName: res.displayName,
+      roles: res.roles ?? [],
+      email,
+    });
   }
+}
 
-  register(firstName: string, lastName: string, email: string, phone: string): void {
-    this.setSession({ firstName, lastName, email, phone });
-  }
-
-  logout(): void {
-    this._user.set(null);
-    this.isLoggedIn.set(false);
-    localStorage.removeItem(STORAGE_KEY);
-  }
-
-  private setSession(user: MobileUser): void {
-    this._user.set(user);
-    this.isLoggedIn.set(true);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  }
+function toUser(res: AuthResponse, email: string): MobileUser {
+  return { displayName: res.displayName, roles: res.roles ?? [], email };
 }

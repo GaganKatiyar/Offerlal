@@ -1,198 +1,209 @@
-<!-- Shop by Occasion -->
-<section class="section">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">Curated For You</span>
-      <h2>Shop by Occasion</h2>
-    </div>
-    <div class="occasion-grid">
-      @for (occ of occasions(); track occ.id) {
-        <a class="occasion-card" [routerLink]="['/occasion', occ.slug]">
-          <app-image-with-fallback [src]="occ.imageUrl" [alt]="occ.name" />
-          <span class="overlay-label">{{ occ.name }}</span>
-        </a>
-      }
-    </div>
-  </div>
-</section>
+<!--
+  The homepage renders whatever the CMS says, in the order the CMS says.
 
-<!-- Shop by Category -->
-<section class="section alt">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">The Edit</span>
-      <h2>Shop by Category</h2>
-    </div>
-    <div class="category-tile-grid">
-      @for (cat of categories(); track cat.id) {
-        <a class="category-tile" [routerLink]="['/category', cat.slug]">
-          <div class="category-tile-media">
-            <app-image-with-fallback [src]="cat.thumbnailUrl" [alt]="cat.name" />
-          </div>
-          <div class="category-tile-info">
-            <p class="tile-name">{{ cat.name }}</p>
-            <p class="tile-discount">{{ categoryDiscountLabel(cat.id) }}</p>
-            <span class="tile-cta">Shop Now</span>
-          </div>
-        </a>
-      }
-    </div>
-  </div>
-</section>
+  Previously ten hardcoded <section> blocks whose ORDER WAS THE TEMPLATE ORDER,
+  with every eyebrow and heading as literal markup. Reordering a rail or
+  rewording a heading meant a deploy.
 
-<!-- New Arrivals -->
-<section class="section">
-  <div class="container">
-    <div class="section-head center">
-      <span class="eyebrow">Just In</span>
-      <h2>New Arrivals</h2>
-      <p class="section-sub">Fresh styles for your next celebration.</p>
-    </div>
-    <div class="product-grid">
-      @for (p of newArrivals(); track p.id) {
-        <app-product-card [product]="p" />
-      }
-    </div>
-    <div class="section-cta">
-      <a routerLink="/new-arrivals" class="btn btn-outline">View All New Arrivals</a>
-    </div>
-  </div>
-</section>
-
-<!-- Bridal Edit -->
-<section class="bridal-edit">
-  <div class="bridal-edit-media">
-    @if (bridalEdit()[0]) {
-      <app-image-with-fallback [src]="bridalEdit()[0].variants[0].images[0].url" [alt]="bridalEdit()[0].name" />
+  An unrecognised section type renders nothing rather than breaking the page,
+  so a new type can be added in admin before this template supports it.
+-->
+@for (section of sections(); track section.id) {
+  @switch (section.type) {
+    @case ('hero-carousel') {
+      <!-- Full-bleed, so deliberately outside .container. -->
+      <app-hero-carousel [slides]="section.items" />
     }
-  </div>
-  <div class="bridal-edit-content">
-    <span class="eyebrow">Editorial</span>
-    <h2>The Bridal Edit</h2>
-    <p>Timeless silhouettes, intricate craftsmanship and statement details for your most special day.</p>
-    <a routerLink="/bridal" class="btn btn-primary">Explore Bridal Collection</a>
-  </div>
-</section>
 
-<!-- Best Sellers -->
-<section class="section alt">
-  <div class="container">
-    <div class="section-head center">
-      <span class="eyebrow">Loved By Many</span>
-      <h2>Best Sellers</h2>
-    </div>
-    <div class="product-grid">
-      @for (p of bestsellers(); track p.id) {
-        <app-product-card [product]="p" />
-      }
-    </div>
-  </div>
-</section>
+    @case ('app-download') {
+      <!-- Full-bleed band, so deliberately outside .container. -->
+      <app-app-download
+        [heading]="section.heading"
+        [subheading]="section.subheading"
+        [items]="section.items"
+      />
+    }
 
-<!-- Shop by Budget -->
-<section class="section">
-  <div class="container">
-    <div class="section-head center">
-      <span class="eyebrow">Every Budget, Every Occasion</span>
-      <h2>Shop by Budget</h2>
-    </div>
-    <div class="budget-grid">
-      @for (tier of budgetTiers(); track tier.id) {
-        <a class="budget-card" [routerLink]="['/shop']" [queryParams]="{ priceMin: tier.min, priceMax: tier.max }">
-          <app-image-with-fallback [src]="tier.imageUrl" [alt]="tier.label" />
-          <span class="overlay-label">{{ tier.label }}</span>
-        </a>
-      }
-    </div>
-  </div>
-</section>
+    @case ('promo-strip') {
+      <app-promo-strip
+        [heading]="section.heading"
+        [subheading]="section.subheading"
+        [ctaLabel]="section.ctaLabel"
+        [ctaUrl]="section.ctaUrl"
+      />
+    }
 
-<!-- Complete Your Wedding Look -->
-<section class="section alt">
-  <div class="container">
-    <div class="section-head center">
-      <span class="eyebrow">Shop The Edit</span>
-      <h2>Complete Your Wedding Look</h2>
-    </div>
-    <div class="look-grid">
-      @for (item of completeLookItems(); track item.id) {
-        <a class="look-item" [routerLink]="['/product', item.slug]">
-          <app-image-with-fallback [src]="item.variants[0].images[0].url" [alt]="item.name" />
-          <p class="look-item-name">{{ item.name }}</p>
-          <p class="look-item-price">{{ item.price | inr }}</p>
-        </a>
-      }
-    </div>
-    <div class="look-footer">
-      <p class="look-total">Complete look total: <strong>{{ completeLookTotal() | inr }}</strong></p>
-      <button type="button" class="btn btn-primary" (click)="shopTheLook()">Shop The Look</button>
-    </div>
-  </div>
-</section>
+    @case ('occasion-rail') {
+      <section class="section">
+        <div class="container">
+          <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
+          <!--
+            Circular tiles in a scrolling rail. Myntra's most recognisable
+            homepage element, and the shape that says "browse by" rather than
+            "here is a product".
+          -->
+          <app-scroll-rail>
+            @for (occ of occasions(); track occ.id) {
+              <a class="circle-tile" [routerLink]="['/occasion', occ.slug]">
+                <span class="circle-media">
+                  <app-image-with-fallback [src]="occ.imageUrl" [alt]="occ.name" />
+                </span>
+                <span class="circle-label">{{ occ.name }}</span>
+              </a>
+            }
+          </app-scroll-rail>
+        </div>
+      </section>
+    }
 
-<!-- Styled By You -->
-<section class="section">
-  <div class="container">
-    <div class="section-head center">
-      <span class="eyebrow">Real Brides, Real Moments</span>
-      <h2>Styled By You</h2>
-    </div>
-    <div class="styled-grid">
-      @for (entry of styledByYou; track entry.productSlug) {
-        <div class="styled-card">
-          <app-image-with-fallback [src]="pexelsImage(entry.imageId, 600)" [alt]="entry.outfitName" />
-          <div class="styled-info">
-            <p class="styled-name">{{ entry.customerName }} · {{ entry.city }}</p>
-            <p class="styled-outfit">{{ entry.outfitName }}</p>
-            <a [routerLink]="['/product', entry.productSlug]" class="shop-look-link">Shop This Look</a>
+    @case ('category-rail') {
+      <section class="section">
+        <div class="container">
+          <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
+          <app-scroll-rail>
+            @for (cat of categories(); track cat.id) {
+              <a class="circle-tile" [routerLink]="['/category', cat.slug]">
+                <span class="circle-media">
+                  <app-image-with-fallback [src]="cat.thumbnailUrl" [alt]="cat.name" />
+                </span>
+                <span class="circle-label">{{ cat.name }}</span>
+                <span class="circle-meta">{{ categoryDiscountLabel(cat.id) }}</span>
+              </a>
+            }
+          </app-scroll-rail>
+        </div>
+      </section>
+    }
+
+    @case ('product-rail') {
+      <section class="section">
+        <div class="container">
+          <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
+          <!--
+            A rail of the card's existing "rail" variant, which was built in
+            Phase 1 and never used. This also removes a real bug: .product-grid
+            is component-scoped (specificity 0,2,0) and silently beat the global
+            .o-grid (0,1,0), so the --cols progression never applied and the
+            density toggle had no effect on the homepage at all.
+          -->
+          <app-scroll-rail>
+            @for (p of section.products; track p.id) {
+              <app-product-card [card]="p" variant="rail" />
+            }
+          </app-scroll-rail>
+          @if (section.ctaLabel && section.ctaUrl) {
+            <div class="section-cta">
+              <a [routerLink]="section.ctaUrl" class="btn btn-outline">{{ section.ctaLabel }}</a>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @case ('editorial-split') {
+      <section class="bridal-edit">
+        <div class="bridal-edit-media">
+          @if (bridalEdit()[0]; as hero) {
+            <app-image-with-fallback [src]="hero.variants[0].images[0].url" [alt]="hero.name" />
+          }
+        </div>
+        <div class="bridal-edit-content">
+          @if (section.eyebrow) {
+            <span class="eyebrow">{{ section.eyebrow }}</span>
+          }
+          <h2>{{ section.heading }}</h2>
+          <p>{{ section.subheading || 'Timeless silhouettes, intricate craftsmanship and statement details for your most special day.' }}</p>
+          <a [routerLink]="section.ctaUrl || '/bridal'" class="btn btn-primary">
+            {{ section.ctaLabel || 'Explore Bridal Collection' }}
+          </a>
+        </div>
+      </section>
+    }
+
+    @case ('budget-rail') {
+      <section class="section">
+        <div class="container">
+          <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
+          <app-scroll-rail>
+            @for (tier of budgetTiers(); track tier.id) {
+              <a class="budget-card" [routerLink]="['/shop']" [queryParams]="{ priceMin: tier.min, priceMax: tier.max }">
+                <app-image-with-fallback [src]="tier.imageUrl" [alt]="tier.label" />
+                <span class="overlay-label">{{ tier.label }}</span>
+              </a>
+            }
+          </app-scroll-rail>
+        </div>
+      </section>
+    }
+
+    @case ('ugc-grid') {
+      <section class="section">
+        <div class="container">
+          <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
+          <div class="styled-grid">
+            @for (entry of section.items; track entry.id) {
+              <div class="styled-card">
+                <app-image-with-fallback [src]="entry.imageUrl ?? ''" [alt]="entry.imageAlt || entry.caption || ''" />
+                <div class="styled-info">
+                  <p class="styled-name">{{ entry.title }}@if (entry.subtitle) { <span> · {{ entry.subtitle }}</span> }</p>
+                  <p class="styled-outfit">{{ entry.caption }}</p>
+                  @if (entry.linkUrl) {
+                    <a [routerLink]="entry.linkUrl" class="shop-look-link">Shop This Look</a>
+                  }
+                </div>
+              </div>
+            }
           </div>
         </div>
-      }
-    </div>
-  </div>
-</section>
+      </section>
+    }
 
-<!-- Trust Section -->
-<section class="trust-section">
-  <div class="container trust-grid">
-    <div class="trust-card">
-      <span class="trust-icon">✦</span>
-      <h4>Authentic Quality</h4>
-      <p>Carefully selected fabrics and craftsmanship.</p>
-    </div>
-    <div class="trust-card">
-      <span class="trust-icon">⇄</span>
-      <h4>Easy Exchange</h4>
-      <p>Simple exchange process.</p>
-    </div>
-    <div class="trust-card">
-      <span class="trust-icon">🔒</span>
-      <h4>Secure Payments</h4>
-      <p>100% secure checkout.</p>
-    </div>
-    <div class="trust-card">
-      <span class="trust-icon">⚡</span>
-      <h4>Fast Delivery</h4>
-      <p>Reliable delivery across India.</p>
-    </div>
-  </div>
-</section>
-
-<!-- Testimonials -->
-<section class="section alt">
-  <div class="container">
-    <div class="section-head center">
-      <span class="eyebrow">In Their Words</span>
-      <h2>Customer Reviews</h2>
-    </div>
-    <div class="testimonial-grid">
-      @for (r of testimonials(); track r.id) {
-        <div class="testimonial-card">
-          <app-star-rating [rating]="r.rating" />
-          <p class="testimonial-quote">"{{ r.comment }}"</p>
-          <p class="testimonial-author">{{ r.customerName }}@if (r.customerCity) { <span> · {{ r.customerCity }}</span> }</p>
+    @case ('trust-strip') {
+      <section class="trust-section">
+        <div class="container trust-grid">
+          @for (badge of section.items; track badge.id) {
+            <div class="trust-card">
+              <span class="trust-icon">{{ badge.badgeText }}</span>
+              <h4>{{ badge.title }}</h4>
+              <p>{{ badge.caption }}</p>
+            </div>
+          }
         </div>
-      }
-    </div>
-  </div>
-</section>
+      </section>
+    }
+
+    @case ('testimonial-rail') {
+      <section class="section">
+        <div class="container">
+          <ng-container [ngTemplateOutlet]="head" [ngTemplateOutletContext]="{ $implicit: section }" />
+          <div class="testimonial-grid">
+            @for (r of testimonials(); track r.id) {
+              <div class="testimonial-card">
+                <app-star-rating [rating]="r.rating" />
+                <p class="testimonial-quote">"{{ r.comment }}"</p>
+                <p class="testimonial-author">{{ r.customerName }}@if (r.customerCity) { <span> · {{ r.customerCity }}</span> }</p>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  }
+}
+
+<!--
+  Section headings are one component with two treatments. Homepage sections use
+  "commerce" — a small bold uppercase label, Myntra's shape — while the editorial
+  split keeps the original gold-eyebrow + Jost display heading, because there the
+  heading IS the content.
+-->
+<ng-template #head let-section>
+  <app-section-header
+    [eyebrow]="section.eyebrow"
+    [heading]="section.heading"
+    [subheading]="section.subheading"
+    [ctaLabel]="section.ctaLabel"
+    [ctaUrl]="section.ctaUrl"
+    density="commerce"
+  />
+</ng-template>

@@ -1,0 +1,71 @@
+<div class="admin-page">
+  <header class="editor-head">
+    <div>
+      <h1>Store settings</h1>
+      <p class="editor-sub">
+        These change what customers are charged and told. Shipping values are read by the server when it
+        prices a bag.
+      </p>
+    </div>
+    <div class="editor-actions">
+      <button type="button" class="btn btn-outline" (click)="reload()" [disabled]="saving()">Reload</button>
+      <button type="button" class="btn btn-primary" (click)="save()" [disabled]="!dirty() || saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </div>
+  </header>
+
+  @if (message()) {
+    <p class="banner ok">{{ message() }}</p>
+  }
+  @if (error()) {
+    <div class="banner err">
+      {{ error() }}
+      @if (problems().length) {
+        <span class="problem-note">Nothing was saved.</span>
+        <ul class="problems">
+          @for (p of problems(); track p) {
+            <li>{{ p }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    @for (group of groups(); track group.key) {
+      <section class="settings-group">
+        <h2>{{ group.label }}</h2>
+
+        @for (s of group.items; track s.key) {
+          <label class="setting">
+            <span class="setting-label">{{ labelFor(s) }}</span>
+            <input
+              [type]="inputType(s)"
+              [(ngModel)]="s.value"
+              (ngModelChange)="touch()"
+              [attr.inputmode]="inputType(s) === 'number' ? 'decimal' : null"
+            />
+            @if (s.description) {
+              <small class="hint">{{ s.description }}</small>
+            }
+            <!--
+              The announcement bar states the threshold in words, so the two
+              settings can silently contradict each other. Nothing can keep them
+              in sync automatically — the copy is free text — so say so here,
+              where the person changing the number is looking.
+            -->
+            @if (s.key === 'shipping.freeThreshold') {
+              <small class="hint hint-note">
+                The announcement bar copy names this amount in words. Change it too, or the
+                site will advertise a different threshold from the one customers are charged.
+              </small>
+            }
+          </label>
+        }
+      </section>
+    }
+  }
+</div>

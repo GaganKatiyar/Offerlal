@@ -5,14 +5,39 @@
 
   <div class="browser-main">
     <div class="toolbar">
-      <span class="item-count">{{ filtered().length }} item{{ filtered().length === 1 ? '' : 's' }}</span>
+      <span class="item-count" data-numeric>{{ totalCount() }} item{{ totalCount() === 1 ? '' : 's' }}</span>
+
       <button type="button" class="mobile-filter-btn" (click)="mobileFiltersOpen.set(true)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="8" y1="12" x2="20" y2="12" />
+          <line x1="12" y1="18" x2="20" y2="18" />
+        </svg>
         Filters
+        @if (appliedFilters().length) {
+          <span class="filter-count">{{ appliedFilters().length }}</span>
+        }
       </button>
+
+      <div class="density-control" role="group" aria-label="Grid density">
+        @for (opt of densityOptions; track opt.id) {
+          <button
+            type="button"
+            class="density-btn"
+            [class.active]="density.density() === opt.id"
+            [attr.aria-pressed]="density.density() === opt.id"
+            [attr.title]="opt.label + ' — ' + opt.hint"
+            (click)="density.set(opt.id)"
+          >
+            <span class="visually-hidden">{{ opt.label }}</span>
+            <span class="density-glyph" aria-hidden="true" [attr.data-density-icon]="opt.id"></span>
+          </button>
+        }
+      </div>
+
       <div class="sort-control">
         <span class="sort-label">Sort by</span>
-        <select class="sort-select" [value]="sort()" (change)="sort.set($any($event.target).value)">
+        <select class="sort-select" [value]="sort()" (change)="setSort($any($event.target).value)">
           @for (opt of sortOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
           }
@@ -20,130 +45,174 @@
       </div>
     </div>
 
-    @if (filtered().length === 0) {
-      <div class="empty-state">
-        <p>No products match your filters.</p>
-        <button type="button" class="btn btn-outline" (click)="clearFilters()">Clear Filters</button>
+    <!-- Applied filters. Individually removable, which the rail alone cannot do
+         once a facet group is scrolled out of view or collapsed. -->
+    @if (appliedFilters().length) {
+      <div class="filter-chips">
+        @for (chip of appliedFilters(); track chip.code + ':' + chip.value) {
+          <button type="button" class="filter-chip" (click)="removeChip(chip)">
+            {{ chip.label }}
+            <span class="chip-x" aria-hidden="true">&times;</span>
+            <span class="visually-hidden">Remove filter</span>
+          </button>
+        }
+        <button type="button" class="clear-all-chip" (click)="clearFilters()">Clear all</button>
       </div>
+    }
+
+    @if (error()) {
+      <app-state-block
+        kind="error"
+        title="We couldn't load these products"
+        message="Check your connection and try again."
+        (retry)="retry()"
+      />
+    } @else if (showSkeletons()) {
+      <!--
+        Placeholders shaped like the cards, so the grid does not jump when the
+        real results land. Previously this branch rendered an empty grid and the
+        page simply looked like a shop with nothing in it.
+      -->
+      <div class="product-grid o-grid o-grid--products">
+        <app-product-card-skeleton [count]="8" />
+      </div>
+    } @else if (items().length === 0) {
+      <app-state-block kind="empty" title="No products match your filters">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">Clear Filters</button>
+      </app-state-block>
     } @else {
-      <div class="product-grid">
-        @for (p of filtered(); track p.id) {
-          <app-product-card [product]="p" />
+      <div class="product-grid o-grid o-grid--products" [class.is-loading]="loading()">
+        @for (p of items(); track p.id) {
+          <app-product-card [card]="p" />
         }
       </div>
+
+      @if (hasNext()) {
+        <div class="load-more-row">
+          <button type="button" class="btn btn-outline" [disabled]="loading()" (click)="loadMore()">
+            {{ loading() ? 'Loading…' : 'Load more' }}
+          </button>
+          <p class="load-more-count" data-numeric>Showing {{ items().length }} of {{ totalCount() }}</p>
+        </div>
+      }
     }
   </div>
 </div>
 
 <app-drawer [open]="mobileFiltersOpen()" side="left" title="Filters" (closed)="mobileFiltersOpen.set(false)">
   <ng-container [ngTemplateOutlet]="filterPanel" />
-  <button type="button" class="btn btn-primary full" (click)="mobileFiltersOpen.set(false)">Show {{ filtered().length }} Results</button>
+  <button type="button" class="btn btn-primary full" (click)="mobileFiltersOpen.set(false)">
+    Show {{ totalCount() }} Results
+  </button>
 </app-drawer>
 
 <ng-template #filterPanel>
   <div class="filter-group">
     <h4>Price</h4>
-    <div class="price-range-display">₹{{ effectivePriceMin().toLocaleString('en-IN') }} &ndash; ₹{{ effectivePriceMax().toLocaleString('en-IN') }}{{ priceMax() == null ? '+' : '' }}</div>
+    <div class="price-range-display" data-numeric>
+      ₹{{ effectivePriceMin().toLocaleString('en-IN') }} &ndash; ₹{{ effectivePriceMax().toLocaleString('en-IN') }}
+    </div>
     <div class="dual-range">
       <div class="range-base"></div>
       <div class="range-fill" [style.left.%]="rangeFillStyle().left" [style.width.%]="rangeFillStyle().width"></div>
       <input
         type="range"
         class="range-track range-min"
+        aria-label="Minimum price"
         [min]="priceBounds().min"
         [max]="priceBounds().max"
         [step]="100"
         [value]="effectivePriceMin()"
-        (input)="onMinRangeInput(+$any($event.target).value)"
+        (change)="onMinRangeInput(+$any($event.target).value)"
       />
       <input
         type="range"
         class="range-track range-max"
+        aria-label="Maximum price"
         [min]="priceBounds().min"
         [max]="priceBounds().max"
         [step]="100"
         [value]="effectivePriceMax()"
-        (input)="onMaxRangeInput(+$any($event.target).value)"
+        (change)="onMaxRangeInput(+$any($event.target).value)"
       />
     </div>
   </div>
 
-  @if (availableColors().length) {
+  <!--
+    Facets render generically from whatever the API returns. There are no
+    hardcoded Colour/Size/Fabric sections, because this catalogue already spans
+    apparel, jewellery and footwear with four incompatible size schemes, and a
+    fixed list cannot serve all of them.
+  -->
+  @for (facet of facets(); track facet.code) {
     <div class="filter-group">
-      <h4>Color</h4>
-      <div class="swatch-grid">
-        @for (color of availableColors(); track color) {
-          <button
-            type="button"
-            class="swatch-option"
-            [class.active]="selectedColors().includes(color)"
-            (click)="toggleColor(color)"
-            [attr.title]="color + ' (' + (colorCounts().get(color) ?? 0) + ')'"
-          >
-            <span class="swatch-dot" [style.background]="colorHexByName().get(color)"></span>
-            <span class="swatch-label">{{ color }}</span>
-          </button>
-        }
-      </div>
-    </div>
-  }
+      <button type="button" class="filter-group-head" (click)="toggleGroup(facet.code)" [attr.aria-expanded]="!isCollapsed(facet.code)">
+        <h4>{{ facet.label }}</h4>
+        <span class="chevron" [class.collapsed]="isCollapsed(facet.code)" aria-hidden="true"></span>
+      </button>
 
-  @if (availableSizes().length) {
-    <div class="filter-group">
-      <h4>Size</h4>
-      <div class="check-list">
-        @for (size of availableSizes(); track size) {
-          <label class="check-row">
-            <span class="check-left">
-              <input type="checkbox" [checked]="selectedSizes().includes(size)" (change)="toggleSize(size)" />
-              {{ size }}
-            </span>
-            <span class="check-count">{{ sizeCounts().get(size) ?? 0 }}</span>
-          </label>
+      @if (!isCollapsed(facet.code)) {
+        @if (facet.inputType === 'swatch') {
+          <div class="swatch-grid">
+            @for (opt of facet.options; track opt.value) {
+              <button
+                type="button"
+                class="swatch-option"
+                [class.active]="isSelected(facet.code, opt.value)"
+                [attr.aria-pressed]="isSelected(facet.code, opt.value)"
+                [attr.title]="opt.label + ' (' + opt.count + ')'"
+                (click)="toggleFacet(facet.code, opt.value)"
+              >
+                <span class="swatch-dot" [style.background]="opt.swatchHex"></span>
+                <span class="swatch-label">{{ opt.label }}</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="check-list">
+            @for (opt of facet.options; track opt.value) {
+              <label class="check-row">
+                <span class="check-left">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(facet.code, opt.value)"
+                    (change)="toggleFacet(facet.code, opt.value)"
+                  />
+                  <span>{{ opt.label }}</span>
+                </span>
+                <span class="check-count" data-numeric>{{ opt.count }}</span>
+              </label>
+            }
+          </div>
         }
-      </div>
-    </div>
-  }
-
-  @if (availableFabrics().length) {
-    <div class="filter-group">
-      <h4>Fabric</h4>
-      <div class="check-list">
-        @for (fabric of availableFabrics(); track fabric) {
-          <label class="check-row">
-            <span class="check-left">
-              <input type="checkbox" [checked]="selectedFabrics().includes(fabric)" (change)="toggleFabric(fabric)" />
-              {{ fabric }}
-            </span>
-            <span class="check-count">{{ fabricCounts().get(fabric) ?? 0 }}</span>
-          </label>
-        }
-      </div>
-    </div>
-  }
-
-  <div class="filter-group">
-    <h4>Rating</h4>
-    <div class="check-list">
-      @for (r of [4.5, 4]; track r) {
-        <label class="check-row">
-          <span class="check-left">
-            <input type="checkbox" [checked]="minRating() === r" (change)="minRating.set(minRating() === r ? null : r)" />
-            {{ r }}★ &amp; above
-          </span>
-        </label>
       }
     </div>
-  </div>
+  }
 
   <div class="filter-group">
-    <label class="check-row">
-      <span class="check-left">
-        <input type="checkbox" [checked]="inStockOnly()" (change)="inStockOnly.set($any($event.target).checked)" />
-        In Stock Only
-      </span>
-    </label>
+    <h4>Availability</h4>
+    <div class="check-list">
+      <label class="check-row">
+        <span class="check-left">
+          <input type="checkbox" [checked]="inStockOnly()" (change)="toggleInStock()" />
+          <span>In stock only</span>
+        </span>
+      </label>
+      <!--
+        Made-to-measure is its own filter rather than a size option. These
+        garments are cut to measurement, so offering them under "M" would be
+        misleading about what the shopper receives.
+      -->
+      <label class="check-row">
+        <span class="check-left">
+          <input type="checkbox" [checked]="customSizingOnly()" (change)="toggleCustomSizing()" />
+          <span>Custom sizing available</span>
+        </span>
+      </label>
+    </div>
   </div>
 
-  <button type="button" class="clear-btn" (click)="clearFilters()">Clear All Filters</button>
+  @if (appliedFilters().length) {
+    <button type="button" class="clear-btn" (click)="clearFilters()">Clear all filters</button>
+  }
 </ng-template>

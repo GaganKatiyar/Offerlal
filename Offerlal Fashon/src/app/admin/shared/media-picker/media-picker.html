@@ -1,0 +1,63 @@
+@if (open()) {
+  <div class="picker-scrim" (click)="close()"></div>
+
+  <div class="picker" role="dialog" aria-modal="true" aria-label="Choose an image">
+    <header class="picker-head">
+      <h2>Media library</h2>
+      <div class="picker-actions">
+        <label class="upload-btn">
+          {{ uploading() ? 'Uploading…' : 'Upload image' }}
+          <input type="file" accept="image/*" (change)="onFile($event)" [disabled]="uploading()" hidden />
+        </label>
+        <button type="button" class="btn btn-outline" (click)="close()">Close</button>
+      </div>
+    </header>
+
+    @if (error()) {
+      <p class="picker-error">{{ error() }}</p>
+    }
+
+    <div class="picker-body">
+      <aside class="picker-folders">
+        <button type="button" [class.active]="activeFolder() === null" (click)="selectFolder(null)">
+          All images
+        </button>
+        @for (f of folders(); track f.folder) {
+          <button type="button" [class.active]="activeFolder() === f.folder" (click)="selectFolder(f.folder)">
+            {{ f.folder }} <span class="count">{{ f.count }}</span>
+          </button>
+        }
+      </aside>
+
+      <div class="picker-main">
+        <input
+          type="search"
+          class="picker-search"
+          placeholder="Search alt text and tags…"
+          [value]="search()"
+          (input)="onSearch($any($event.target).value)"
+        />
+
+        @if (loading()) {
+          <p class="muted">Loading…</p>
+        } @else if (assets().length === 0) {
+          <p class="muted">No images here yet. Upload one to get started.</p>
+        } @else {
+          <div class="picker-grid">
+            @for (a of assets(); track a.id) {
+              <button type="button" class="picker-tile" (click)="choose(a)" [attr.title]="a.altText || a.url">
+                <img [src]="a.url" [alt]="a.altText || ''" loading="lazy" />
+                <span class="tile-meta">
+                  @if (!a.isOwned) {
+                    <span class="ext-pill">external</span>
+                  }
+                  <span class="tile-alt">{{ a.altText || 'No alt text' }}</span>
+                </span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

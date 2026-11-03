@@ -15,7 +15,13 @@ public partial class Category
 
     public string HeroImageUrl { get; set; } = null!;
 
+    /// <summary>Library asset for the hero image. See MediaAsset.</summary>
+    public int? HeroImageAssetId { get; set; }
+
     public string ThumbnailUrl { get; set; } = null!;
+
+    /// <summary>Library asset for the thumbnail. See MediaAsset.</summary>
+    public int? ThumbnailAssetId { get; set; }
 
     public string? ParentId { get; set; }
 

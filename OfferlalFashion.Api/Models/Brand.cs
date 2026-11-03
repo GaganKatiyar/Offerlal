@@ -18,6 +18,9 @@ public partial class Brand
 
     public string? LogoUrl { get; set; }
 
+    /// <summary>Library asset for the brand logo. See MediaAsset.</summary>
+    public int? LogoAssetId { get; set; }
+
     public string? BannerUrl { get; set; }
 
     public bool IsActive { get; set; } = true;

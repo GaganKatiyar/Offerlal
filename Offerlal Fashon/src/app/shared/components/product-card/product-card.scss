@@ -1,143 +1,307 @@
+@use '../../../../styles/mq' as *;
+
 :host {
-  min-width: 0;
+  display: block;
 }
 
 .card {
-  display: block;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   color: inherit;
-  group: card;
 }
+
+// ---------------------------------------------------------------------------
+// Media
+// ---------------------------------------------------------------------------
 
 .media {
   position: relative;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: var(--surface-alt);
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
 
   app-image-with-fallback {
+    display: block;
+    width: 100%;
     height: 100%;
-    transition: transform 0.5s ease;
+  }
+
+  :is(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-standard);
   }
 }
 
-.card:hover .media app-image-with-fallback {
+.card:hover .media :is(img) {
   transform: scale(1.04);
 }
 
 .badges {
   position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
+  top: var(--space-2);
+  left: var(--space-2);
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-1);
-  z-index: 2;
+  z-index: var(--z-raised);
 }
 
-.wishlist-btn {
+.corner-btn {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: var(--z-raised);
+  display: grid;
+  place-items: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
   border: none;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--brand-primary);
-  font-size: 16px;
+  border-radius: var(--radius-full);
+  background: rgb(255 255 255 / 0.92);
+  color: var(--text-secondary);
+  font-size: var(--fs-md);
+  line-height: 1;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
+  box-shadow: var(--shadow-sm);
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    color: var(--brand-primary);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
 
   &.active {
     color: var(--brand-primary);
+  }
+
+  // Coarse pointers get a full-size tap target even though the visual stays small.
+  @media (pointer: coarse) {
+    width: var(--control-h-touch);
+    height: var(--control-h-touch);
+  }
+}
+
+.rating-pill {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  z-index: var(--z-raised);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.94);
+  color: var(--text-primary);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  line-height: 1.4;
+  box-shadow: var(--shadow-sm);
+
+  .star {
+    color: var(--rating-good);
+  }
+
+  .divider {
+    color: var(--border-strong);
+    font-weight: var(--fw-regular);
   }
 }
 
 .hover-actions {
   position: absolute;
-  left: var(--space-3);
-  right: var(--space-3);
-  bottom: var(--space-3);
+  inset-inline: var(--space-2);
+  bottom: var(--space-2);
   display: flex;
-  gap: var(--space-2);
+  justify-content: center;
   opacity: 0;
   transform: translateY(6px);
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity var(--dur-base) var(--ease-standard),
+    transform var(--dur-base) var(--ease-standard);
+
+  // Hover actions are a pointer affordance. On touch they either never appear
+  // or appear stuck after a tap, so they are hidden there entirely.
+  @media (hover: none) {
+    display: none;
+  }
 }
 
-.card:hover .hover-actions {
+.card:hover .hover-actions,
+.card:focus-within .hover-actions {
   opacity: 1;
   transform: translateY(0);
 }
 
 .action-btn {
   flex: 1;
-  padding: var(--space-2) var(--space-2);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  padding: var(--space-2) var(--space-3);
   border: none;
   border-radius: var(--radius-sm);
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgb(255 255 255 / 0.96);
   color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--dur-fast) var(--ease-standard);
 
-  &.primary {
+  &:hover {
     background: var(--brand-primary);
-    color: var(--color-white);
+    color: var(--text-on-brand);
   }
 }
 
+// ---------------------------------------------------------------------------
+// Info
+//
+// Myntra's two-line hierarchy: a bold orienting line, then a muted specific
+// one. Both are single-line clamped so every card in a row has the same height
+// and the price row stays on a consistent baseline across the grid.
+// ---------------------------------------------------------------------------
+
 .info {
-  padding-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2-5) var(--space-0-5) 0;
+}
+
+.descriptor {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-snug);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .swatches {
   display: flex;
-  gap: 4px;
-  margin-bottom: var(--space-2);
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-0-5);
 }
 
 .swatch {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
-  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-strong);
 }
 
-.name {
-  font-family: var(--font-body);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  margin: 0 0 var(--space-1);
-  color: var(--text-primary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.swatch-more {
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
 }
 
-.rating-row {
+.made-to-measure {
+  margin: 0;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--brand-accent);
+}
+
+.size-chips {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-1);
   margin-top: var(--space-1);
 }
 
-.review-count {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
+.size-chip {
+  min-width: 28px;
+  padding: var(--space-0-5) var(--space-1-5);
+  border: var(--border-hairline);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-2xs);
+  text-align: center;
+  color: var(--text-secondary);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+  }
 }
 
-@media (max-width: 767px) {
+// ---------------------------------------------------------------------------
+// Variants
+// ---------------------------------------------------------------------------
+
+:host(.card-host--rail) {
+  /* Narrower than the PLP grid card on purpose: a rail wants a partially
+     visible next card at the edge to signal that it scrolls, and at these
+     price points the shopper still needs enough image to judge the garment. */
+  width: var(--rail-card-w, 160px);
+
+  @include mq(md) {
+    width: var(--rail-card-w, 210px);
+  }
+
+  /* Hover actions belong to a browsable grid, not a rail the user is dragging. */
   .hover-actions {
     display: none;
   }
+}
+
+// Compact drops the secondary line entirely — used where the card sits beside
+// prose (PDP "related", quick view) and must not compete with it.
+:host(.card-host--compact) {
+  .name,
+  .swatches,
+  .made-to-measure {
+    display: none;
+  }
+
+  .hover-actions {
+    display: none;
+  }
+}
+
+:host(.card-host--wishlist) {
+  .hover-actions {
+    display: none;
+  }
+}
+
+/* Money kept, under the price row. Green, matching the discount badge and the
+   percentage in the price row, so the three read as one statement. */
+.savings {
+  margin: 0;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  color: var(--savings-text);
 }

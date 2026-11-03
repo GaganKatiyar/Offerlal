@@ -12,8 +12,30 @@
   } @else {
     <div class="checkout-layout">
       <div class="checkout-form">
+        <!--
+          Progress, and a way back. Completed steps are links so a customer can
+          correct an address without losing the rest; later steps are not,
+          because the data they need does not exist yet.
+        -->
+        <ol class="stepper" aria-label="Checkout progress">
+          @for (s of steps; track s.id; let i = $index) {
+            <li class="stepper__item" [class.is-current]="step() === s.id" [class.is-done]="stepIndex() > i">
+              @if (stepIndex() > i) {
+                <button type="button" class="stepper__link" (click)="goToStep(s.id)">
+                  <span class="stepper__num">{{ i + 1 }}</span>{{ s.label }}
+                </button>
+              } @else {
+                <span class="stepper__link" [attr.aria-current]="step() === s.id ? 'step' : null">
+                  <span class="stepper__num">{{ i + 1 }}</span>{{ s.label }}
+                </span>
+              }
+            </li>
+          }
+        </ol>
+
+        @if (step() === 'address') {
         <section class="form-section">
-          <h3>1. Contact Information</h3>
+          <h3>Contact Information</h3>
           <div class="field-row">
             <label>
               Mobile Number *
@@ -27,7 +49,7 @@
         </section>
 
         <section class="form-section">
-          <h3>2. Delivery Address</h3>
+          <h3>Delivery Address</h3>
           <div class="field-row">
             <label>
               Full Name *
@@ -60,10 +82,18 @@
               <input type="text" [value]="pincode()" (input)="pincode.set($any($event.target).value)" />
             </label>
           </div>
+
         </section>
 
+        <div class="step-actions">
+          <a routerLink="/cart" class="btn btn-outline">Back to Bag</a>
+          <button type="button" class="btn btn-primary" (click)="next()">Continue to Review</button>
+        </div>
+        }
+
+        @if (step() === 'review') {
         <section class="form-section">
-          <h3>3. Delivery Method</h3>
+          <h3>Delivery Method</h3>
           <label class="radio-row">
             <input type="radio" name="delivery" [checked]="deliveryMethod() === 'standard'" (change)="deliveryMethod.set('standard')" />
             <span>Standard Delivery <em>5&ndash;9 business days</em></span>
@@ -72,31 +102,108 @@
             <input type="radio" name="delivery" [checked]="deliveryMethod() === 'express'" (change)="deliveryMethod.set('express')" />
             <span>Express Delivery <em>3&ndash;5 business days &middot; +₹250</em></span>
           </label>
+
         </section>
 
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" (click)="back()">Back</button>
+          <button type="button" class="btn btn-primary" [disabled]="!canPlaceOrder()" (click)="next()">
+            Continue to Payment
+          </button>
+        </div>
+        }
+
+        @if (step() === 'payment') {
         <section class="form-section">
-          <h3>4. Payment</h3>
+          <h3>Payment</h3>
+          <!--
+            Two options, because two things can actually take money.
+
+            There were once four more - UPI, Card, Net Banking and Wallets -
+            and none of them charged anything: picking one set a string on the
+            order and left it Pending exactly as cash on delivery does. Those
+            four are now one 'Online' choice, because which of them the
+            customer uses is decided inside the gateway's own sheet and
+            reported back by the gateway, not chosen here.
+          -->
           <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'UPI'" (change)="paymentMethod.set('UPI')" />
-            <span>UPI</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'Card'" (change)="paymentMethod.set('Card')" />
-            <span>Credit / Debit Card</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'NetBanking'" (change)="paymentMethod.set('NetBanking')" />
-            <span>Net Banking</span>
-          </label>
-          <label class="radio-row">
-            <input type="radio" name="payment" [checked]="paymentMethod() === 'Wallet'" (change)="paymentMethod.set('Wallet')" />
-            <span>Wallets</span>
+            <input type="radio" name="payment" [checked]="paymentMethod() === 'Online'" (change)="paymentMethod.set('Online')" />
+            <span>Pay Online <em>UPI, cards, net banking or wallet</em></span>
           </label>
           <label class="radio-row">
             <input type="radio" name="payment" [checked]="paymentMethod() === 'COD'" (change)="paymentMethod.set('COD')" />
-            <span>Cash on Delivery</span>
+            <span>Cash on Delivery <em>Pay when your order arrives</em></span>
           </label>
+
+          @switch (paymentPhase()) {
+            @case ('cancelled') {
+              <!--
+                Not an error. They closed the window, which people do on
+                purpose, so this says what happened and offers both ways on.
+              -->
+              <div class="payment-status" role="status">
+                <p class="status-title">Payment not completed</p>
+                <p>
+                  Nothing has been charged. Your order
+                  <strong>{{ placedOrderNumber() }}</strong> is saved and still waiting to be paid.
+                </p>
+                <div class="status-actions">
+                  <button type="button" class="btn btn-primary" (click)="placeOrder()">Try payment again</button>
+                  <button type="button" class="btn btn-outline" (click)="keepAsCod()">Pay on delivery instead</button>
+                </div>
+              </div>
+            }
+            @case ('unavailable') {
+              <div class="payment-status is-warning" role="status">
+                <p class="status-title">We couldn't open the payment window</p>
+                <p>
+                  This is usually a blocked script or a dropped connection, not a
+                  problem with your order. Nothing has been charged.
+                </p>
+                <div class="status-actions">
+                  <button type="button" class="btn btn-primary" (click)="placeOrder()">Try again</button>
+                  @if (placedOrderNumber()) {
+                    <button type="button" class="btn btn-outline" (click)="keepAsCod()">Pay on delivery instead</button>
+                  }
+                </div>
+              </div>
+            }
+            @case ('confirming') {
+              <div class="payment-status" role="status" aria-live="polite">
+                <p class="status-title">Confirming your payment…</p>
+                <p>
+                  Please don't close this page. We confirm with the payment provider
+                  directly rather than taking the browser's word for it, which takes a
+                  few seconds.
+                </p>
+              </div>
+            }
+            @case ('unconfirmed') {
+              <!--
+                Deliberately does not say "paid". The confirmation is a signed
+                message from the provider to our server, and it has not arrived
+                yet - it may be slow, or in local development it cannot arrive
+                at all. Claiming success here would be a guess.
+              -->
+              <div class="payment-status is-warning" role="status">
+                <p class="status-title">We're still confirming your payment</p>
+                <p>
+                  Your order <strong>{{ placedOrderNumber() }}</strong> is placed. If money
+                  left your account it will show as paid shortly, and you'll get an email
+                  either way. Please don't pay twice.
+                </p>
+                <div class="status-actions">
+                  <button type="button" class="btn btn-primary" (click)="viewPlacedOrder()">View your order</button>
+                </div>
+              </div>
+            }
+          }
         </section>
+
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" (click)="back()">Back</button>
+        </div>
+        }
 
         @if (formError()) {
           <p class="form-error">{{ formError() }}</p>
@@ -138,15 +245,73 @@
           @if (discount() > 0) {
             <div class="row discount-row"><span>Discount</span><span>-{{ discount() | inr }}</span></div>
           }
-          <div class="row"><span>Shipping</span><span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span></div>
+          <div class="row">
+            <span>Shipping</span>
+            @if (shippingFee() === null) {
+              <span class="pending">—</span>
+            } @else {
+              <span>{{ shippingFee() === 0 ? 'Free' : (shippingFee() | inr) }}</span>
+            }
+          </div>
+
+          <!--
+            Availability problems, surfaced before payment rather than after.
+            The server re-checks stock when the order is placed, so an item that
+            sold out mid-session is caught here instead of failing at the very
+            last step.
+          -->
+          @if (quoteProblems().length) {
+            <ul class="quote-problems">
+              @for (problem of quoteProblems(); track problem) {
+                <li>{{ problem }}</li>
+              }
+            </ul>
+          }
         </div>
         <div class="grand-total-row">
           <span>Total</span>
-          <span>{{ grandTotal() | inr }}</span>
+          @if (grandTotal() === null) {
+            <span class="pending">{{ quoteLoading() ? 'Working it out…' : '—' }}</span>
+          } @else {
+            <span>{{ grandTotal() | inr }}</span>
+          }
         </div>
 
-        <button type="button" class="btn btn-primary full" [disabled]="placingOrder()" (click)="placeOrder()">
-          {{ placingOrder() ? 'Placing Order...' : 'Place Order' }}
+        @if (quoteFailed()) {
+          <!--
+            No total, no order. This used to show the local subtotal as though
+            it were the price and leave Place Order enabled beneath it.
+          -->
+          <app-state-block
+            kind="error"
+            title="We couldn't confirm your total"
+            message="Nothing has been charged and your bag is safe. Please retry before placing the order."
+            retryLabel="Retry"
+            (retry)="retryQuote()"
+          />
+        }
+
+        <button
+          type="button"
+          class="btn btn-primary full"
+          [disabled]="placingOrder() || !canPlaceOrder()"
+          (click)="placeOrder()"
+        >
+          @if (paymentPhase() === 'confirming') {
+            Confirming payment…
+          } @else if (paymentPhase() === 'starting') {
+            Opening payment…
+          } @else if (placingOrder()) {
+            Placing Order...
+          } @else if (quoteLoading()) {
+            Working out your total…
+          } @else if (!canPlaceOrder()) {
+            Total unavailable
+          } @else if (paymentMethod() === 'Online' && grandTotal() !== null) {
+            Pay {{ grandTotal() | inr }}
+          } @else {
+            Place Order
+          }
         </button>
         <p class="secure-footnote">🔒 Your payment information is processed securely.</p>
       </aside>

@@ -1,16 +1,19 @@
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
-
-export const environment = {
-  production: false
-};
-
-/*
- * For easier debugging in development mode, you can import the following file
- * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
+/**
+ * Development environment.
  *
- * This import should be commented out in production mode because it will have a negative impact
- * on performance if an error is thrown.
+ * Unlike the web storefront, this cannot use a relative "/api". The storefront
+ * is served by a dev server that proxies /api to the API process; a Capacitor
+ * WebView serves the bundle from the device itself, so a relative path resolves
+ * against the device and never leaves it. The URL has to be absolute.
+ *
+ * And it has to be the LAN address rather than localhost: on a phone,
+ * "localhost" is the phone. 10.0.2.2 would work for the Android emulator only,
+ * which is not what this project tests on - the APK is installed on a real
+ * device. The API must therefore be listening on the LAN, not just loopback.
+ *
+ * Change this to your machine's address when it moves; there is no discovery.
  */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+export const environment = {
+  production: false,
+  apiBaseUrl: 'http://192.168.1.2:5210/api',
+};

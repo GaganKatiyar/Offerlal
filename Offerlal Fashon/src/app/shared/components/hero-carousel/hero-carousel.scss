@@ -1,0 +1,173 @@
+@use '../../../../styles/mq' as *;
+
+:host {
+  display: block;
+}
+
+.hero {
+  position: relative;
+}
+
+.hero-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.hero-slide {
+  position: relative;
+  scroll-snap-align: start;
+
+  /* Explicit aspect ratios rather than a fixed height: the box is reserved
+     before the image arrives, so the page below does not jump — which on a
+     full-bleed hero is the most visible layout shift a page can have.
+
+     Taller on mobile because a 3:1 desktop banner cropped to a phone leaves a
+     letterbox strip with nothing legible in it. */
+  aspect-ratio: 4 / 5;
+
+  @include mq(sm) {
+    aspect-ratio: 16 / 9;
+  }
+
+  @include mq(lg) {
+    aspect-ratio: 128 / 45;
+  }
+
+  app-image-with-fallback,
+  :is(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.hero-copy {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--space-6) var(--container-pad) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-white);
+
+  /* A scrim, not a solid bar: stock photography puts light and dark under the
+     text unpredictably, and white on a pale sari is unreadable without it. */
+  background: linear-gradient(to top, rgb(20 15 12 / 0.72), rgb(20 15 12 / 0.15) 60%, transparent);
+
+  @include mq(md) {
+    padding-inline: var(--space-10);
+    max-width: 46ch;
+  }
+
+  h2 {
+    margin: 0;
+    color: inherit;
+    font-family: var(--font-display);
+    font-size: var(--fs-h3);
+    line-height: var(--lh-tight);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--fs-sm);
+    opacity: 0.92;
+  }
+
+  .btn {
+    margin-top: var(--space-2);
+  }
+}
+
+.hero-badge {
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--brand-accent);
+  color: var(--text-primary);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+}
+
+.hero-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--space-3);
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.hero-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  /* Longhand, deliberately. The `background` shorthand resets background-clip,
+     and the coarse-pointer rule below relies on it to keep an 8px dot inside a
+     44px button. As a shorthand on .hero-dot.active it also won on specificity,
+     so the active dot painted its whole tap area solid white over the CTA. */
+  background-color: rgb(255 255 255 / 0.5);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard);
+
+  &.active {
+    background-color: var(--color-white);
+  }
+
+  /* The visual dot stays small; the tap target does not. */
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+  }
+}
+
+/*
+  On a finger, -8px of overlay gives a 24x24 target - the WCAG 2.5.8 minimum,
+  but half what a thumb wants on a control sitting over a moving carousel.
+
+  Padding rather than a bigger overlay, for two reasons: the box grows for real
+  (an overlay leaves the button measuring 8px, so nothing can verify it), and
+  the targets then tile edge to edge instead of overlapping. Overlapping areas
+  would be the worse bug - a tap landing between two dots would silently go to
+  whichever painted last. background-clip keeps the dot itself 8px.
+*/
+@media (pointer: coarse) {
+  .hero-dots {
+    gap: 0;
+  }
+
+  .hero-dot {
+    box-sizing: content-box;
+    padding: calc((var(--control-h-touch) - 8px) / 2);
+    background-clip: content-box;
+
+    &::after {
+      content: none;
+    }
+  }
+
+  /* The taller dot row now reaches up into where the CTA sits. Give the caption
+     enough bottom padding to clear it: a tap target that overlaps the button it
+     sits next to is worse than the small dot this replaced. */
+  .hero-copy {
+    padding-bottom: calc(var(--space-3) + var(--control-h-touch) + var(--space-2));
+  }
+}

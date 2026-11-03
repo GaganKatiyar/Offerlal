@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.rail-shell {
+  position: relative;
+}
+
+.rail-track {
+  /* Padding so a focus ring on the first or last tile is not clipped by the
+     scroll container, and so tiles do not sit flush against the edge. */
+  padding: var(--space-1) var(--space-0-5);
+  scroll-padding-inline: var(--space-1);
+}
+
+.rail-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-raised);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: var(--border-hairline);
+  border-radius: var(--radius-full);
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+  font-size: var(--fs-lg);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: opacity var(--dur-fast) var(--ease-standard);
+
+  &.start {
+    left: calc(var(--space-3) * -1);
+  }
+
+  &.end {
+    right: calc(var(--space-3) * -1);
+  }
+
+  /* Hidden rather than disabled: a greyed-out arrow at the end of a rail is
+     visual noise that says nothing the fade does not already say. */
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* A pointer convenience only. On touch the finger is the control. */
+  @media (hover: none) {
+    display: none;
+  }
+}

@@ -1,0 +1,50 @@
+<section class="app-band">
+  <div class="container app-band__inner">
+    <div class="app-band__art" aria-hidden="true">
+      @if (imageUrl()) {
+        <img [src]="imageUrl()" alt="" loading="lazy" decoding="async" />
+      } @else {
+        <!--
+          Drawn in CSS rather than shipping a stock phone photo. Decorative and
+          aria-hidden, so it carries nothing a screen reader needs. Replace with
+          a real device shot via the section's image when there is one.
+        -->
+        <div class="phone">
+          <span class="phone__notch"></span>
+          <span class="phone__screen"></span>
+        </div>
+      }
+    </div>
+
+    <div class="app-band__copy">
+      <h2>{{ heading() || 'More to love on the app' }}</h2>
+      @if (subheading()) {
+        <p class="app-band__sub">{{ subheading() }}</p>
+      }
+
+      <div class="app-band__cta">
+        <span class="app-band__prompt">Download now</span>
+        <div class="app-band__stores">
+          @for (s of stores(); track s.id) {
+            @if (s.linkUrl) {
+              <a class="store" [href]="s.linkUrl" target="_blank" rel="noopener">
+                <span class="store__label">{{ s.subtitle }}</span>
+                <span class="store__name">{{ s.title }}</span>
+              </a>
+            } @else {
+              <!--
+                No URL means the app is not listed on that store yet. A disabled
+                chip says so; a live-looking button that goes nowhere is worse
+                than an honest one.
+              -->
+              <span class="store store--soon">
+                <span class="store__label">{{ s.subtitle }}</span>
+                <span class="store__name">{{ s.title }} — soon</span>
+              </span>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

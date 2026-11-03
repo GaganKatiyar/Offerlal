@@ -4,7 +4,7 @@
   </ion-toolbar>
   <div class="chip-row">
     <button type="button" class="chip" [class.active]="activeCategory() === null" (click)="select(null)">All</button>
-    @for (cat of categories; track cat.id) {
+    @for (cat of categories(); track cat.id) {
       <button type="button" class="chip" [class.active]="activeCategory() === cat.id" (click)="select(cat.id)">
         {{ cat.name }}
       </button>
@@ -13,10 +13,44 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="result-count">{{ products().length }} items</div>
+  <ion-refresher slot="fixed" (ionRefresh)="reload($any($event))">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!--
+    The server's total, not the length of what has been scrolled into view.
+    Showing products().length said "12 items" on a category holding 24.
+  -->
+  <div class="result-count">
+    @if (loading() && !products().length) {
+      Loading…
+    } @else {
+      {{ total() }} item{{ total() === 1 ? '' : 's' }}
+    }
+  </div>
+
+  @if (failed()) {
+    <div class="load-error">
+      <p>Couldn't load products. Check your connection.</p>
+      <button type="button" (click)="reload()">Try again</button>
+    </div>
+  }
+
   <div class="grid">
     @for (p of products(); track p.id) {
       <app-product-card [product]="p" />
+    } @empty {
+      @if (loading()) {
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="card-skeleton"><ion-skeleton-text [animated]="true" /></div>
+        }
+      } @else if (!failed()) {
+        <p class="empty">Nothing in this category yet.</p>
+      }
     }
   </div>
+
+  <ion-infinite-scroll [disabled]="!hasNext()" (ionInfinite)="loadMore($any($event))">
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>

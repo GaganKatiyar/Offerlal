@@ -1,0 +1,32 @@
+<div class="rail-shell">
+  <button
+    type="button"
+    class="rail-arrow start"
+    [class.hidden]="!canScrollStart()"
+    (click)="scrollBy(-1)"
+    aria-label="Scroll left"
+    tabindex="-1"
+  >
+    ‹
+  </button>
+
+  <!--
+    The rail itself is a plain scroll container. Keyboard users reach the tiles
+    by tabbing through them, which scrolls the container natively, so the arrows
+    are tabindex="-1" rather than adding a second, redundant tab stop.
+  -->
+  <div #track class="rail-track o-rail" (scroll)="measure()">
+    <ng-content />
+  </div>
+
+  <button
+    type="button"
+    class="rail-arrow end"
+    [class.hidden]="!canScrollEnd()"
+    (click)="scrollBy(1)"
+    aria-label="Scroll right"
+    tabindex="-1"
+  >
+    ›
+  </button>
+</div>

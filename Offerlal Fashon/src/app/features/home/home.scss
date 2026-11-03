@@ -1,47 +1,54 @@
-﻿:host {
+@use '../../../styles/mq' as *;
+
+:host {
   display: block;
+
+  /* The homepage is a shopping surface, not an editorial one.
+   *
+   * It previously alternated ivory and cream — a ~2% luminance step between two
+   * warm off-whites, so the banding did nothing visually while the warmth made
+   * dense product grids read muddy. White is the ground; sections separate by a
+   * hairline and by rhythm instead of by fill.
+   *
+   * Scoped to :host, NOT a global override of --surface-page: ivory IS the brand
+   * on About, the concierge and the bridal edit, and those must keep it. */
+  background: var(--surface-shop);
 }
 
+/* Vertical rhythm.
+ *
+ * Was 80px top AND bottom — 160px of empty ground between any two sections,
+ * roughly four times Myntra's. One token, so density is tunable in one place. */
 .section {
-  padding: var(--space-20) 0;
+  --section-pad-y: var(--space-6);
 
-  &.alt {
-    background: var(--surface-alt);
-  }
-}
+  padding: var(--section-pad-y) 0;
 
-.section-head {
-  margin-bottom: var(--space-10);
-
-  &.center {
-    text-align: center;
+  /* A hairline, not a fill. The ".alt" banding was keyed to the section's index
+   * in the whole CMS list, so the stripe pattern reshuffled whenever an admin
+   * reordered anything. */
+  & + .section {
+    border-top: var(--border-hairline);
   }
 
-  h2 {
-    margin: var(--space-2) 0 0;
+  @include mq(md) {
+    --section-pad-y: var(--space-8);
   }
-}
-
-.section-sub {
-  color: var(--text-secondary);
-  margin-top: var(--space-2);
 }
 
 .section-cta {
   text-align: center;
-  margin-top: var(--space-10);
+  margin-top: var(--space-5);
 }
 
 /* Occasion / category grids */
-.occasion-grid,
-.category-grid {
+.occasion-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-3);
 }
 
 .occasion-card,
-.category-card,
 .budget-card {
   position: relative;
   aspect-ratio: 3 / 4;
@@ -187,50 +194,11 @@
 }
 
 /* Complete the look */
-.look-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
-}
 
-.look-item {
-  display: block;
-  min-width: 0;
-  text-align: center;
 
-  app-image-with-fallback {
-    aspect-ratio: 3 / 4;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-}
 
-.look-item-name {
-  font-size: var(--font-size-xs);
-  margin: var(--space-2) 0 2px;
-  color: var(--text-primary);
-}
 
-.look-item-price {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--brand-primary);
-  margin: 0;
-}
 
-.look-footer {
-  margin-top: var(--space-8);
-  text-align: center;
-}
-
-.look-total {
-  font-size: var(--font-size-lg);
-  margin-bottom: var(--space-4);
-
-  strong {
-    color: var(--brand-primary);
-  }
-}
 
 /* Styled by you */
 .styled-grid {
@@ -282,9 +250,11 @@
 }
 
 /* Trust */
+/* Was painted --surface-page, the same ivory as the page behind it, so the band
+ * was invisible and only its hairlines showed. Now a genuine tonal step. */
 .trust-section {
-  padding: var(--space-16) 0;
-  background: var(--surface-page);
+  padding: var(--space-8) 0;
+  background: var(--surface-alt);
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -368,9 +338,6 @@
   .budget-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .look-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
   .styled-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -391,5 +358,102 @@
 @media (min-width: 1024px) {
   .category-tile-grid {
     grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Circular browse tiles — occasions and categories.
+
+   Replaces two wrapping grids of large 3:4 and 4:3 rectangles. A circle reads
+   as a browse affordance rather than a product, which is exactly the
+   distinction Myntra draws at the top of its homepage: circles are where you
+   are going, rectangles are what you are buying.
+   --------------------------------------------------------------------------- */
+
+.circle-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 92px;
+  text-align: center;
+  color: inherit;
+
+  @include mq(md) {
+    width: 112px;
+  }
+
+  @include mq(lg) {
+    width: 165px;
+  }
+}
+
+.circle-media {
+  /*
+    Was hardcoded to 165px at every breakpoint, nearly double the 92px tile
+    that holds it. The image overflowed its own label container and each tile
+    overlapped the next, which on a 412px phone left barely two and a half
+    circles visible with the first and last both clipped at the screen edge -
+    exactly what a mobile screenshot of this section showed.
+
+    Sized to match .circle-tile's width at each step instead, so the circle
+    fits the space its own label reserves.
+  */
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+
+  @include mq(md) {
+    width: 112px;
+    height: 112px;
+  }
+
+  @include mq(lg) {
+    width: 165px;
+    height: 165px;
+  }
+
+  :is(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.circle-tile:hover .circle-media {
+  border-color: var(--brand-primary);
+}
+
+.circle-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  color: var(--text-primary);
+
+  /* Two lines maximum: "Dupattas, Clutches & Footwear" would otherwise push the
+     rail's rows out of alignment with each other. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.circle-meta {
+  font-size: var(--fs-2xs);
+  color: var(--price-discount);
+  font-weight: var(--fw-semibold);
+}
+
+/* Rail-sized budget tiles, replacing the wrapping 3-up grid. */
+.budget-card {
+  width: 150px;
+
+  @include mq(md) {
+    width: 190px;
   }
 }

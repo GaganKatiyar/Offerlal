@@ -1,0 +1,16 @@
+<div class="promo">
+  <div class="container promo-inner">
+    <p class="promo-text">
+      @if (heading()) {
+        <strong>{{ heading() }}</strong>
+      }
+      @if (subheading()) {
+        <span class="promo-sub">{{ subheading() }}</span>
+      }
+    </p>
+
+    @if (ctaLabel() && ctaUrl()) {
+      <a class="promo-cta" [routerLink]="ctaUrl()">{{ ctaLabel() }}</a>
+    }
+  </div>
+</div>

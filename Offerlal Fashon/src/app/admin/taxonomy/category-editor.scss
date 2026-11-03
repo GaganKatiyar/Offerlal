@@ -1,0 +1,289 @@
+@use '../../../styles/mq' as *;
+
+.editor-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.editor-sub {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  max-width: 60ch;
+}
+
+.editor-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.banner {
+  padding: var(--space-2-5) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--space-4);
+
+  &.ok {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+  }
+
+  &.err {
+    background: rgb(181 75 35 / 0.12);
+    color: var(--color-error);
+  }
+
+  // Unsaved structural change: a caution, not a failure, so it reads as amber
+  // rather than borrowing the error colour.
+  &.warn {
+    background: rgb(176 137 63 / 0.14);
+    color: var(--brand-accent);
+  }
+}
+
+.editor-layout {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+
+  @include mq(lg) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Tree
+   --------------------------------------------------------------------------- */
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tree-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+
+  // Depth as an indent, set per row from the component. One rule rather than a
+  // nested markup structure, which would fight the flat @for.
+  margin-left: calc(var(--depth, 0) * var(--space-6));
+
+  &.selected {
+    border-color: var(--brand-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  // Hidden categories stay legible but obviously inert, matching how the
+  // homepage editor treats a hidden section.
+  &.inactive .tree-name {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+}
+
+.reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  button {
+    width: 22px;
+    height: 18px;
+    padding: 0;
+    border: var(--border-hairline);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    font-size: 9px;
+    line-height: 1;
+    color: var(--text-secondary);
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.tree-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+}
+
+.tree-name {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-base);
+  color: var(--text-primary);
+}
+
+.tree-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+
+.slug {
+  font-family: var(--font-mono, monospace);
+}
+
+.hidden-pill {
+  padding: 1px var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+
+/* ---------------------------------------------------------------------------
+   Detail pane
+   --------------------------------------------------------------------------- */
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: var(--border-hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+
+  h2 {
+    margin: 0;
+    font-size: var(--fs-h6);
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1-5);
+    font-size: var(--fs-sm);
+
+    > span {
+      font-weight: var(--fw-medium);
+      color: var(--text-secondary);
+    }
+  }
+
+  input[type='text'],
+  textarea,
+  select {
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-hairline);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    background: var(--surface-page);
+    color: var(--text-primary);
+
+    &:focus-visible {
+      outline: 2px solid var(--brand-primary);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.field-row {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+
+  @include mq(sm) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--space-2) !important;
+}
+
+.hint {
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+
+// A consequence, not a description. Coloured so it is not skimmed past.
+.hint-note {
+  color: var(--brand-accent);
+}
+
+.seo {
+  border: var(--border-hairline);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+
+  summary {
+    cursor: pointer;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+  }
+
+  label {
+    margin-top: var(--space-3);
+  }
+}
+
+.detail-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  background: transparent;
+}
+
+.path-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-top: var(--space-3);
+  border-top: var(--border-hairline);
+  margin: 0;
+
+  code {
+    font-size: var(--fs-2xs);
+    color: var(--text-secondary);
+    word-break: break-all;
+  }
+}
+
+.path-label {
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}

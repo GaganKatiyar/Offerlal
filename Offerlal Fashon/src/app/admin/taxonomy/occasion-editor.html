@@ -1,0 +1,88 @@
+<div class="admin-page">
+  <header class="editor-head">
+    <div>
+      <h1>Occasions</h1>
+      <p class="editor-sub">
+        A filter on every shop page and a link target in the menus. Products are tagged with these.
+      </p>
+    </div>
+    <div class="editor-actions">
+      <button type="button" class="btn btn-outline" (click)="reload()" [disabled]="saving()">Reload</button>
+      <button type="button" class="btn btn-outline" (click)="add()" [disabled]="saving()">+ Add</button>
+    </div>
+  </header>
+
+  @if (message()) {
+    <p class="banner ok">{{ message() }}</p>
+  }
+  @if (error()) {
+    <div class="banner err">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    <div class="editor-layout">
+      <aside class="tree">
+        @for (o of occasions(); track o.id) {
+          <div class="tree-row" [class.selected]="o.id === selectedId()">
+            <button type="button" class="tree-summary" (click)="select(o.id)">
+              <span class="tree-name">{{ o.name }}</span>
+              <span class="tree-meta">
+                <span class="slug">/{{ o.slug }}</span>
+                @if (o.productCount) {
+                  <span class="count">{{ o.productCount }} product{{ o.productCount === 1 ? '' : 's' }}</span>
+                }
+              </span>
+            </button>
+          </div>
+        } @empty {
+          <p class="muted">No occasions yet.</p>
+        }
+      </aside>
+
+      <section class="detail">
+        @if (selected(); as o) {
+          @if (draft(); as d) {
+            <h2>{{ o.name }}</h2>
+
+            <label>
+              <span>Name</span>
+              <input type="text" [(ngModel)]="d.name" />
+            </label>
+
+            <label>
+              <span>Slug</span>
+              <input type="text" [(ngModel)]="d.slug" />
+              <small class="hint hint-note">
+                This is the shop page's address (/occasion/{{ o.slug }}). Change it and existing links
+                stop working — there are no redirects yet.
+              </small>
+            </label>
+
+            <label>
+              <span>Description</span>
+              <textarea rows="3" [(ngModel)]="d.description"></textarea>
+            </label>
+
+            <label>
+              <span>Image URL</span>
+              <input type="text" [(ngModel)]="d.imageUrl" />
+            </label>
+
+            <div class="detail-actions">
+              <button type="button" class="btn btn-primary" (click)="save()" [disabled]="saving()">
+                Save occasion
+              </button>
+              <button type="button" class="btn btn-danger" (click)="remove(o)" [disabled]="saving()">
+                Delete
+              </button>
+            </div>
+          }
+        } @else {
+          <p class="muted">Select an occasion to edit it.</p>
+        }
+      </section>
+    </div>
+  }
+</div>
