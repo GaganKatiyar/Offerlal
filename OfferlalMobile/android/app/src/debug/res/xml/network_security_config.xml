@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEBUG BUILDS ONLY. This file lives under src/debug, so release builds never
+  merge it and stay on Android's default of https-only.
+
+  Allows plain http to the LAN address of the development API, which is how a
+  phone on the same Wi-Fi reaches the API on this machine. Scoped to the
+  private range rather than all cleartext, so nothing else is opened up.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.1.2</domain>
+    </domain-config>
+</network-security-config>

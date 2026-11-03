@@ -15,5 +15,5 @@
  */
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://192.168.1.9:5210/api',
+  apiBaseUrl: 'http://192.168.1.2:5210/api',
 };
